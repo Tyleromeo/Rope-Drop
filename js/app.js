@@ -17,6 +17,7 @@ function renderNav() {
 
   nav.innerHTML = PARKS.map(park => {
     const { done, total } = Storage.getParkStats(park.id);
+    const { total: tallyTotal } = Storage.getActivityTally(park.id);
     const isActive = park.id === activeParkId;
     const pct = total ? Math.round((done / total) * 100) : 0;
 
@@ -31,7 +32,7 @@ function renderNav() {
       >
         <span class="tab-emoji">${park.emoji}</span>
         <span class="tab-name">${park.shortName}</span>
-        ${done > 0 ? `<span class="tab-pill" style="${isActive ? `background:${park.accentColor};color:#fff;` : ''}">${pct}%</span>` : ''}
+        ${tallyTotal > 0 ? `<span class="tab-pill" style="${isActive ? `background:${park.accentColor};color:#fff;` : ''}">${tallyTotal}</span>` : ''}
       </button>
     `;
   }).join('');
@@ -47,7 +48,26 @@ function renderPark() {
   const checks = Storage.getChecked();
   const notes = Storage.getNotes();
   const { done, total, pct } = Storage.getParkStats(park.id);
+  const tally = Storage.getActivityTally(park.id);
   const main = document.getElementById('main-content');
+
+  const TALLY_LABELS = {
+    thrill: { label: 'Rides', emoji: '🎢' },
+    family: { label: 'Family rides', emoji: '🎠' },
+    show: { label: 'Shows', emoji: '🎭' },
+    food: { label: 'Food & drink', emoji: '🍽️' },
+    character: { label: 'Character meets', emoji: '👋' },
+  };
+
+  const tallyChips = Object.entries(tally.byCategory)
+    .filter(([, count]) => count > 0)
+    .map(([cat, count]) => `
+      <div class="tally-chip">
+        <span class="tally-emoji">${TALLY_LABELS[cat].emoji}</span>
+        <span class="tally-num">${count}</span>
+        <span class="tally-label">${TALLY_LABELS[cat].label}</span>
+      </div>
+    `).join('');
 
   // Hero
   let html = `
@@ -61,6 +81,15 @@ function renderPark() {
           </div>
           <span class="park-progress-label" style="color: ${park.accentColor};">${done} of ${total} done</span>
         </div>
+        ${tally.total > 0 ? `
+          <div class="tally-section">
+            <div class="tally-total">
+              <span class="tally-total-num" style="color: ${park.accentColor};">${tally.total}</span>
+              <span class="tally-total-label">total activities logged</span>
+            </div>
+            <div class="tally-chips">${tallyChips}</div>
+          </div>
+        ` : ''}
       </div>
     </div>
   `;
@@ -246,6 +275,7 @@ function bumpCount(id, direction) {
   } else {
     Storage.decrementCount(id);
   }
+  renderNav();
   renderPark();
 }
 
@@ -336,16 +366,27 @@ function resetPark(park) {
 
 // ── Toast ────────────────────────────────────────────────────────────────────
 let toastTimer;
-function showToast(msg) {
+function showToast(msg, opts = {}) {
   const toast = document.getElementById('toast');
   toast.textContent = msg;
+  toast.classList.toggle('toast-wrap', !!opts.wrap);
   toast.classList.add('toast-show');
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => toast.classList.remove('toast-show'), 2600);
+  toastTimer = setTimeout(() => toast.classList.remove('toast-show'), opts.duration || 2600);
 }
 
 // ── Init ─────────────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
   renderNav();
   renderPark();
+  maybeShowStarHint();
 });
+
+function maybeShowStarHint() {
+  const seen = localStorage.getItem('rd_star_hint_seen_v1');
+  if (seen) return;
+  localStorage.setItem('rd_star_hint_seen_v1', '1');
+  setTimeout(() => {
+    showToast('★ Starred rides are suggested must-dos — tap any star to add or remove your own', { wrap: true, duration: 4200 });
+  }, 600);
+}

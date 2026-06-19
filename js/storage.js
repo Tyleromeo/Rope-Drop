@@ -117,9 +117,25 @@ const Storage = {
   },
 
   // --- Personal stars (your own must-dos) ---
+  // On first-ever load, stars are seeded from each item's `must` flag as a
+  // suggested starting point. After that, the person's own taps are the
+  // only source of truth — edits persist and are never overwritten again.
   getStars() {
     try {
-      return JSON.parse(localStorage.getItem(STORAGE_KEY_STARS) || '{}');
+      const raw = localStorage.getItem(STORAGE_KEY_STARS);
+      if (raw === null) {
+        // First load ever — seed from suggested must-dos, then save so
+        // this only happens once.
+        const seeded = {};
+        PARKS.forEach(park => park.sections.forEach(section =>
+          section.items.forEach(item => {
+            if (item.must) seeded[item.id] = true;
+          })
+        ));
+        localStorage.setItem(STORAGE_KEY_STARS, JSON.stringify(seeded));
+        return seeded;
+      }
+      return JSON.parse(raw);
     } catch { return {}; }
   },
   setStars(obj) {
@@ -146,5 +162,26 @@ const Storage = {
       if (checks[i.id]) done++;
     }));
     return { total, done, pct: total ? Math.round((done / total) * 100) : 0 };
-  }
+  },
+
+  // Total "activity count" — every checked item counts at least once,
+  // plus any extra times logged via the ride counter. Broken down by
+  // badge category (thrill/family/show/food/character) and a grand total.
+  // e.g. Cosmic Rewind checked + ridden 2 extra times = 3, Remy's = 2 → total 5.
+  getActivityTally(parkId) {
+    const park = PARKS.find(p => p.id === parkId);
+    const checks = this.getChecked();
+    const counts = this.getCounts();
+    const byCategory = { thrill: 0, family: 0, show: 0, food: 0, character: 0 };
+    let total = 0;
+
+    park?.sections.forEach(s => s.items.forEach(item => {
+      if (!checks[item.id]) return;
+      const times = 1 + (counts[item.id] || 0);
+      total += times;
+      if (byCategory[item.badge] !== undefined) byCategory[item.badge] += times;
+    }));
+
+    return { total, byCategory };
+  },
 };

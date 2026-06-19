@@ -240,6 +240,58 @@ body {
   white-space: nowrap;
 }
 
+.tally-section {
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+
+.tally-total {
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+  margin-bottom: 12px;
+}
+
+.tally-total-num {
+  font-family: var(--font-display);
+  font-size: 30px;
+  font-weight: 400;
+  line-height: 1;
+}
+
+.tally-total-label {
+  font-size: 13px;
+  color: var(--text-2);
+}
+
+.tally-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.tally-chip {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 10px;
+  border-radius: var(--radius-pill);
+  background: var(--bg-2);
+  font-size: 12px;
+}
+
+.tally-emoji { font-size: 13px; }
+
+.tally-num {
+  font-weight: 700;
+  color: var(--text-1);
+}
+
+.tally-label {
+  color: var(--text-2);
+}
+
 /* ── Sections ── */
 .section {
   padding: 20px 18px 4px;
@@ -693,7 +745,15 @@ body {
   pointer-events: none;
   transition: opacity 0.2s, transform 0.2s;
   white-space: nowrap;
+  max-width: calc(100% - 32px);
   z-index: 200;
+}
+
+.toast.toast-wrap {
+  white-space: normal;
+  border-radius: var(--radius);
+  text-align: center;
+  line-height: 1.4;
 }
 
 .toast-show {
