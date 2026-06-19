@@ -511,12 +511,27 @@ function openTripsModal() {
               <span class="trip-name">${trip.name}</span>
               <span class="trip-date">${new Date(trip.createdAt).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}</span>
             </button>
+            <button class="trip-export" data-id="${trip.id}" aria-label="Export this trip" title="Export / share">⬆</button>
             <button class="trip-rename" data-id="${trip.id}" aria-label="Rename trip" title="Rename">✎</button>
             ${trips.length > 1 ? `<button class="trip-delete" data-id="${trip.id}" aria-label="Delete trip" title="Delete">🗑</button>` : ''}
           </div>
         `).join('')}
       </div>
       <button class="new-trip-btn">+ Start a new trip</button>
+
+      <div class="recap-section">
+        <div class="recap-section-heading">Share a recap of your current trip</div>
+        <div class="recap-btn-row">
+          <button class="recap-image-btn">📸 Save as image</button>
+          <button class="recap-pdf-btn">📄 Save as PDF</button>
+        </div>
+      </div>
+
+      <div class="trip-io-row">
+        <button class="trip-export-all-btn">Export all trips (data)</button>
+        <button class="trip-import-btn">Import a file</button>
+      </div>
+      <input type="file" id="trip-import-input" accept="application/json,.json" style="display:none;" />
     </div>
   `;
 
@@ -588,6 +603,412 @@ function openTripsModal() {
     showToast('New trip started 🎉');
     close(true);
   });
+
+  // Export a single trip
+  overlay.querySelectorAll('.trip-export').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const trips = Storage.listTrips();
+      const trip = trips.find(t => t.id === btn.dataset.id);
+      const data = Storage.exportTrip(btn.dataset.id);
+      if (!data) return;
+      downloadJSON(data, slugify(trip ? trip.name : 'rope-drop-trip'));
+      showToast('Trip exported — check your downloads');
+    });
+  });
+
+  // Recap exports for the currently active trip
+  overlay.querySelector('.recap-image-btn').addEventListener('click', () => {
+    exportRecapImage();
+  });
+  overlay.querySelector('.recap-pdf-btn').addEventListener('click', () => {
+    exportRecapPDF();
+  });
+
+  // Export every trip at once
+  overlay.querySelector('.trip-export-all-btn').addEventListener('click', () => {
+    const data = Storage.exportAllTrips();
+    downloadJSON(data, 'rope-drop-all-trips');
+    showToast('All trips exported — check your downloads');
+  });
+
+  // Import — opens the hidden file picker
+  const importInput = overlay.querySelector('#trip-import-input');
+  overlay.querySelector('.trip-import-btn').addEventListener('click', () => {
+    importInput.click();
+  });
+
+  importInput.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      let payload;
+      try {
+        payload = JSON.parse(event.target.result);
+      } catch {
+        showToast('That file isn\'t valid — try a Rope Drop export.', { wrap: true, duration: 3200 });
+        return;
+      }
+      const result = Storage.importTrips(payload);
+      if (result.success && result.importedCount > 0) {
+        showToast(`Imported ${result.importedCount} trip${result.importedCount > 1 ? 's' : ''} 🎉`, { wrap: true, duration: 3200 });
+        close(false);
+        openTripsModal();
+      } else {
+        showToast(result.error || 'Could not import that file.', { wrap: true, duration: 3200 });
+      }
+    };
+    reader.readAsText(file);
+  });
+}
+
+// Triggers a browser download of a JSON object as a .json file
+function downloadJSON(obj, filenameBase) {
+  const blob = new Blob([JSON.stringify(obj, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `${filenameBase}.json`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+function slugify(str) {
+  return str
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/(^-|-$)/g, '') || 'rope-drop-trip';
+}
+
+// ── Recap canvas renderer (shared layout logic for JPEG export) ────────────
+// Draws a vertically-stacked recap: an overview card up top, then one
+// card per park visited. Returns the canvas element so callers can either
+// export it as a JPEG or hand it off to the PDF builder as an image.
+function buildRecapCanvas(summary) {
+  const W = 900;
+  const CARD_PADDING = 40;
+  const HEADER_H = 220;
+  const PARK_CARD_H = 200;
+  const FOOTER_H = 70;
+  const H = HEADER_H + summary.parkSummaries.length * PARK_CARD_H + FOOTER_H + 40;
+
+  const canvas = document.createElement('canvas');
+  const scale = 2; // render at 2x for crisp text, then downscale via CSS-free export
+  canvas.width = W * scale;
+  canvas.height = H * scale;
+  const ctx = canvas.getContext('2d');
+  ctx.scale(scale, scale);
+
+  // Background
+  ctx.fillStyle = '#fdfcfa';
+  ctx.fillRect(0, 0, W, H);
+
+  let y = 0;
+
+  // ── Header / overview band ──
+  const headerGrad = ctx.createLinearGradient(0, 0, W, HEADER_H);
+  headerGrad.addColorStop(0, '#2a2520');
+  headerGrad.addColorStop(1, '#4a3a28');
+  ctx.fillStyle = headerGrad;
+  ctx.fillRect(0, 0, W, HEADER_H);
+
+  ctx.fillStyle = '#ffffff';
+  ctx.font = '600 15px "DM Sans", sans-serif';
+  ctx.textBaseline = 'alphabetic';
+  ctx.fillText('🎢 ROPE DROP RECAP', CARD_PADDING, 48);
+
+  ctx.font = '400 38px "DM Serif Display", serif';
+  ctx.fillText(summary.tripName, CARD_PADDING, 96);
+
+  ctx.font = '400 64px "DM Serif Display", serif';
+  ctx.fillStyle = '#e0a04a';
+  ctx.fillText(String(summary.grandTotal), CARD_PADDING, 165);
+
+  ctx.font = '500 15px "DM Sans", sans-serif';
+  ctx.fillStyle = 'rgba(255,255,255,0.85)';
+  ctx.fillText('total activities logged', CARD_PADDING + ctx.measureText(String(summary.grandTotal)).width + 90, 158);
+
+  // Category chips in header
+  const CAT_LABELS = { rides: '🎢 Rides', show: '🎭 Shows', food: '🍽️ Food', character: '👋 Meets' };
+  let chipX = CARD_PADDING;
+  const chipY = 195;
+  Object.entries(summary.grandByCategory).forEach(([cat, count]) => {
+    if (count === 0) return;
+    const label = `${CAT_LABELS[cat]}: ${count}`;
+    ctx.font = '500 13px "DM Sans", sans-serif';
+    const textW = ctx.measureText(label).width;
+    const chipW = textW + 24;
+    ctx.fillStyle = 'rgba(255,255,255,0.12)';
+    roundRect(ctx, chipX, chipY - 16, chipW, 26, 13);
+    ctx.fill();
+    ctx.fillStyle = '#ffffff';
+    ctx.fillText(label, chipX + 12, chipY + 2);
+    chipX += chipW + 8;
+  });
+
+  y = HEADER_H;
+
+  // ── Highlight strip (most-ridden) ──
+  if (summary.mostRiddenItem && summary.mostRiddenItem.times > 1) {
+    ctx.fillStyle = '#fbeee2';
+    ctx.fillRect(0, y, W, 50);
+    ctx.fillStyle = '#b8761f';
+    ctx.font = '500 14px "DM Sans", sans-serif';
+    ctx.fillText(`⭐ Favorite: ${summary.mostRiddenItem.name} — ridden ${summary.mostRiddenItem.times}× `, CARD_PADDING, y + 31);
+    y += 50;
+  }
+
+  // ── Per-park cards ──
+  summary.parkSummaries.forEach((ps, i) => {
+    const park = ps.park;
+    const cardY = y;
+    const isEven = i % 2 === 0;
+    ctx.fillStyle = isEven ? '#ffffff' : '#f7f6f3';
+    ctx.fillRect(0, cardY, W, PARK_CARD_H);
+
+    // Accent bar
+    ctx.fillStyle = park.accentColor;
+    ctx.fillRect(0, cardY, 6, PARK_CARD_H);
+
+    // Park name + emoji
+    ctx.fillStyle = '#1a1814';
+    ctx.font = '400 26px "DM Serif Display", serif';
+    ctx.fillText(`${park.emoji} ${park.name}`, CARD_PADDING, cardY + 42);
+
+    // Total for this park
+    ctx.fillStyle = park.accentColor;
+    ctx.font = '400 30px "DM Serif Display", serif';
+    const totalLabel = String(ps.tally.total);
+    const totalW = ctx.measureText(totalLabel).width;
+    ctx.fillText(totalLabel, W - CARD_PADDING - totalW - 110, cardY + 44);
+    ctx.font = '500 13px "DM Sans", sans-serif';
+    ctx.fillStyle = '#6b6760';
+    ctx.fillText('activities', W - CARD_PADDING - 100, cardY + 44);
+
+    // Category breakdown line
+    const breakdown = Object.entries(ps.tally.byCategory)
+      .filter(([, c]) => c > 0)
+      .map(([cat, c]) => `${CAT_LABELS[cat]}: ${c}`)
+      .join('   ');
+    ctx.font = '500 13px "DM Sans", sans-serif';
+    ctx.fillStyle = '#6b6760';
+    ctx.fillText(breakdown || 'No activities logged', CARD_PADDING, cardY + 70);
+
+    // List up to 5 checked items
+    ctx.font = '400 13px "DM Sans", sans-serif';
+    ctx.fillStyle = '#3a3630';
+    const itemsToShow = ps.checkedItems.slice(0, 5);
+    itemsToShow.forEach((item, idx) => {
+      const lineY = cardY + 100 + idx * 19;
+      const timesLabel = item.times > 1 ? ` (×${item.times})` : '';
+      let label = `• ${item.name}${timesLabel}`;
+      if (label.length > 78) label = label.slice(0, 75) + '…';
+      ctx.fillText(label, CARD_PADDING + 4, lineY);
+    });
+    if (ps.checkedItems.length > 5) {
+      ctx.fillStyle = '#9e9b96';
+      ctx.fillText(`+ ${ps.checkedItems.length - 5} more`, CARD_PADDING + 4, cardY + 100 + 5 * 19);
+    }
+
+    y += PARK_CARD_H;
+  });
+
+  // ── Footer ──
+  ctx.fillStyle = '#2a2520';
+  ctx.fillRect(0, y, W, FOOTER_H);
+  ctx.fillStyle = 'rgba(255,255,255,0.7)';
+  ctx.font = '500 13px "DM Sans", sans-serif';
+  ctx.fillText('Made with Rope Drop 🎢  ·  Not affiliated with The Walt Disney Company', CARD_PADDING, y + 40);
+
+  return canvas;
+}
+
+function roundRect(ctx, x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.arcTo(x + w, y, x + w, y + h, r);
+  ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r);
+  ctx.arcTo(x, y, x + w, y, r);
+  ctx.closePath();
+}
+
+// Renders the recap canvas and triggers a JPEG download
+function exportRecapImage() {
+  const summary = Storage.getTripSummary();
+  if (summary.grandTotal === 0) {
+    showToast('Check off a few things first — nothing to recap yet!', { wrap: true, duration: 3000 });
+    return;
+  }
+  const canvas = buildRecapCanvas(summary);
+  canvas.toBlob((blob) => {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${slugify(summary.tripName)}-recap.jpg`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    showToast('Recap image saved 📸');
+  }, 'image/jpeg', 0.92);
+}
+
+// Renders the trip summary as a multi-page PDF: an overview page first,
+// then one page per park with full ride breakdowns.
+function exportRecapPDF() {
+  const summary = Storage.getTripSummary();
+  if (summary.grandTotal === 0) {
+    showToast('Check off a few things first — nothing to recap yet!', { wrap: true, duration: 3000 });
+    return;
+  }
+  if (typeof window.jspdf === 'undefined') {
+    showToast('PDF export isn\'t available right now — try the image export instead.', { wrap: true, duration: 3400 });
+    return;
+  }
+
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit: 'pt', format: 'letter' });
+  const pageW = doc.internal.pageSize.getWidth();
+  const pageH = doc.internal.pageSize.getHeight();
+  const margin = 50;
+  let y = margin;
+
+  const CAT_LABELS = { rides: 'Rides', show: 'Shows', food: 'Food & drink', character: 'Character meets' };
+
+  // ── Overview page ──
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(11);
+  doc.setTextColor(120, 120, 120);
+  doc.text('ROPE DROP RECAP', margin, y);
+  y += 28;
+
+  doc.setFont('times', 'normal');
+  doc.setFontSize(28);
+  doc.setTextColor(30, 28, 24);
+  doc.text(summary.tripName, margin, y);
+  y += 46;
+
+  doc.setFontSize(48);
+  doc.setTextColor(224, 146, 42);
+  doc.text(String(summary.grandTotal), margin, y);
+  const totalNumWidth = doc.getTextWidth(String(summary.grandTotal));
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(13);
+  doc.setTextColor(100, 100, 100);
+  doc.text('total activities logged', margin + totalNumWidth + 14, y - 6);
+  y += 36;
+
+  const catLine = Object.entries(summary.grandByCategory)
+    .filter(([, c]) => c > 0)
+    .map(([cat, c]) => `${CAT_LABELS[cat]}: ${c}`)
+    .join('    ·    ');
+  doc.setFontSize(12);
+  doc.setTextColor(70, 70, 70);
+  doc.text(catLine, margin, y);
+  y += 30;
+
+  if (summary.mostRiddenItem && summary.mostRiddenItem.times > 1) {
+    doc.setFillColor(251, 238, 226);
+    doc.rect(margin - 10, y - 16, pageW - margin * 2 + 20, 30, 'F');
+    doc.setTextColor(184, 118, 31);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(11);
+    doc.text(`Favorite: ${summary.mostRiddenItem.name} — ridden ${summary.mostRiddenItem.times}×`, margin, y + 4);
+    y += 40;
+  }
+
+  y += 10;
+  doc.setDrawColor(220, 220, 220);
+  doc.line(margin, y, pageW - margin, y);
+  y += 30;
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(13);
+  doc.setTextColor(30, 28, 24);
+  doc.text('Parks visited', margin, y);
+  y += 22;
+
+  summary.parkSummaries.forEach(ps => {
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(12);
+    doc.setTextColor(40, 40, 40);
+    doc.text(`${ps.park.emoji}  ${ps.park.name}`, margin, y);
+    doc.setFont('helvetica', 'bold');
+    doc.text(`${ps.tally.total} activities`, pageW - margin - 90, y);
+    y += 20;
+  });
+
+  // ── One page per park with full checklist breakdown ──
+  summary.parkSummaries.forEach(ps => {
+    doc.addPage();
+    y = margin;
+
+    doc.setFont('times', 'normal');
+    doc.setFontSize(24);
+    doc.setTextColor(30, 28, 24);
+    doc.text(`${ps.park.emoji}  ${ps.park.name}`, margin, y);
+    y += 14;
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(11);
+    doc.setTextColor(130, 130, 130);
+    doc.text(ps.park.resort, margin, y);
+    y += 30;
+
+    const breakdown = Object.entries(ps.tally.byCategory)
+      .filter(([, c]) => c > 0)
+      .map(([cat, c]) => `${CAT_LABELS[cat]}: ${c}`)
+      .join('    ·    ');
+    doc.setFontSize(12);
+    doc.setTextColor(70, 70, 70);
+    doc.text(breakdown || 'No activities logged', margin, y);
+    y += 28;
+
+    doc.setDrawColor(225, 225, 225);
+    doc.line(margin, y, pageW - margin, y);
+    y += 24;
+
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(12);
+    doc.setTextColor(30, 28, 24);
+    doc.text('What you did', margin, y);
+    y += 20;
+
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(11);
+    ps.checkedItems.forEach(item => {
+      if (y > pageH - margin) {
+        doc.addPage();
+        y = margin;
+      }
+      const timesLabel = item.times > 1 ? `  (ridden ${item.times}×)` : '';
+      doc.setTextColor(40, 40, 40);
+      doc.text(`•  ${item.name}${timesLabel}`, margin, y);
+      y += 18;
+    });
+
+    if (ps.checkedItems.length === 0) {
+      doc.setTextColor(150, 150, 150);
+      doc.text('Nothing logged here yet.', margin, y);
+    }
+  });
+
+  // Footer disclaimer on every page
+  const pageCount = doc.internal.getNumberOfPages();
+  for (let i = 1; i <= pageCount; i++) {
+    doc.setPage(i);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9);
+    doc.setTextColor(170, 170, 170);
+    doc.text('Made with Rope Drop · Not affiliated with The Walt Disney Company', margin, pageH - 28);
+  }
+
+  doc.save(`${slugify(summary.tripName)}-recap.pdf`);
+  showToast('Recap PDF saved 📄');
 }
 
 // ── Toast ────────────────────────────────────────────────────────────────────

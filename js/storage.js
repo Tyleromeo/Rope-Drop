@@ -300,4 +300,129 @@ const Storage = {
     parks.forEach(p => { total += this.getActivityTally(p.id).total; });
     return total;
   },
+
+  // Builds everything needed to render a trip recap (image or PDF):
+  // overall totals, per-park breakdowns, and a few highlight facts.
+  // Operates on the currently active trip.
+  getTripSummary() {
+    const meta = this.getAllTrips()[this.getActiveTripId()];
+    const tripName = meta ? meta.name : 'My Disney Trip';
+
+    const parkSummaries = [];
+    let grandTotal = 0;
+    const grandByCategory = { rides: 0, show: 0, food: 0, character: 0 };
+    let mostRiddenItem = null; // { name, times }
+    let totalUniqueChecked = 0;
+
+    const checks = this.getChecked();
+    const counts = this.getCounts();
+
+    PARKS.forEach(park => {
+      const tally = this.getActivityTally(park.id);
+      if (tally.total === 0) return; // skip parks with no activity at all
+
+      const checkedItems = [];
+      park.sections.forEach(s => s.items.forEach(item => {
+        if (!checks[item.id]) return;
+        const times = 1 + (counts[item.id] || 0);
+        checkedItems.push({ name: item.name, badge: item.badge, times });
+        totalUniqueChecked++;
+        if (!mostRiddenItem || times > mostRiddenItem.times) {
+          mostRiddenItem = { name: item.name, times };
+        }
+      }));
+
+      grandTotal += tally.total;
+      Object.keys(grandByCategory).forEach(k => { grandByCategory[k] += tally.byCategory[k]; });
+
+      parkSummaries.push({
+        park,
+        tally,
+        checkedItems,
+      });
+    });
+
+    return {
+      tripName,
+      grandTotal,
+      grandByCategory,
+      totalUniqueChecked,
+      mostRiddenItem,
+      parkSummaries,
+    };
+  },
+
+  // ── Export / Import ─────────────────────────────────────────────────
+  // Exports either a single trip or every trip as a self-contained JSON
+  // object. This is the file the person downloads, can back up, and can
+  // load back in later — on this device or any other.
+  exportTrip(tripId) {
+    const meta = this.getAllTrips()[tripId];
+    const allData = this.getAllTripsData();
+    if (!meta || !allData[tripId]) return null;
+    return {
+      ropeDropExport: true,
+      version: 1,
+      exportedAt: new Date().toISOString(),
+      trips: { [tripId]: meta },
+      tripsData: { [tripId]: allData[tripId] },
+    };
+  },
+
+  exportAllTrips() {
+    return {
+      ropeDropExport: true,
+      version: 1,
+      exportedAt: new Date().toISOString(),
+      trips: this.getAllTrips(),
+      tripsData: this.getAllTripsData(),
+    };
+  },
+
+  // Imports trips from a previously-exported object. Trips are added
+  // alongside whatever already exists (never overwrites existing trips) —
+  // if a trip with the same id is already present, the incoming one is
+  // given a fresh id and clearly relabeled so nothing is silently lost.
+  // Returns { success, importedCount, error }.
+  importTrips(payload) {
+    try {
+      if (!payload || !payload.ropeDropExport || !payload.trips || !payload.tripsData) {
+        return { success: false, importedCount: 0, error: 'This file doesn\'t look like a Rope Drop export.' };
+      }
+      const existingMeta = this.getAllTrips();
+      const existingData = this.getAllTripsData();
+      let importedCount = 0;
+      let lastImportedId = null;
+
+      Object.entries(payload.trips).forEach(([tripId, tripMeta]) => {
+        const tripData = payload.tripsData[tripId];
+        if (!tripData) return;
+
+        let finalId = tripId;
+        let finalMeta = { ...tripMeta };
+        if (existingMeta[tripId]) {
+          // Collision — import as a new trip so nothing already on this
+          // device gets clobbered.
+          finalId = uid();
+          finalMeta = { ...tripMeta, id: finalId, name: `${tripMeta.name} (imported)` };
+        }
+
+        existingMeta[finalId] = finalMeta;
+        existingData[finalId] = tripData;
+        importedCount++;
+        lastImportedId = finalId;
+      });
+
+      this.saveTripsMeta(existingMeta);
+      this.saveAllTripsData(existingData);
+
+      if (importedCount > 0 && lastImportedId) {
+        this.setActiveTrip(lastImportedId);
+      }
+
+      return { success: true, importedCount, error: null };
+    } catch (e) {
+      return { success: false, importedCount: 0, error: 'Could not read that file.' };
+    }
+  },
 };
