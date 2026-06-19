@@ -42,6 +42,71 @@ function renderNav() {
   });
 }
 
+// ── Render a single item row (used by both Must-Dos and regular sections) ──
+function renderItemRow(item, checks, opts = {}) {
+  const isDone = !!checks[item.id];
+  const badge = BADGE_CONFIG[item.badge] || BADGE_CONFIG.family;
+  const count = Storage.getCount(item.id);
+  const hasSongPicker = !!SONG_PICKERS[item.id];
+  const songLog = Storage.getSongLog(item.id);
+  const isStarred = Storage.isStarred(item.id);
+  const inMustDos = !!opts.inMustDos;
+
+  return `
+    <div class="item-row${isDone ? ' item-done' : ''}" data-id="${item.id}">
+      ${inMustDos ? `
+        <button
+          class="remove-must-btn"
+          data-id="${item.id}"
+          aria-label="Remove from must-dos"
+          title="Remove from must-dos"
+        >✕</button>
+      ` : `
+        <button
+          class="star-btn${isStarred ? ' starred' : ''}"
+          data-id="${item.id}"
+          aria-pressed="${isStarred}"
+          aria-label="${isStarred ? 'Remove from your must-dos' : 'Add to your must-dos'}"
+          title="${isStarred ? 'Your must-do' : 'Mark as your must-do'}"
+        >${isStarred ? '★' : '☆'}</button>
+      `}
+      <button
+        class="item"
+        data-id="${item.id}"
+        aria-pressed="${isDone}"
+        aria-label="${item.name}${isDone ? ' — completed' : ''}"
+      >
+        <span class="item-check" aria-hidden="true">
+          ${isDone ? `<svg width="12" height="12" viewBox="0 0 12 12" fill="none"><polyline points="2,6 5,9 10,3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>` : ''}
+        </span>
+        <span class="item-body">
+          <span class="item-name">${item.name}</span>
+          <span class="item-meta">${item.meta}${songLog.length ? ` · <span class="song-tag-inline">${songLog[songLog.length - 1]}</span>` : ''}</span>
+        </span>
+        <span class="badge ${badge.cls}">${badge.label}</span>
+      </button>
+      <div class="item-extras">
+        ${isDone ? `
+          <div class="count-stepper">
+            <button class="count-minus" data-id="${item.id}" title="Remove a ride" ${count === 0 ? 'disabled' : ''}>
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 12h14"/></svg>
+            </button>
+            <span class="count-display">${count + 1}×</span>
+            <button class="count-plus" data-id="${item.id}" title="Add another ride">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+            </button>
+          </div>
+        ` : ''}
+        ${isDone && hasSongPicker ? `
+          <button class="song-btn" data-id="${item.id}" title="Log which song you got">
+            🎵${songLog.length > 1 ? ` <span class="count-num">${songLog.length}</span>` : ''}
+          </button>
+        ` : ''}
+      </div>
+    </div>
+  `;
+}
+
 // ── Render main content ──────────────────────────────────────────────────────
 function renderPark() {
   const park = PARKS.find(p => p.id === activeParkId);
@@ -93,71 +158,33 @@ function renderPark() {
     </div>
   `;
 
-  // Sections
+  // Must-Dos section — gathers every starred item across all sections in
+  // this park, in starred order. Items here are removed from their normal
+  // category below so nothing is duplicated.
+  const allStarredItems = [];
   park.sections.forEach(section => {
+    section.items.forEach(item => {
+      if (Storage.isStarred(item.id)) allStarredItems.push(item);
+    });
+  });
+
+  if (allStarredItems.length > 0) {
+    html += `<div class="section must-dos-section"><h2 class="section-heading must-dos-heading">★ Your must-dos</h2>`;
+    allStarredItems.forEach(item => {
+      html += renderItemRow(item, checks, { inMustDos: true });
+    });
+    html += `</div>`;
+  }
+
+  // Sections — starred items are excluded here since they live in Must-Dos above
+  park.sections.forEach(section => {
+    const remainingItems = section.items.filter(item => !Storage.isStarred(item.id));
+    if (remainingItems.length === 0) return;
+
     html += `<div class="section"><h2 class="section-heading">${section.name}</h2>`;
-
-    // Starred items float to the top of their section, original order preserved otherwise
-    const sortedItems = [...section.items].sort((a, b) => {
-      const aStar = Storage.isStarred(a.id) ? 1 : 0;
-      const bStar = Storage.isStarred(b.id) ? 1 : 0;
-      return bStar - aStar;
+    remainingItems.forEach(item => {
+      html += renderItemRow(item, checks);
     });
-
-    sortedItems.forEach(item => {
-      const isDone = !!checks[item.id];
-      const badge = BADGE_CONFIG[item.badge] || BADGE_CONFIG.family;
-      const count = Storage.getCount(item.id);
-      const hasSongPicker = !!SONG_PICKERS[item.id];
-      const songLog = Storage.getSongLog(item.id);
-      const isStarred = Storage.isStarred(item.id);
-
-      html += `
-        <div class="item-row${isDone ? ' item-done' : ''}" data-id="${item.id}">
-          <button
-            class="star-btn${isStarred ? ' starred' : ''}"
-            data-id="${item.id}"
-            aria-pressed="${isStarred}"
-            aria-label="${isStarred ? 'Remove from your must-dos' : 'Add to your must-dos'}"
-            title="${isStarred ? 'Your must-do' : 'Mark as your must-do'}"
-          >${isStarred ? '★' : '☆'}</button>
-          <button
-            class="item"
-            data-id="${item.id}"
-            aria-pressed="${isDone}"
-            aria-label="${item.name}${isDone ? ' — completed' : ''}"
-          >
-            <span class="item-check" aria-hidden="true">
-              ${isDone ? `<svg width="12" height="12" viewBox="0 0 12 12" fill="none"><polyline points="2,6 5,9 10,3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>` : ''}
-            </span>
-            <span class="item-body">
-              <span class="item-name">${item.name}</span>
-              <span class="item-meta">${item.meta}${songLog.length ? ` · <span class="song-tag-inline">${songLog[songLog.length - 1]}</span>` : ''}</span>
-            </span>
-            <span class="badge ${badge.cls}">${badge.label}</span>
-          </button>
-          <div class="item-extras">
-            ${isDone ? `
-              <div class="count-stepper">
-                <button class="count-minus" data-id="${item.id}" title="Remove a ride" ${count === 0 ? 'disabled' : ''}>
-                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 12h14"/></svg>
-                </button>
-                <span class="count-display">${count + 1}×</span>
-                <button class="count-plus" data-id="${item.id}" title="Add another ride">
-                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
-                </button>
-              </div>
-            ` : ''}
-            ${isDone && hasSongPicker ? `
-              <button class="song-btn" data-id="${item.id}" title="Log which song you got">
-                🎵${songLog.length > 1 ? ` <span class="count-num">${songLog.length}</span>` : ''}
-              </button>
-            ` : ''}
-          </div>
-        </div>
-      `;
-    });
-
     html += `</div>`;
   });
 
@@ -179,6 +206,16 @@ function renderPark() {
 
   // Bind star buttons
   main.querySelectorAll('.star-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      e.stopImmediatePropagation();
+      toggleStar(btn.dataset.id);
+    });
+  });
+
+  // Bind must-do remove buttons
+  main.querySelectorAll('.remove-must-btn').forEach(btn => {
     btn.addEventListener('click', (e) => {
       e.preventDefault();
       e.stopPropagation();
