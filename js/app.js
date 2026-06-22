@@ -149,9 +149,19 @@ function renderItemRow(item, checks, opts = {}) {
   const menuData = (typeof MENU_DATA !== 'undefined') ? MENU_DATA[item.id] : null;
   const hasInfo = !!(details || menuData);
 
+  const isFirst = !!opts.isFirst;
+  const isLast = !!opts.isLast;
+
   const starOrRemoveBtn = inMustDos
     ? `<button class="remove-must-btn" data-id="${item.id}" aria-label="Remove from must-dos" title="Remove from must-dos">✕</button>`
     : `<button class="star-btn${isStarred ? ' starred' : ''}" data-id="${item.id}" aria-pressed="${isStarred}" aria-label="${isStarred ? 'Remove from your must-dos' : 'Add to your must-dos'}" title="${isStarred ? 'Your must-do' : 'Mark as your must-do'}">${isStarred ? '★' : '☆'}</button>`;
+
+  const reorderBtns = inMustDos ? `
+    <div class="reorder-btns">
+      <button class="reorder-up-btn" data-id="${item.id}" aria-label="Move up" title="Move up" ${isFirst ? 'disabled' : ''}>▲</button>
+      <button class="reorder-down-btn" data-id="${item.id}" aria-label="Move down" title="Move down" ${isLast ? 'disabled' : ''}>▼</button>
+    </div>
+  ` : '';
 
   const checkIcon = isDone
     ? '<svg width="12" height="12" viewBox="0 0 12 12" fill="none"><polyline points="2,6 5,9 10,3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>'
@@ -214,26 +224,6 @@ function renderItemRow(item, checks, opts = {}) {
     </div>
   ` : '';
 
-  // Showtimes — only for items badged 'show' that have typical time data
-  const typicalTimes = TYPICAL_SHOWTIMES[item.id];
-  const showtimeOverride = Storage.getShowtimeOverride(item.id);
-  const showtimeHtml = (item.badge === 'show' && typicalTimes) ? `
-    <div class="showtime-row">
-      <span class="showtime-label">🕐 Typical:</span>
-      <span class="showtime-typical">${typicalTimes.join(' · ')}</span>
-    </div>
-    <div class="showtime-override-row">
-      <span class="showtime-label">Today's time:</span>
-      <input
-        type="text"
-        class="showtime-input"
-        data-id="${item.id}"
-        placeholder="e.g. 3:15 PM"
-        value="${showtimeOverride}"
-      />
-    </div>
-  ` : '';
-
   return `
     <div class="item-wrap">
       <div class="item-row${isDone ? ' item-done' : ''}" data-id="${item.id}">
@@ -242,17 +232,17 @@ function renderItemRow(item, checks, opts = {}) {
           <span class="item-check" aria-hidden="true">${checkIcon}</span>
           <span class="item-body">
             <span class="item-name">${item.name}${statusTag}${singlePassTag}</span>
-            <span class="item-meta">${item.meta}${songLog.length ? ` · <span class="song-tag-inline">${songLog[songLog.length - 1]}</span>` : ''}${showtimeOverride ? ` · <span class="song-tag-inline">Today: ${showtimeOverride}</span>` : ''}</span>
+            <span class="item-meta">${item.meta}${songLog.length ? ` · <span class="song-tag-inline">${songLog[songLog.length - 1]}</span>` : ''}</span>
           </span>
           <span class="badge ${badge.cls}">${badge.label}</span>
         </button>
         <div class="item-extras">
+          ${reorderBtns}
           ${infoBtn}
           ${stepperHtml}
           ${songBtnHtml}
         </div>
       </div>
-      ${showtimeHtml ? `<div class="showtime-panel">${showtimeHtml}</div>` : ''}
       ${detailPanelHtml}
     </div>
   `;
@@ -292,9 +282,8 @@ function renderPark() {
       </div>
     `).join('');
 
-  // Park hours — typical hours plus an editable "today's hours" override
+  // Park hours — Early Entry and typical hours only
   const typicalHours = TYPICAL_PARK_HOURS[park.id];
-  const hoursOverride = Storage.getHoursOverride(park.id);
   const hoursHtml = typicalHours ? `
     <div class="hours-section">
       <div class="hours-row">
@@ -304,16 +293,6 @@ function renderPark() {
       <div class="hours-row">
         <span class="hours-label">🕐 Typical hours</span>
         <span class="hours-value">${typicalHours.open} – ${typicalHours.close}</span>
-      </div>
-      <div class="hours-row hours-override-row">
-        <span class="hours-label">Today's hours</span>
-        <input
-          type="text"
-          class="hours-input"
-          data-park="${park.id}"
-          placeholder="e.g. 9:00 AM – 10:00 PM"
-          value="${hoursOverride}"
-        />
       </div>
     </div>
   ` : '';
@@ -397,21 +376,23 @@ function renderPark() {
   }
 
   // Must-Dos section — gathers every starred item across all sections in
-  // this park IN THE CURRENT CATEGORY, in starred order. Items here are
-  // removed from their normal category below so nothing is duplicated.
-  const allStarredItems = [];
-  park.sections.forEach(section => {
-    section.items.forEach(item => {
-      if (Storage.isStarred(item.id) && categoryForBadge(item.badge) === activeCategory) {
-        allStarredItems.push(item);
-      }
-    });
-  });
+  // this park IN THE CURRENT CATEGORY, in the person's chosen order.
+  // Items here are removed from their normal category below so nothing
+  // is duplicated.
+  const starOrderIds = Storage.getStarOrder(park.id);
+  const allItemsInPark = park.sections.flatMap(s => s.items);
+  const allStarredItems = starOrderIds
+    .map(id => allItemsInPark.find(i => i.id === id))
+    .filter(item => item && categoryForBadge(item.badge) === activeCategory);
 
   if (allStarredItems.length > 0) {
     html += `<div class="section must-dos-section"><h2 class="section-heading must-dos-heading">★ Your must-dos</h2>`;
-    allStarredItems.forEach(item => {
-      html += renderItemRow(item, checks, { inMustDos: true });
+    allStarredItems.forEach((item, idx) => {
+      html += renderItemRow(item, checks, {
+        inMustDos: true,
+        isFirst: idx === 0,
+        isLast: idx === allStarredItems.length - 1,
+      });
     });
     html += `</div>`;
   }
@@ -508,34 +489,17 @@ function renderPark() {
     });
   });
 
-  // Bind park hours override input
-  main.querySelectorAll('.hours-input').forEach(input => {
-    input.addEventListener('change', (e) => {
-      Storage.setHoursOverride(input.dataset.park, e.target.value);
-    });
-  });
-
-  // Bind showtime override inputs
-  main.querySelectorAll('.showtime-input').forEach(input => {
-    input.addEventListener('change', (e) => {
-      Storage.setShowtimeOverride(input.dataset.id, e.target.value);
-      // Refresh just the meta line tag without a full re-render, to avoid
-      // losing focus mid-typing on mobile keyboards
-      renderPark();
-    });
-  });
-
   // Bind "Play while you wait" quick-launch buttons
   main.querySelectorAll('.play-quicklaunch-btn').forEach(btn => {
     btn.addEventListener('click', (e) => {
       e.preventDefault();
       e.stopPropagation();
       activeCategory = 'play';
-      renderPark();
-      window.scrollTo(0, 0);
-      // Auto-start a general round right away for a true one-tap experience
+      triviaView = 'home';
+      triviaActiveCategory = 'general';
       const park = PARKS.find(p => p.id === activeParkId);
-      startTriviaRound(park, false);
+      startTriviaRound(park);
+      window.scrollTo(0, 0);
     });
   });
 
@@ -571,6 +535,26 @@ function renderPark() {
       e.stopPropagation();
       e.stopImmediatePropagation();
       toggleStar(btn.dataset.id);
+    });
+  });
+
+  // Bind must-do reorder buttons
+  main.querySelectorAll('.reorder-up-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      e.stopImmediatePropagation();
+      Storage.moveStarredItem(btn.dataset.id, -1);
+      renderPark();
+    });
+  });
+  main.querySelectorAll('.reorder-down-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      e.stopImmediatePropagation();
+      Storage.moveStarredItem(btn.dataset.id, 1);
+      renderPark();
     });
   });
 
@@ -763,18 +747,54 @@ function bindTripButton() {
 }
 
 // ── Play tab — trivia while you wait in line ────────────────────────────────
-let triviaState = null; // { questions, index, score, parkSpecific }
+// View state: 'home' (category picker) -> 'levels' (level picker for a
+// category) -> 'playing' (an active round) -> 'results'
+let triviaView = 'home';
+let triviaActiveCategory = null; // category key, or 'general'/'park' for quick modes
+let triviaActiveLevel = null;
+let triviaState = null; // { questions, index, score }
 
-function buildTriviaSet(park, parkSpecific) {
-  const general = [...TRIVIA_GENERAL];
-  const parkQs = (TRIVIA_BY_PARK[park.id] || []).map(q => ({ ...q, isParkSpecific: true }));
-  const pool = parkSpecific ? [...parkQs, ...general] : [...general, ...parkQs];
-  // Shuffle and take up to 8 questions per round
+const ROUND_SIZE = 10;
+
+// Builds a round of up to ROUND_SIZE questions from a pool, shuffled.
+// If the pool is smaller than ROUND_SIZE, uses the whole pool rather
+// than failing — this matters for thinner level-4 pools.
+function buildRoundFromPool(pool) {
   const shuffled = pool.map(q => ({ q, sort: Math.random() })).sort((a, b) => a.sort - b.sort).map(x => x.q);
-  return shuffled.slice(0, 8);
+  return shuffled.slice(0, Math.min(ROUND_SIZE, shuffled.length));
 }
 
 function renderPlayTab(park) {
+  if (triviaView === 'home') return renderTriviaHome(park);
+  if (triviaView === 'levels') return renderTriviaLevels(park);
+  return `<div class="play-tab"><div id="trivia-game-area"></div></div>`;
+}
+
+function bindPlayTab(park) {
+  if (triviaView === 'home') return bindTriviaHome(park);
+  if (triviaView === 'levels') return bindTriviaLevels(park);
+  // 'playing'/'results' states render their own content directly into
+  // #trivia-game-area, started via startTriviaRound, so nothing to bind here
+  // except re-displaying the current question/results on a re-render.
+  if (triviaState) {
+    if (triviaView === 'playing') renderTriviaQuestion(park);
+    else if (triviaView === 'results') renderTriviaResults(park);
+  }
+}
+
+// ── Home: category picker + quick modes ─────────────────────────────────────
+function renderTriviaHome(park) {
+  const categoryCards = Object.entries(TRIVIA_CATEGORIES).map(([key, cat]) => {
+    const unlocked = Storage.getHighestUnlockedLevel(key);
+    return `
+      <button class="trivia-cat-card" data-category="${key}" style="border-color: ${park.accentColor};">
+        <span class="trivia-cat-emoji">${cat.emoji}</span>
+        <span class="trivia-cat-label">${cat.label}</span>
+        <span class="trivia-cat-sub">Level ${unlocked}${unlocked < 4 ? ' unlocked' : ' — maxed out!'}</span>
+      </button>
+    `;
+  }).join('');
+
   return `
     <div class="play-tab">
       <div class="play-hero">
@@ -794,26 +814,103 @@ function renderPlayTab(park) {
           <span class="play-mode-sub">Questions about this park specifically</span>
         </button>
       </div>
+      <div class="trivia-section-divider">Or pick a category</div>
+      <div class="trivia-cat-grid">${categoryCards}</div>
       <div id="trivia-game-area"></div>
     </div>
   `;
 }
 
-function bindPlayTab(park) {
+function bindTriviaHome(park) {
   const generalBtn = document.getElementById('play-general-btn');
   const parkBtn = document.getElementById('play-park-btn');
-  if (generalBtn) generalBtn.addEventListener('click', () => startTriviaRound(park, false));
-  if (parkBtn) parkBtn.addEventListener('click', () => startTriviaRound(park, true));
+  if (generalBtn) generalBtn.addEventListener('click', () => {
+    triviaActiveCategory = 'general';
+    startTriviaRound(park);
+  });
+  if (parkBtn) parkBtn.addEventListener('click', () => {
+    triviaActiveCategory = 'park';
+    startTriviaRound(park);
+  });
+  document.querySelectorAll('.trivia-cat-card').forEach(btn => {
+    btn.addEventListener('click', () => {
+      triviaActiveCategory = btn.dataset.category;
+      triviaView = 'levels';
+      renderPark();
+    });
+  });
 }
 
-function startTriviaRound(park, parkSpecific) {
+// ── Level picker for a chosen category ──────────────────────────────────────
+function renderTriviaLevels(park) {
+  const cat = TRIVIA_CATEGORIES[triviaActiveCategory];
+  if (!cat) { triviaView = 'home'; return renderTriviaHome(park); }
+  const unlocked = Storage.getHighestUnlockedLevel(triviaActiveCategory);
+
+  const levelCards = TRIVIA_LEVELS.map(lvl => {
+    const isUnlocked = lvl.id <= unlocked;
+    const poolSize = (cat.levels[lvl.id] || []).length;
+    return `
+      <button class="trivia-level-card${isUnlocked ? '' : ' trivia-level-locked'}" data-level="${lvl.id}" ${isUnlocked ? '' : 'disabled'} style="${isUnlocked ? `border-color: ${park.accentColor};` : ''}">
+        <span class="trivia-level-num">${isUnlocked ? lvl.id : '🔒'}</span>
+        <span class="trivia-level-label">${lvl.label}</span>
+        <span class="trivia-level-sub">${lvl.sub}${!isUnlocked ? ' — ace the level above to unlock' : ''}</span>
+        <span class="trivia-level-pool">${poolSize} question${poolSize !== 1 ? 's' : ''} in rotation</span>
+      </button>
+    `;
+  }).join('');
+
+  return `
+    <div class="play-tab">
+      <button class="trivia-back-btn" id="trivia-back-to-home">← All categories</button>
+      <div class="play-hero">
+        <div class="play-hero-emoji">${cat.emoji}</div>
+        <h2 class="play-hero-title">${cat.label}</h2>
+        <p class="play-hero-subtitle">Get a perfect score to unlock the next level.</p>
+      </div>
+      <div class="trivia-level-grid">${levelCards}</div>
+      <div id="trivia-game-area"></div>
+    </div>
+  `;
+}
+
+function bindTriviaLevels(park) {
+  document.getElementById('trivia-back-to-home').addEventListener('click', () => {
+    triviaView = 'home';
+    renderPark();
+  });
+  document.querySelectorAll('.trivia-level-card:not([disabled])').forEach(btn => {
+    btn.addEventListener('click', () => {
+      triviaActiveLevel = parseInt(btn.dataset.level, 10);
+      startTriviaRound(park);
+    });
+  });
+}
+
+// ── Round play ───────────────────────────────────────────────────────────────
+function startTriviaRound(park) {
+  let pool;
+  if (triviaActiveCategory === 'general') {
+    pool = TRIVIA_GENERAL;
+  } else if (triviaActiveCategory === 'park') {
+    pool = TRIVIA_BY_PARK[park.id] || [];
+  } else {
+    const cat = TRIVIA_CATEGORIES[triviaActiveCategory];
+    pool = (cat && cat.levels[triviaActiveLevel]) || [];
+  }
+
+  if (pool.length === 0) {
+    showToast('No questions available for this round yet.', { wrap: true, duration: 2600 });
+    return;
+  }
+
   triviaState = {
-    questions: buildTriviaSet(park, parkSpecific),
+    questions: buildRoundFromPool(pool),
     index: 0,
     score: 0,
-    parkSpecific,
   };
-  renderTriviaQuestion(park);
+  triviaView = 'playing';
+  renderPark();
 }
 
 function renderTriviaQuestion(park) {
@@ -821,6 +918,7 @@ function renderTriviaQuestion(park) {
   if (!area || !triviaState) return;
 
   if (triviaState.index >= triviaState.questions.length) {
+    triviaView = 'results';
     renderTriviaResults(park);
     return;
   }
@@ -828,7 +926,7 @@ function renderTriviaQuestion(park) {
   const q = triviaState.questions[triviaState.index];
   area.innerHTML = `
     <div class="trivia-card">
-      <div class="trivia-progress">Question ${triviaState.index + 1} of ${triviaState.questions.length}${q.isParkSpecific ? ` · ${park.shortName}` : ''}</div>
+      <div class="trivia-progress">Question ${triviaState.index + 1} of ${triviaState.questions.length}</div>
       <div class="trivia-question">${q.q}</div>
       <div class="trivia-options">
         ${q.options.map((opt, i) => `
@@ -878,10 +976,22 @@ function renderTriviaResults(park) {
   const { score, questions } = triviaState;
   const total = questions.length;
   const pct = Math.round((score / total) * 100);
+  const isCategoryMode = triviaActiveCategory !== 'general' && triviaActiveCategory !== 'park';
 
   let message;
-  if (pct === 100) message = '🏆 Perfect score! Certified Disney expert.';
-  else if (pct >= 75) message = '🎉 Great job — you really know your stuff!';
+  let unlockMessage = '';
+  if (pct === 100) {
+    message = '🏆 Perfect score!';
+    if (isCategoryMode) {
+      const didUnlock = Storage.recordTriviaResult(triviaActiveCategory, triviaActiveLevel, score, total);
+      if (didUnlock && triviaActiveLevel < 4) {
+        const nextLevel = TRIVIA_LEVELS.find(l => l.id === triviaActiveLevel + 1);
+        unlockMessage = `<div class="trivia-unlock-banner">🔓 ${nextLevel.label} level unlocked!</div>`;
+      } else if (triviaActiveLevel === 4) {
+        unlockMessage = `<div class="trivia-unlock-banner">👑 You've mastered every level in this category!</div>`;
+      }
+    }
+  } else if (pct >= 75) message = '🎉 Great job — so close to perfect!';
   else if (pct >= 50) message = '👍 Solid round! Try again for a higher score.';
   else message = '🎢 Plenty more line time to brush up — give it another go!';
 
@@ -889,21 +999,25 @@ function renderTriviaResults(park) {
     <div class="trivia-card trivia-results">
       <div class="trivia-results-score">${score} / ${total}</div>
       <div class="trivia-results-message">${message}</div>
+      ${unlockMessage}
       <div class="play-mode-buttons">
-        <button class="play-mode-btn" id="play-again-general-btn" style="border-color: ${park.accentColor};">
-          <span class="play-mode-emoji">🌎</span>
-          <span class="play-mode-label">Play Again — General</span>
+        <button class="play-mode-btn" id="play-again-btn" style="border-color: ${park.accentColor};">
+          <span class="play-mode-emoji">🔁</span>
+          <span class="play-mode-label">Play Again</span>
         </button>
-        <button class="play-mode-btn" id="play-again-park-btn" style="border-color: ${park.accentColor};">
-          <span class="play-mode-emoji">${park.emoji}</span>
-          <span class="play-mode-label">Play Again — ${park.shortName}</span>
+        <button class="play-mode-btn" id="play-back-btn" style="border-color: ${park.accentColor};">
+          <span class="play-mode-emoji">↩️</span>
+          <span class="play-mode-label">${isCategoryMode ? 'Back to Levels' : 'Back to Categories'}</span>
         </button>
       </div>
     </div>
   `;
 
-  document.getElementById('play-again-general-btn').addEventListener('click', () => startTriviaRound(park, false));
-  document.getElementById('play-again-park-btn').addEventListener('click', () => startTriviaRound(park, true));
+  document.getElementById('play-again-btn').addEventListener('click', () => startTriviaRound(park));
+  document.getElementById('play-back-btn').addEventListener('click', () => {
+    triviaView = isCategoryMode ? 'levels' : 'home';
+    renderPark();
+  });
 }
 
 // ── Weather forecast ─────────────────────────────────────────────────────────
@@ -1134,71 +1248,67 @@ function openAllTimeStatsModal() {
 
   renderAllTimeContent(overlay, stats);
 
+  // Renders one full stats bundle (grandTotals, mostRidden, favoriteSongs,
+  // allItemsRanked) as HTML — shared by both the All-Time tab and each
+  // year block in the By Year tab, so they show identical detail.
+  function renderStatsBundleHtml(bundle, totalLabel) {
+    const tallyChips = Object.entries(bundle.grandTotals)
+      .filter(([key, count]) => key !== 'total' && count > 0)
+      .map(([cat, count]) => `<div class="tally-chip"><span class="tally-num">${count}</span><span class="tally-label">${CAT_LABELS[cat]}</span></div>`)
+      .join('');
+
+    const songRows = Object.entries(bundle.favoriteSongs).map(([itemId, fav]) => {
+      const item = bundle.allItemsRanked.find(r => r.item.id === itemId)?.item;
+      if (!item) return '';
+      return `<div class="alltime-song-row"><strong>${item.name}</strong><span>🎵 ${fav.song} <span class="song-count">(${fav.count}×)</span></span></div>`;
+    }).join('');
+
+    const rankedRows = bundle.allItemsRanked.map((r, i) => `
+      <div class="alltime-rank-row">
+        <span class="rank-num">${i + 1}</span>
+        <span class="rank-emoji">${BADGE_EMOJI[r.item.badge] || '•'}</span>
+        <span class="rank-name">${r.item.name}</span>
+        <span class="rank-count">${r.totalTimes}×</span>
+      </div>
+    `).join('');
+
+    return `
+      <div class="alltime-total">
+        <span class="alltime-total-num">${bundle.grandTotals.total}</span>
+        <span class="alltime-total-label">${totalLabel}</span>
+      </div>
+      <div class="tally-chips">${tallyChips}</div>
+      ${bundle.mostRidden ? `
+        <div class="alltime-highlight">⭐ Most done: <strong>${bundle.mostRidden.item.name}</strong> — ${bundle.mostRidden.totalTimes}×</div>
+      ` : ''}
+      ${songRows ? `
+        <div class="alltime-section-heading">Favorite songs</div>
+        ${songRows}
+      ` : ''}
+      ${rankedRows ? `
+        <div class="alltime-section-heading">Everything, ranked</div>
+        <div class="alltime-rank-list">${rankedRows}</div>
+      ` : `<p class="alltime-empty">Nothing logged yet — check a few things off on a trip!</p>`}
+    `;
+  }
+
   function renderAllTimeContent(overlay, stats) {
     const container = overlay.querySelector('#alltime-content');
 
     if (allTimeView === 'alltime') {
-      const tallyChips = Object.entries(stats.grandTotals)
-        .filter(([key, count]) => key !== 'total' && count > 0)
-        .map(([cat, count]) => `<div class="tally-chip"><span class="tally-num">${count}</span><span class="tally-label">${CAT_LABELS[cat]}</span></div>`)
-        .join('');
-
-      const songRows = Object.entries(stats.favoriteSongs).map(([itemId, fav]) => {
-        const item = stats.allItemsRanked.find(r => r.item.id === itemId)?.item;
-        if (!item) return '';
-        return `<div class="alltime-song-row"><strong>${item.name}</strong><span>🎵 ${fav.song} <span class="song-count">(${fav.count}×)</span></span></div>`;
-      }).join('');
-
-      const rankedRows = stats.allItemsRanked.map((r, i) => `
-        <div class="alltime-rank-row">
-          <span class="rank-num">${i + 1}</span>
-          <span class="rank-emoji">${BADGE_EMOJI[r.item.badge] || '•'}</span>
-          <span class="rank-name">${r.item.name}</span>
-          <span class="rank-count">${r.totalTimes}×</span>
-        </div>
-      `).join('');
-
-      container.innerHTML = `
-        <div class="alltime-total">
-          <span class="alltime-total-num">${stats.grandTotals.total}</span>
-          <span class="alltime-total-label">total activities, all-time</span>
-        </div>
-        <div class="tally-chips">${tallyChips}</div>
-        ${stats.mostRidden ? `
-          <div class="alltime-highlight">⭐ Most done overall: <strong>${stats.mostRidden.item.name}</strong> — ${stats.mostRidden.totalTimes}×</div>
-        ` : ''}
-        ${songRows ? `
-          <div class="alltime-section-heading">Favorite songs</div>
-          ${songRows}
-        ` : ''}
-        ${rankedRows ? `
-          <div class="alltime-section-heading">Everything, ranked</div>
-          <div class="alltime-rank-list">${rankedRows}</div>
-        ` : `<p class="alltime-empty">Nothing logged yet — check a few things off on a trip!</p>`}
-      `;
+      container.innerHTML = renderStatsBundleHtml(stats, 'total activities, all-time');
     } else {
       const years = Object.keys(stats.perYear).sort((a, b) => b - a);
       if (years.length === 0) {
         container.innerHTML = `<p class="alltime-empty">Nothing logged yet — check a few things off on a trip!</p>`;
         return;
       }
-      container.innerHTML = years.map(year => {
-        const y = stats.perYear[year];
-        const chips = Object.entries(CAT_LABELS)
-          .filter(([cat]) => y[cat] > 0)
-          .map(([cat, label]) => `<div class="tally-chip"><span class="tally-num">${y[cat]}</span><span class="tally-label">${label}</span></div>`)
-          .join('');
-        return `
-          <div class="alltime-year-block">
-            <div class="alltime-year-heading">${year}</div>
-            <div class="alltime-total alltime-total-small">
-              <span class="alltime-total-num">${y.total}</span>
-              <span class="alltime-total-label">activities</span>
-            </div>
-            <div class="tally-chips">${chips}</div>
-          </div>
-        `;
-      }).join('');
+      container.innerHTML = years.map(year => `
+        <div class="alltime-year-block">
+          <div class="alltime-year-heading">${year}</div>
+          ${renderStatsBundleHtml(stats.perYear[year], 'activities')}
+        </div>
+      `).join('');
     }
   }
 }

@@ -15,13 +15,14 @@
 const STORAGE_KEY_TRIPS_DATA = 'rd_trips_data_v1';
 const STORAGE_KEY_TRIPS_META = 'rd_trips_meta_v1';
 const STORAGE_KEY_ACTIVE_TRIP = 'rd_active_trip_v1';
+const STORAGE_KEY_TRIVIA_PROGRESS = 'rd_trivia_progress_v1';
 
 function uid() {
   return 'trip_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
 }
 
 function emptyTripData() {
-  return { checks: {}, counts: {}, songs: {}, stars: {}, notes: {}, activePark: PARKS[0].id, activeResort: null, timeline: [], showtimes: {}, hoursOverride: {} };
+  return { checks: {}, counts: {}, songs: {}, stars: {}, starOrder: {}, notes: {}, activePark: PARKS[0].id, activeResort: null, timeline: [], showtimes: {}, hoursOverride: {} };
 }
 
 const Storage = {
@@ -132,6 +133,7 @@ const Storage = {
     if (!allData[tripId].timeline) allData[tripId].timeline = [];
     if (!allData[tripId].showtimes) allData[tripId].showtimes = {};
     if (!allData[tripId].hoursOverride) allData[tripId].hoursOverride = {};
+    if (!allData[tripId].starOrder) allData[tripId].starOrder = {};
     return allData[tripId];
   },
   _saveTripData(data) {
@@ -289,6 +291,8 @@ const Storage = {
   },
 
   // ── Personal stars (your own must-dos, per trip) ────────────────────
+  // Stars are stored per park as an ordered array of itemIds, so the
+  // person's chosen must-do order persists and can be rearranged later.
   getStars() {
     return this._getTripData().stars;
   },
@@ -297,10 +301,74 @@ const Storage = {
   },
   toggleStar(id) {
     const data = this._getTripData();
-    data.stars[id] = !data.stars[id];
-    if (!data.stars[id]) delete data.stars[id];
+    const item = this._findItemById(id);
+    const parkId = item ? this._parkIdForItem(id) : null;
+
+    if (data.stars[id]) {
+      delete data.stars[id];
+      if (parkId && data.starOrder && data.starOrder[parkId]) {
+        data.starOrder[parkId] = data.starOrder[parkId].filter(x => x !== id);
+      }
+    } else {
+      data.stars[id] = true;
+      if (!data.starOrder) data.starOrder = {};
+      if (parkId) {
+        if (!data.starOrder[parkId]) data.starOrder[parkId] = [];
+        data.starOrder[parkId].push(id);
+      }
+    }
     this._saveTripData(data);
     return !!data.stars[id];
+  },
+
+  // Returns starred itemIds for a park, in the person's chosen order.
+  // Falls back to insertion order from `stars` for any starred items
+  // that predate the starOrder feature.
+  getStarOrder(parkId) {
+    const data = this._getTripData();
+    const order = (data.starOrder && data.starOrder[parkId]) || [];
+    // Include any starred items missing from order (legacy data safety net)
+    const starredIds = Object.keys(data.stars).filter(id => this._parkIdForItem(id) === parkId);
+    const missing = starredIds.filter(id => !order.includes(id));
+    return [...order.filter(id => data.stars[id]), ...missing];
+  },
+
+  // Moves a starred item up or down one position within its park's
+  // must-do order. direction is -1 (up/earlier) or 1 (down/later).
+  moveStarredItem(itemId, direction) {
+    const parkId = this._parkIdForItem(itemId);
+    if (!parkId) return;
+    const data = this._getTripData();
+    if (!data.starOrder) data.starOrder = {};
+    if (!data.starOrder[parkId]) data.starOrder[parkId] = this.getStarOrder(parkId);
+
+    const order = data.starOrder[parkId];
+    const idx = order.indexOf(itemId);
+    if (idx === -1) return;
+    const newIdx = idx + direction;
+    if (newIdx < 0 || newIdx >= order.length) return;
+
+    [order[idx], order[newIdx]] = [order[newIdx], order[idx]];
+    this._saveTripData(data);
+  },
+
+  // Internal helpers to resolve an item's park from its id
+  _findItemById(itemId) {
+    for (const park of PARKS) {
+      for (const section of park.sections) {
+        const item = section.items.find(i => i.id === itemId);
+        if (item) return item;
+      }
+    }
+    return null;
+  },
+  _parkIdForItem(itemId) {
+    for (const park of PARKS) {
+      for (const section of park.sections) {
+        if (section.items.some(i => i.id === itemId)) return park.id;
+      }
+    }
+    return null;
   },
 
   // ── All-time stats across every trip ────────────────────────────────
@@ -311,89 +379,91 @@ const Storage = {
     const allTripsMeta = this.getAllTrips();
     const allTripsData = this.getAllTripsData();
 
-    // itemId -> { item, totalTimes, tripIds: Set }
-    const perItem = {};
-    // songText -> count (across all Cosmic-Rewind-style song pickers, by itemId)
-    const perItemSongs = {}; // itemId -> { songText: count }
-    // year -> { rides, show, food, total }
-    const perYear = {};
-
     const allItemsById = {};
     PARKS.forEach(park => park.sections.forEach(s => s.items.forEach(item => {
       allItemsById[item.id] = item;
     })));
 
+    // Group trips by year first, then build identical full stats bundles
+    // for "all-time" (every trip) and for each individual year.
+    const tripsByYear = {}; // year -> [tripData, ...]
     Object.entries(allTripsData).forEach(([tripId, tripData]) => {
       const meta = allTripsMeta[tripId];
       const year = meta ? new Date(meta.createdAt).getFullYear() : 'Unknown';
-      if (!perYear[year]) perYear[year] = { rides: 0, show: 0, food: 0, character: 0, total: 0 };
+      if (!tripsByYear[year]) tripsByYear[year] = [];
+      tripsByYear[year].push(tripData);
+    });
 
-      const checks = tripData.checks || {};
-      const counts = tripData.counts || {};
-      const songs = tripData.songs || {};
+    // Builds one full stats bundle (grandTotals, mostRidden, favoriteSongs,
+    // allItemsRanked) from a list of trip data blobs. Used for both the
+    // all-time bundle (every trip) and each year's bundle (just that year's
+    // trips), so the shape is always identical.
+    function buildStatsBundle(tripDataList) {
+      const perItem = {}; // itemId -> { item, totalTimes }
+      const perItemSongs = {}; // itemId -> { songText: count }
 
-      Object.keys(checks).forEach(itemId => {
-        if (!checks[itemId]) return;
-        const item = allItemsById[itemId];
-        if (!item) return; // item no longer exists in current data (e.g. removed)
-        const times = 1 + (counts[itemId] || 0);
+      tripDataList.forEach(tripData => {
+        const checks = tripData.checks || {};
+        const counts = tripData.counts || {};
+        const songs = tripData.songs || {};
 
-        if (!perItem[itemId]) {
-          perItem[itemId] = { item, totalTimes: 0 };
-        }
-        perItem[itemId].totalTimes += times;
+        Object.keys(checks).forEach(itemId => {
+          if (!checks[itemId]) return;
+          const item = allItemsById[itemId];
+          if (!item) return; // item no longer exists in current data
+          const times = 1 + (counts[itemId] || 0);
 
-        if (perYear[year][item.badge] !== undefined) {
-          perYear[year][item.badge] += times;
-        } else if (item.badge === 'thrill' || item.badge === 'family') {
-          perYear[year].rides += times;
-        }
-        perYear[year].total += times;
-      });
+          if (!perItem[itemId]) perItem[itemId] = { item, totalTimes: 0 };
+          perItem[itemId].totalTimes += times;
+        });
 
-      Object.entries(songs).forEach(([itemId, songList]) => {
-        if (!perItemSongs[itemId]) perItemSongs[itemId] = {};
-        songList.forEach(song => {
-          perItemSongs[itemId][song] = (perItemSongs[itemId][song] || 0) + 1;
+        Object.entries(songs).forEach(([itemId, songList]) => {
+          if (!perItemSongs[itemId]) perItemSongs[itemId] = {};
+          songList.forEach(song => {
+            perItemSongs[itemId][song] = (perItemSongs[itemId][song] || 0) + 1;
+          });
         });
       });
-    });
 
-    // Grand totals by category (rides = thrill+family combined, like elsewhere)
-    const grandTotals = { rides: 0, show: 0, food: 0, character: 0, total: 0 };
-    Object.values(perItem).forEach(({ item, totalTimes }) => {
-      const key = (item.badge === 'thrill' || item.badge === 'family') ? 'rides' : item.badge;
-      if (grandTotals[key] !== undefined) grandTotals[key] += totalTimes;
-      grandTotals.total += totalTimes;
-    });
-
-    // Most-ridden item overall
-    let mostRidden = null;
-    Object.values(perItem).forEach(({ item, totalTimes }) => {
-      if (!mostRidden || totalTimes > mostRidden.totalTimes) {
-        mostRidden = { item, totalTimes };
-      }
-    });
-
-    // Favorite song per item with a song picker (most logged song)
-    const favoriteSongs = {}; // itemId -> { song, count }
-    Object.entries(perItemSongs).forEach(([itemId, songCounts]) => {
-      let best = null;
-      Object.entries(songCounts).forEach(([song, count]) => {
-        if (!best || count > best.count) best = { song, count };
+      const grandTotals = { rides: 0, show: 0, food: 0, character: 0, total: 0 };
+      Object.values(perItem).forEach(({ item, totalTimes }) => {
+        const key = (item.badge === 'thrill' || item.badge === 'family') ? 'rides' : item.badge;
+        if (grandTotals[key] !== undefined) grandTotals[key] += totalTimes;
+        grandTotals.total += totalTimes;
       });
-      if (best) favoriteSongs[itemId] = best;
-    });
 
-    // Sorted list of every item ever done, most-done first
-    const allItemsRanked = Object.values(perItem).sort((a, b) => b.totalTimes - a.totalTimes);
+      let mostRidden = null;
+      Object.values(perItem).forEach(({ item, totalTimes }) => {
+        if (!mostRidden || totalTimes > mostRidden.totalTimes) {
+          mostRidden = { item, totalTimes };
+        }
+      });
+
+      const favoriteSongs = {};
+      Object.entries(perItemSongs).forEach(([itemId, songCounts]) => {
+        let best = null;
+        Object.entries(songCounts).forEach(([song, count]) => {
+          if (!best || count > best.count) best = { song, count };
+        });
+        if (best) favoriteSongs[itemId] = best;
+      });
+
+      const allItemsRanked = Object.values(perItem).sort((a, b) => b.totalTimes - a.totalTimes);
+
+      return { grandTotals, mostRidden, favoriteSongs, allItemsRanked };
+    }
+
+    const allTripDataList = Object.values(allTripsData);
+    const allTimeBundle = buildStatsBundle(allTripDataList);
+
+    const perYear = {};
+    Object.entries(tripsByYear).forEach(([year, tripDataList]) => {
+      perYear[year] = buildStatsBundle(tripDataList);
+    });
 
     return {
-      grandTotals,
-      mostRidden,
-      favoriteSongs,
+      ...allTimeBundle,
       perYear,
-      allItemsRanked,
       totalTrips: Object.keys(allTripsMeta).length,
     };
   },
@@ -604,5 +674,40 @@ const Storage = {
     } catch (e) {
       return { success: false, importedCount: 0, error: 'Could not read that file.' };
     }
+  },
+
+  // ── Trivia level progress ───────────────────────────────────────────
+  // Tracks which levels are unlocked per category. Level 1 is always
+  // unlocked. A perfect score on a level unlocks the next one. This is
+  // global (not per-trip) since trivia is a standalone game, not tied
+  // to any specific park visit.
+  getTriviaProgress() {
+    try {
+      return JSON.parse(localStorage.getItem(STORAGE_KEY_TRIVIA_PROGRESS) || '{}');
+    } catch { return {}; }
+  },
+  isLevelUnlocked(categoryKey, level) {
+    if (level === 1) return true;
+    const progress = this.getTriviaProgress();
+    const unlocked = progress[categoryKey] || 1;
+    return level <= unlocked;
+  },
+  // Called after a round ends. If it was a perfect score, unlocks the
+  // next level for that category (capped at the highest level, 4).
+  recordTriviaResult(categoryKey, level, score, total) {
+    if (score !== total || total === 0) return false; // no unlock on anything less than perfect
+    const progress = this.getTriviaProgress();
+    const current = progress[categoryKey] || 1;
+    const nextLevel = Math.min(level + 1, 4);
+    if (nextLevel > current) {
+      progress[categoryKey] = nextLevel;
+      localStorage.setItem(STORAGE_KEY_TRIVIA_PROGRESS, JSON.stringify(progress));
+      return nextLevel > current; // true if a new level was actually unlocked
+    }
+    return false;
+  },
+  getHighestUnlockedLevel(categoryKey) {
+    const progress = this.getTriviaProgress();
+    return progress[categoryKey] || 1;
   },
 };
