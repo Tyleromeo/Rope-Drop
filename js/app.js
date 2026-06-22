@@ -153,7 +153,9 @@ function renderItemRow(item, checks, opts = {}) {
     ? '<svg width="12" height="12" viewBox="0 0 12 12" fill="none"><polyline points="2,6 5,9 10,3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>'
     : '';
 
-  const infoBtn = hasInfo
+  const isRideType = item.badge === 'thrill' || item.badge === 'family';
+
+  const infoBtn = (hasInfo || isRideType)
     ? `<button class="info-btn" data-id="${item.id}" aria-expanded="false" aria-label="More details about ${item.name}" title="More details">ⓘ</button>`
     : '';
 
@@ -184,7 +186,11 @@ function renderItemRow(item, checks, opts = {}) {
     </div>
   ` : '';
 
-  const detailPanelHtml = hasInfo ? `
+  const playPromptHtml = isRideType ? `
+    <button class="play-quicklaunch-btn" data-id="${item.id}">🎮 Waiting in line? Play trivia</button>
+  ` : '';
+
+  const detailPanelHtml = (hasInfo || isRideType) ? `
     <div class="item-detail-panel" id="detail-${item.id}" hidden>
       ${details ? `
         <p class="detail-block"><strong>What it is</strong><br/>${details.description}</p>
@@ -192,6 +198,7 @@ function renderItemRow(item, checks, opts = {}) {
         <p class="detail-block"><strong>✨ Fun fact</strong><br/>${details.funFact}</p>
       ` : ''}
       ${menuHtml}
+      ${playPromptHtml}
     </div>
   ` : '';
 
@@ -332,7 +339,7 @@ function renderPark() {
     </div>
   `;
 
-  // Category tabs — Rides / Shows / Food
+  // Category tabs — Rides / Shows / Food / Play
   const categoryCounts = { rides: 0, show: 0, food: 0 };
   park.sections.forEach(s => s.items.forEach(i => {
     categoryCounts[categoryForBadge(i.badge)]++;
@@ -341,6 +348,7 @@ function renderPark() {
     { id: 'rides', label: 'Rides', emoji: '🎢' },
     { id: 'show', label: 'Shows', emoji: '🎭' },
     { id: 'food', label: 'Food', emoji: '🍽️' },
+    { id: 'play', label: 'Play', emoji: '🎮' },
   ];
   html += `
     <div class="category-tabs">
@@ -352,11 +360,29 @@ function renderPark() {
         >
           <span class="cat-tab-emoji">${cat.emoji}</span>
           <span class="cat-tab-label">${cat.label}</span>
-          <span class="cat-tab-count">${categoryCounts[cat.id]}</span>
+          ${cat.id !== 'play' ? `<span class="cat-tab-count">${categoryCounts[cat.id]}</span>` : ''}
         </button>
       `).join('')}
     </div>
   `;
+
+  if (activeCategory === 'play') {
+    html += renderPlayTab(park);
+    main.innerHTML = html;
+    bindPlayTab(park);
+    // Category tab clicks still need binding even on the Play tab
+    main.querySelectorAll('.category-tab').forEach(btn => {
+      btn.addEventListener('click', () => {
+        activeCategory = btn.dataset.category;
+        renderPark();
+        window.scrollTo(0, 0);
+      });
+    });
+    renderWeatherWidget(park);
+    document.getElementById('progress-summary').innerHTML = '';
+    document.getElementById('reset-btn').style.display = 'none';
+    return;
+  }
 
   // Must-Dos section — gathers every starred item across all sections in
   // this park IN THE CURRENT CATEGORY, in starred order. Items here are
@@ -434,6 +460,20 @@ function renderPark() {
       // Refresh just the meta line tag without a full re-render, to avoid
       // losing focus mid-typing on mobile keyboards
       renderPark();
+    });
+  });
+
+  // Bind "Play while you wait" quick-launch buttons
+  main.querySelectorAll('.play-quicklaunch-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      activeCategory = 'play';
+      renderPark();
+      window.scrollTo(0, 0);
+      // Auto-start a general round right away for a true one-tap experience
+      const park = PARKS.find(p => p.id === activeParkId);
+      startTriviaRound(park, false);
     });
   });
 
@@ -658,6 +698,150 @@ function resetPark(park) {
 function bindTripButton() {
   const btn = document.getElementById('trip-btn');
   if (btn) btn.addEventListener('click', openTripsModal);
+}
+
+// ── Play tab — trivia while you wait in line ────────────────────────────────
+let triviaState = null; // { questions, index, score, parkSpecific }
+
+function buildTriviaSet(park, parkSpecific) {
+  const general = [...TRIVIA_GENERAL];
+  const parkQs = (TRIVIA_BY_PARK[park.id] || []).map(q => ({ ...q, isParkSpecific: true }));
+  const pool = parkSpecific ? [...parkQs, ...general] : [...general, ...parkQs];
+  // Shuffle and take up to 8 questions per round
+  const shuffled = pool.map(q => ({ q, sort: Math.random() })).sort((a, b) => a.sort - b.sort).map(x => x.q);
+  return shuffled.slice(0, 8);
+}
+
+function renderPlayTab(park) {
+  return `
+    <div class="play-tab">
+      <div class="play-hero">
+        <div class="play-hero-emoji">🎮</div>
+        <h2 class="play-hero-title">Waiting in line?</h2>
+        <p class="play-hero-subtitle">Play a quick round of Disney trivia while the line moves.</p>
+      </div>
+      <div class="play-mode-buttons">
+        <button class="play-mode-btn" id="play-general-btn" style="border-color: ${park.accentColor};">
+          <span class="play-mode-emoji">🌎</span>
+          <span class="play-mode-label">General Disney Trivia</span>
+          <span class="play-mode-sub">Movies, history, parks worldwide</span>
+        </button>
+        <button class="play-mode-btn" id="play-park-btn" style="border-color: ${park.accentColor};">
+          <span class="play-mode-emoji">${park.emoji}</span>
+          <span class="play-mode-label">${park.shortName} Trivia</span>
+          <span class="play-mode-sub">Questions about this park specifically</span>
+        </button>
+      </div>
+      <div id="trivia-game-area"></div>
+    </div>
+  `;
+}
+
+function bindPlayTab(park) {
+  const generalBtn = document.getElementById('play-general-btn');
+  const parkBtn = document.getElementById('play-park-btn');
+  if (generalBtn) generalBtn.addEventListener('click', () => startTriviaRound(park, false));
+  if (parkBtn) parkBtn.addEventListener('click', () => startTriviaRound(park, true));
+}
+
+function startTriviaRound(park, parkSpecific) {
+  triviaState = {
+    questions: buildTriviaSet(park, parkSpecific),
+    index: 0,
+    score: 0,
+    parkSpecific,
+  };
+  renderTriviaQuestion(park);
+}
+
+function renderTriviaQuestion(park) {
+  const area = document.getElementById('trivia-game-area');
+  if (!area || !triviaState) return;
+
+  if (triviaState.index >= triviaState.questions.length) {
+    renderTriviaResults(park);
+    return;
+  }
+
+  const q = triviaState.questions[triviaState.index];
+  area.innerHTML = `
+    <div class="trivia-card">
+      <div class="trivia-progress">Question ${triviaState.index + 1} of ${triviaState.questions.length}${q.isParkSpecific ? ` · ${park.shortName}` : ''}</div>
+      <div class="trivia-question">${q.q}</div>
+      <div class="trivia-options">
+        ${q.options.map((opt, i) => `
+          <button class="trivia-option" data-index="${i}">${opt}</button>
+        `).join('')}
+      </div>
+    </div>
+  `;
+
+  area.querySelectorAll('.trivia-option').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const chosenIndex = parseInt(btn.dataset.index, 10);
+      revealTriviaAnswer(park, q, chosenIndex);
+    });
+  });
+}
+
+function revealTriviaAnswer(park, q, chosenIndex) {
+  const area = document.getElementById('trivia-game-area');
+  const isCorrect = chosenIndex === q.correct;
+  if (isCorrect) triviaState.score++;
+
+  const optionButtons = area.querySelectorAll('.trivia-option');
+  optionButtons.forEach((btn, i) => {
+    btn.disabled = true;
+    if (i === q.correct) btn.classList.add('trivia-correct');
+    else if (i === chosenIndex) btn.classList.add('trivia-wrong');
+  });
+
+  const explainBlock = document.createElement('div');
+  explainBlock.className = 'trivia-explain';
+  explainBlock.innerHTML = `
+    <div class="trivia-explain-label">${isCorrect ? '✅ Correct!' : '❌ Not quite'}</div>
+    <p>${q.explain}</p>
+    <button class="trivia-next-btn">${triviaState.index + 1 >= triviaState.questions.length ? 'See results' : 'Next question'} →</button>
+  `;
+  area.querySelector('.trivia-card').appendChild(explainBlock);
+
+  explainBlock.querySelector('.trivia-next-btn').addEventListener('click', () => {
+    triviaState.index++;
+    renderTriviaQuestion(park);
+  });
+}
+
+function renderTriviaResults(park) {
+  const area = document.getElementById('trivia-game-area');
+  const { score, questions } = triviaState;
+  const total = questions.length;
+  const pct = Math.round((score / total) * 100);
+
+  let message;
+  if (pct === 100) message = '🏆 Perfect score! Certified Disney expert.';
+  else if (pct >= 75) message = '🎉 Great job — you really know your stuff!';
+  else if (pct >= 50) message = '👍 Solid round! Try again for a higher score.';
+  else message = '🎢 Plenty more line time to brush up — give it another go!';
+
+  area.innerHTML = `
+    <div class="trivia-card trivia-results">
+      <div class="trivia-results-score">${score} / ${total}</div>
+      <div class="trivia-results-message">${message}</div>
+      <div class="play-mode-buttons">
+        <button class="play-mode-btn" id="play-again-general-btn" style="border-color: ${park.accentColor};">
+          <span class="play-mode-emoji">🌎</span>
+          <span class="play-mode-label">Play Again — General</span>
+        </button>
+        <button class="play-mode-btn" id="play-again-park-btn" style="border-color: ${park.accentColor};">
+          <span class="play-mode-emoji">${park.emoji}</span>
+          <span class="play-mode-label">Play Again — ${park.shortName}</span>
+        </button>
+      </div>
+    </div>
+  `;
+
+  document.getElementById('play-again-general-btn').addEventListener('click', () => startTriviaRound(park, false));
+  document.getElementById('play-again-park-btn').addEventListener('click', () => startTriviaRound(park, true));
 }
 
 // ── Weather forecast ─────────────────────────────────────────────────────────
