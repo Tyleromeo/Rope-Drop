@@ -1,6 +1,6 @@
 # Rope Drop 🎢
 
-> Your personal Disney park day checklist.
+> Your personal Disney park day checklist. 
 
 A clean, mobile-first web app for tracking rides, shows, food, and character meets across all major Disney parks. Built to test before moving to iOS.
 
