@@ -111,9 +111,9 @@ body {
 }
 
 .header-btn {
-  width: 36px;
   height: 36px;
-  border-radius: var(--radius-sm);
+  padding: 0 14px;
+  border-radius: var(--radius-pill);
   border: 1px solid var(--border-md);
   background: transparent;
   color: var(--text-2);
@@ -121,7 +121,15 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
+  gap: 6px;
   transition: background 0.12s;
+  font-family: var(--font-body);
+}
+
+.header-btn-label {
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
 }
 
 .header-btn:hover { background: var(--bg-2); }
