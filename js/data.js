@@ -1248,6 +1248,188 @@ const MENU_DATA = {
       { name: 'Yub Nub (non-alcoholic)' },
     ]
   },
+  'dca-16': {
+    tier: '$',
+    items: [
+      { name: 'Cherry Cola Float' },
+      { name: 'Root Beer Float' },
+      { name: 'Classic Sundae' },
+    ]
+  },
+  'dca-17': {
+    tier: '$',
+    items: [
+      { name: 'Churro Toffee Sundae (seasonal)' },
+      { name: 'Classic Churro' },
+    ]
+  },
+  'dca-18': {
+    tier: '$',
+    items: [
+      { name: 'Ice Cream Cones' },
+      { name: 'Hot Fudge Sundae' },
+      { name: 'Hot Chocolate' },
+      { name: 'Milkshakes' },
+    ]
+  },
+  'dca-19': {
+    tier: '$$',
+    items: [
+      { name: 'All-Beef Hot Dog' },
+      { name: 'Chili Cheese Dog' },
+      { name: 'Bacon Wrapped Hot Dog' },
+      { name: 'Loaded Fries' },
+    ]
+  },
+  'dca-20': {
+    tier: '$$$',
+    items: [
+      { name: 'Lobster Nachos' },
+      { name: 'Salmon PLT' },
+      { name: 'Honey Walnut Shrimp Wrap' },
+      { name: 'Karaage-Inspired Crispy Chicken Sandwich' },
+      { name: 'Baymax Macaron' },
+      { name: 'Teriyaki Chicken' },
+      { name: 'Brilliant Brunch Specials (weekends)' },
+      { name: 'Signature Cocktails' },
+    ]
+  },
+  'dca-33': {
+    tier: '$$$',
+    items: [
+      { name: 'Ginger and Soy Glazed Tri Tip' },
+      { name: 'California Asparagus Toast' },
+      { name: 'Grilled Chicken Meatloaf' },
+      { name: 'Pan Roasted Shrimp' },
+      { name: 'Seasonal Starters' },
+      { name: 'Kids\' Specialty Dishes' },
+      { name: 'Indulgent Desserts' },
+      { name: 'Retro Cocktails (Lounge)' },
+    ]
+  },
+  'dca-34': {
+    tier: '$$',
+    items: [
+      { name: "Flo's Famous Fried Chicken" },
+      { name: 'French Toast with Salted Caramel & Bananas' },
+      { name: 'Chicken Tamales with Scrambled Eggs' },
+      { name: "Mack's Mac & Cheese" },
+      { name: 'Micro Burgers' },
+      { name: 'Club Sandwich' },
+      { name: "Apple-Cheddar Pie-o-rama" },
+      { name: "Flo's Classic Shakes" },
+    ]
+  },
+  'dca-35': {
+    tier: '$',
+    items: [
+      { name: 'Churro' },
+      { name: 'Pretzel Bites' },
+      { name: 'Soft-Serve Ice Cream' },
+      { name: '"Route" Beer Float' },
+      { name: 'Flavored Popcorn' },
+      { name: 'Chili "Cone" Queso' },
+      { name: 'Chimichanga' },
+      { name: 'Breakfast Bread Cone with Bacon & Eggs' },
+    ]
+  },
+  'dca-36': {
+    tier: '$$',
+    items: [
+      { name: 'San Fransokyo Clam Chowder' },
+      { name: 'Creamy Mac & Cheese' },
+      { name: 'Chilled Shrimp Soba Noodle Salad' },
+      { name: 'California Roll Sandwich' },
+      { name: 'New Curry Dish' },
+      { name: 'Katsu Sandwich' },
+    ]
+  },
+  'dca-37': {
+    tier: '$$',
+    items: [
+      { name: 'Carne Asada Tacos' },
+      { name: 'QuesaBirria Tacos' },
+      { name: 'Pollo Asado Tacos' },
+      { name: 'San Fransokyo-Style Street Corn' },
+      { name: 'Birria Tacos' },
+      { name: 'Rice & Beans' },
+    ]
+  },
+  'dca-38': {
+    tier: '$$',
+    items: [
+      { name: 'Bulgogi Burrito' },
+      { name: 'Birria Ramen' },
+      { name: 'Chicken Sandwich' },
+      { name: 'Udon Noodles' },
+      { name: 'Asian-Inspired Bowls' },
+    ]
+  },
+  'dca-39': {
+    tier: '$$$',
+    items: [
+      { name: 'Lasagna' },
+      { name: 'Grilled Sandwiches' },
+      { name: 'Italian Soups' },
+      { name: 'Pasta Selections' },
+      { name: 'World of Color Dining Package available' },
+    ]
+  },
+  'dca-40': {
+    tier: '$$',
+    items: [
+      { name: '"Quantum-Sized" Tasting Plates' },
+      { name: 'Pym-Inspired Specialty Dishes' },
+      { name: 'Ant-Man Themed Cocktails' },
+    ]
+  },
+  'dca-41': {
+    tier: '$$',
+    items: [
+      { name: 'Mediterranean Skewers (Steak, Chicken, Meatballs, or Vegetable & Tofu)' },
+      { name: 'Greek Salad' },
+      { name: 'Seasonal Rotating Specials' },
+    ]
+  },
+  'dca-42': {
+    tier: '$$',
+    items: [
+      { name: 'Pepperoni Pizza' },
+      { name: 'Cheese Pizza' },
+      { name: 'Spaghetti & Meatballs' },
+      { name: 'Caesar Salad' },
+    ]
+  },
+  'dca-43': {
+    tier: '$',
+    items: [
+      { name: 'Classic Corn Dog' },
+      { name: 'Specialty Corn Dogs (seasonal flavors)' },
+      { name: 'Mini Corn Dog Nuggets' },
+    ]
+  },
+  'dca-44': {
+    tier: '$',
+    items: [
+      { name: 'Giant Cookie Sandwich' },
+      { name: 'Specialty Ice Cream Cookie Sandwiches' },
+    ]
+  },
+  'dca-45': {
+    tier: '$',
+    items: [
+      { name: "Dreyer's Ice Cream Cones" },
+      { name: 'Chocolate-Dipped Ice Cream Bars' },
+      { name: 'Sundaes' },
+    ]
+  },
+  'dca-46': {
+    tier: '$',
+    items: [
+      { name: 'Soft-Serve (seasonal flavors)' },
+      { name: 'Frosted Treats' },
+    ]
+  },
 };
 
 const TYPICAL_SHOWTIMES = {
@@ -1270,7 +1452,7 @@ const TYPICAL_SHOWTIMES = {
   'dl-16': ['Varies — usually one nightly show, check app'],
   'dca-05': ['Varies — typically nightly, check app'],
   'dca-14': ['Continuous cavalcades throughout the day'],
-  'dca-15': ['Seasonal — check app for current showtimes'],
+  'dca-31': ['Multiple showtimes daily, check app'],
 };
 
 const SONG_PICKERS = {
@@ -1751,20 +1933,28 @@ const PARKS = [
         items: [
           { id: 'dca-01', name: 'Radiator Springs Racers', meta: 'Cars Land · 40" min height', badge: 'thrill', must: true },
           { id: 'dca-02', name: 'Guardians of the Galaxy – Mission: BREAKOUT!', meta: 'Avengers Campus · 40" min height', badge: 'thrill', must: true },
-          { id: 'dca-03', name: 'Web Slingers: A Spider-Man Adventure', meta: 'Avengers Campus · all ages', badge: 'family', must: true },
+          { id: 'dca-03', name: 'WEB SLINGERS: A Spider-Man Adventure', meta: 'Avengers Campus · all ages', badge: 'family', must: true },
           { id: 'dca-04', name: 'Incredicoaster', meta: 'Pixar Pier · 48" min height', badge: 'thrill', must: true },
-          { id: 'dca-05', name: 'World of Color', meta: 'Paradise Bay · evenings', badge: 'show', must: true },
+          { id: 'dca-06', name: 'Soarin\' Around the World', meta: 'Grizzly Peak · 40" min height', badge: 'family', must: true },
         ]
       },
       {
         name: 'More rides',
         items: [
-          { id: 'dca-06', name: 'Soarin\' Around the World', meta: 'Grizzly Peak · 40" min height', badge: 'family' },
           { id: 'dca-07', name: 'Grizzly River Run', meta: 'Grizzly Peak · 42" min height · you will get wet', badge: 'thrill' },
           { id: 'dca-08', name: 'Goofy\'s Sky School', meta: 'Paradise Gardens Park · 42" min height', badge: 'thrill' },
           { id: 'dca-09', name: 'Pixar Pal-A-Round (swinging gondola)', meta: 'Pixar Pier · 40" min height', badge: 'family' },
           { id: 'dca-10', name: 'Toy Story Midway Mania!', meta: 'Pixar Pier · all ages', badge: 'family' },
-          { id: 'dca-11', name: 'Monsters, Inc. Mike & Sulley to the Rescue!', meta: 'Hollywood Land · all ages', badge: 'family' },
+          { id: 'dca-11', name: 'Monsters, Inc. Mike & Sulley to the Rescue!', meta: 'Hollywood Land · all ages — closing 2027', badge: 'family' },
+          { id: 'dca-21', name: "Luigi's Rollickin' Roadsters", meta: 'Cars Land · all ages, gliding & spinning ride', badge: 'family' },
+          { id: 'dca-22', name: "Mater's Junkyard Jamboree", meta: 'Cars Land · all ages, bumper-car-style spinner', badge: 'family' },
+          { id: 'dca-23', name: "The Little Mermaid – Ariel's Undersea Adventure", meta: 'Paradise Gardens Park · all ages', badge: 'family' },
+          { id: 'dca-24', name: 'Silly Symphony Swings', meta: 'Paradise Gardens Park · 40" min height, swinging ride', badge: 'thrill' },
+          { id: 'dca-25', name: 'Golden Zephyr', meta: 'Paradise Gardens Park · 40" min height, spinning rocket ride', badge: 'family' },
+          { id: 'dca-26', name: 'Jumpin\' Jellyfish', meta: 'Paradise Gardens Park · 40" min height, gentle parachute drop', badge: 'family' },
+          { id: 'dca-27', name: "Jessie's Critter Carousel", meta: 'Pixar Pier · all ages, classic carousel', badge: 'family' },
+          { id: 'dca-28', name: 'Inside Out Emotional Whirlwind', meta: 'Pixar Pier · all ages, spinning ride', badge: 'family' },
+          { id: 'dca-29', name: 'Redwood Creek Challenge Trail', meta: 'Grizzly Peak · all ages, climbing & play area', badge: 'family' },
         ]
       },
       {
@@ -1772,13 +1962,16 @@ const PARKS = [
         items: [
           { id: 'dca-12', name: 'Avengers Headquarters meet-and-greets', meta: 'Spider-Man, Black Panther & more', badge: 'character' },
           { id: 'dca-13', name: 'WEB Suppliers shopping', meta: 'Avengers Campus · merch & props', badge: 'family' },
+          { id: 'dca-30', name: 'Doctor Strange at the Sanctum', meta: 'Avengers Campus · live character experience', badge: 'character' },
         ]
       },
       {
         name: 'Shows & entertainment',
         items: [
+          { id: 'dca-05', name: 'World of Color – Happiness!', meta: 'Paradise Bay · evenings, currently themed to Encanto/Turning Red/Inside Out', badge: 'show' },
           { id: 'dca-14', name: 'Pixar Fest cavalcades', meta: 'Seasonal — check schedule', badge: 'show' },
-          { id: 'dca-15', name: 'Frozen – Live at the Hyperion', meta: 'Hollywood Land · seasonal, check schedule', badge: 'show' },
+          { id: 'dca-31', name: 'Disney Jr. Mickey Mouse Clubhouse Live!', meta: 'Hyperion Theater (Hollywood Land) · opened May 16, 2025', badge: 'show', status: 'new' },
+          { id: 'dca-32', name: 'Five & Dime', meta: 'Hollywood Land · roving jazz band performance', badge: 'show' },
         ]
       },
       {
@@ -1789,6 +1982,20 @@ const PARKS = [
           { id: 'dca-18', name: 'Ghirardelli ice cream', meta: 'Buena Vista Street', badge: 'food' },
           { id: 'dca-19', name: 'Award Wieners hot dogs', meta: 'Hollywood Land', badge: 'food' },
           { id: 'dca-20', name: 'Lamplight Lounge', meta: 'Pixar Pier · waterfront dining, reservations suggested', badge: 'food' },
+          { id: 'dca-33', name: 'Carthay Circle Restaurant', meta: 'Buena Vista Street · upscale signature dining', badge: 'food' },
+          { id: "dca-34", name: "Flo's V8 Cafe", meta: 'Cars Land · Route 66-inspired diner classics', badge: 'food' },
+          { id: 'dca-35', name: 'Cozy Cone Motel', meta: 'Cars Land · five themed snack windows in one spot', badge: 'food' },
+          { id: 'dca-36', name: 'Aunt Cass Cafe', meta: 'San Fransokyo Square · Big Hero 6-themed quick-service', badge: 'food' },
+          { id: 'dca-37', name: 'Cocina Cucamonga Mexican Grill', meta: 'San Fransokyo Square · quick-service tacos & birria', badge: 'food' },
+          { id: 'dca-38', name: 'Lucky Fortune Cookery', meta: 'San Fransokyo Square · Asian-inspired bowls & ramen', badge: 'food' },
+          { id: 'dca-39', name: 'Wine Country Trattoria', meta: 'Golden State · table-service Italian', badge: 'food' },
+          { id: 'dca-40', name: 'Pym Test Kitchen', meta: 'Avengers Campus · "quantum-sized" Ant-Man themed food', badge: 'food' },
+          { id: 'dca-41', name: 'Paradise Garden Grill', meta: 'Paradise Gardens Park · seasonal-rotating quick-service', badge: 'food' },
+          { id: 'dca-42', name: 'Boardwalk Pizza & Pasta', meta: 'Pixar Pier · quick-service Italian', badge: 'food' },
+          { id: 'dca-43', name: 'Corn Dog Castle', meta: 'Pixar Pier · classic and specialty corn dogs', badge: 'food' },
+          { id: "dca-44", name: "Jack-Jack Cookie Num Nums", meta: 'Pixar Pier · giant cookie sandwiches', badge: 'food' },
+          { id: 'dca-45', name: "Clarabelle's Hand-Scooped Ice Cream", meta: "Buena Vista Street · Dreyer's ice cream & sundaes", badge: 'food' },
+          { id: 'dca-46', name: 'Adorable Snowman Frosted Treats', meta: 'Pixar Pier · seasonal soft-serve & desserts', badge: 'food' },
         ]
       }
     ]

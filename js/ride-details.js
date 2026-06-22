@@ -762,4 +762,135 @@ const RIDE_DETAILS = {
     tip: 'Quick and easy to fit in on your way past the castle — a nice bit of detail most guests walk right past without noticing.',
     funFact: 'It was one of Disneyland\'s original 1955 opening-day attractions and has been refreshed multiple times while keeping its core storytelling concept intact.'
   },
+  // ── Disney California Adventure ──
+  'dca-01': {
+    description: 'A racing-themed dark ride and outdoor coaster through Radiator Springs, Route 66-style desert scenery, with each car genuinely racing against another.',
+    tip: 'Widely considered the best ride at DCA and one of the best anywhere at Disneyland Resort — ride at rope drop or grab Lightning Lane as early as possible, since it sells out fast.',
+    funFact: 'It\'s one of the most expensive rides Disney has ever built, with a budget that made Cars Land one of the costliest single-land expansions in Disney park history.'
+  },
+  'dca-02': {
+    description: 'A drop ride reimagined around a Guardians of the Galaxy storyline, with a randomized drop pattern and an in-ride soundtrack that varies between visits.',
+    tip: 'During Halloween season, the ride transforms into a spookier "Monsters After Dark" version — worth riding both if you visit during that window.',
+    funFact: 'It occupies the same building and uses much of the same drop mechanism as the original Twilight Zone Tower of Terror, which it replaced in 2017.'
+  },
+  'dca-03': {
+    description: 'An interactive trackless dark ride where you sling webs at rogue Spider-Bots using a hand-tracking ride vehicle system.',
+    tip: 'Your score matters — try to hit moving targets rather than stationary ones for higher points, and don\'t be afraid to really gesture with your whole arm.',
+    funFact: 'It uses motion-tracking technology to read your actual arm movements, rather than a simple button or trigger, making the "web slinging" feel more physically real.'
+  },
+  'dca-04': {
+    description: 'A high-speed coaster themed to The Incredibles, featuring an inversion loop and a launch sequence that\'s the longest of its kind in the world.',
+    tip: 'The launch and inversion make this one of the more intense rides at the resort — a single-rider line is sometimes available to cut your wait.',
+    funFact: 'At over 6,000 feet long, it holds the record as the longest inverting roller coaster in the world.'
+  },
+  'dca-06': {
+    description: 'A hang-gliding motion simulator that lifts your seats into the air to "soar" over famous landmarks on a giant wraparound screen, with scent effects timed to the visuals.',
+    tip: 'Best ridden midday with a Lightning Lane reservation — the load times are long, so rope-dropping it isn\'t usually efficient.',
+    funFact: 'This ride has cycled through several different film versions over the years — Soarin\' Over California, Soarin\' Around the World, and an upcoming Soarin\' Across America — all using the exact same ride system.'
+  },
+  'dca-07': {
+    description: 'A whitewater raft ride that circles a mountain, finishing with a real splash-down soaking for everyone aboard.',
+    tip: 'A great choice on a hot day — just know you will get wet, often quite thoroughly, so plan accordingly if you have electronics in your pockets.',
+    funFact: 'The "logging camp" theming throughout the queue and ride was designed to tell a subtle environmental story about deforestation before guests ever read an official placard about it.'
+  },
+  'dca-08': {
+    description: 'A flight-school-themed swinging ride that lifts riders into spinning aerial loops above Paradise Gardens Park.',
+    tip: 'More intense than it looks from the ground — if you\'re unsure about spinning rides, watch a cycle first before committing.',
+    funFact: 'The ride\'s "flight school" storyline ties into a series of Goofy cartoon shorts about him learning (and failing) to fly properly.'
+  },
+  'dca-09': {
+    description: 'A giant Ferris wheel offering panoramic park views, with both swinging and stationary gondola options.',
+    tip: 'Choose a non-swinging gondola if you\'d rather have a calm, scenic ride — the swinging cars add real motion on top of the height.',
+    funFact: 'It was rethemed from "Mickey\'s Fun Wheel" to "Pixar Pal-A-Round" as part of the larger Pixar Pier overhaul in 2018, with Pixar characters added throughout.'
+  },
+  'dca-10': {
+    description: 'An interactive 3D shooting-gallery ride where you compete in carnival-style games alongside Toy Story characters.',
+    tip: 'Look for secret bonus targets in certain scenes — dedicated fans have mapped out several hidden high-value shots that casual riders miss.',
+    funFact: 'Each ride vehicle seats riders side by side with individual screens, meaning you and your seatmate are technically playing separate games simultaneously.'
+  },
+  'dca-11': {
+    description: 'A slow-moving dark ride retelling the story of Monsters, Inc., with a few notable practical effects along the way.',
+    tip: 'Scheduled to permanently close in 2027, so if seeing it is a priority for you, don\'t put it off for a future visit.',
+    funFact: 'It\'s one of the only dark rides at Disneyland Resort based on a film without an equivalent attraction anywhere at Walt Disney World.'
+  },
+  'dca-21': {
+    description: 'A gliding, spinning family ride themed to Luigi from Cars, with vehicles that move in unpredictable looping patterns across the pavement.',
+    tip: 'A gentler alternative to Radiator Springs Racers if you have younger kids in Cars Land who aren\'t tall enough for the bigger ride.',
+    funFact: 'It replaced an earlier, more basic version of the same concept called Luigi\'s Flying Tires, redesigned after the original ride system proved difficult to maintain.'
+  },
+  'dca-22': {
+    description: 'A bumper-car-style spinning ride themed to Mater from Cars, set in a junkyard backdrop.',
+    tip: 'A fun, low-intensity ride for all ages — good filler when bigger Cars Land rides have long waits.',
+    funFact: 'The ride vehicles are designed to look like spinning tractors, tying directly into Mater\'s character and backstory from the film.'
+  },
+  'dca-23': {
+    description: 'A dark ride retelling The Little Mermaid\'s story through a series of colorful underwater-style scenes.',
+    tip: 'A gentle, family-friendly ride with usually manageable waits — a good choice if you have younger kids in your group.',
+    funFact: 'It uses similar dark ride and Audio-Animatronics technology to other classic Fantasyland-style rides, just built decades after the original Disneyland attractions it resembles.'
+  },
+  'dca-24': {
+    description: 'A swinging ride that lifts riders in pairs high above Paradise Gardens Park, themed to a classic Silly Symphony cartoon.',
+    tip: 'More intense than it first appears — the height and swinging motion combine to feel like more of a thrill ride than its cheerful theming suggests.',
+    funFact: 'It\'s themed after a 1930s Silly Symphony short, one of the oldest pieces of source material used by any current Disney park ride.'
+  },
+  'dca-25': {
+    description: 'A classic spinning rocket ride that lifts riders into a gentle arcing flight pattern above the boardwalk.',
+    tip: 'A mellow, nostalgic ride — good for a slower-paced moment without much of a wait most of the day.',
+    funFact: 'Its design pays homage to vintage 1920s amusement park "rocket" rides, fitting the retro boardwalk theming of Paradise Gardens Park.'
+  },
+  'dca-26': {
+    description: 'A simple vertical drop ride themed to parachute jumping, lifting riders up before a quick, gentle descent.',
+    tip: 'Mild compared to its name — a good introductory "thrill" ride for younger kids who aren\'t ready for bigger drop rides yet.',
+    funFact: 'It\'s one of the gentlest "drop" style rides at any Disney park, designed specifically to ease younger guests into the sensation.'
+  },
+  'dca-27': {
+    description: 'A classic carousel themed to Jessie from Toy Story, with horses replaced by Toy Story-themed animals and characters.',
+    tip: 'A reliable, low-wait option for younger kids or anyone wanting a quick, simple ride between bigger attractions.',
+    funFact: 'It was rethemed from an older sea-creature carousel called King Triton\'s Carousel of the Sea as part of the 2018 Pixar Pier transformation.'
+  },
+  'dca-28': {
+    description: 'A spinning ride themed to the characters from Inside Out, where riders spin through a sequence representing different emotions.',
+    tip: 'A straightforward spinner — skip it if you\'re prone to motion sickness and have already done a similar ride elsewhere in the park.',
+    funFact: 'It was relocated and rethemed from a former A Bug\'s Land attraction called Flik\'s Flyers, given new Inside Out theming when it moved to Pixar Pier.'
+  },
+  'dca-29': {
+    description: 'A walking and climbing area themed to a redwood forest, with rope bridges, climbing nets, and a slide for kids to explore freely.',
+    tip: 'Great for letting kids burn off energy in a low-stakes way — there\'s no fixed ride cycle, so budget extra time if your group likes to linger.',
+    funFact: 'It was designed in partnership with the National Park Service to highlight real conservation themes about California\'s redwood forests.'
+  },
+  'dca-12': {
+    description: 'A series of rotating meet-and-greets with Avengers characters including Spider-Man, Black Panther, and others throughout Avengers Campus.',
+    tip: 'Spider-Man\'s acrobatic stunt performances draw the biggest crowds — check showtimes if you want a guaranteed viewing spot.',
+    funFact: 'Several of the Avengers performers are trained in actual parkour and stunt choreography, not just costumed meet-and-greet acting.'
+  },
+  'dca-13': {
+    description: 'A themed shopping experience inside Avengers Campus selling Spider-Man and Avengers merchandise, gadgets, and props.',
+    tip: 'A fun browse even if you\'re not buying — the in-universe theming throughout the shop is detailed enough to be worth a walk-through.',
+    funFact: 'The shop\'s design ties directly into the fictional in-universe story of Avengers Campus training new recruits, rather than feeling like a generic gift shop.'
+  },
+  'dca-30': {
+    description: 'A live character experience where Doctor Strange performs feats of "magic" at the Sanctum within Avengers Campus.',
+    tip: 'Check posted showtimes — this is a scheduled live performance rather than a walk-up meet, so timing your visit matters.',
+    funFact: 'The illusions performed are designed to tie directly into Doctor Strange\'s established powers from the Marvel films, rather than generic magic tricks.'
+  },
+  'dca-05': {
+    description: 'A nighttime water, light, and fireworks show over Paradise Bay, with the current version themed to Encanto, Turning Red, and Inside Out as part of the resort\'s 70th anniversary celebration.',
+    tip: 'A virtual queue is sometimes required for prime viewing areas — check the Disneyland app the morning of your visit for current entry details.',
+    funFact: 'The show uses 1,200 fountains projecting onto water screens, with the choreography changing periodically as Disney rotates in new film themes over the years.'
+  },
+  'dca-14': {
+    description: 'Short, surprise cavalcade-style parades featuring Pixar characters, popping up periodically throughout the day rather than running on a single fixed schedule.',
+    tip: 'These are brief and spontaneous — catch one if you happen to be nearby rather than planning your whole day around a specific time.',
+    funFact: 'Cavalcades became a regular feature across Disney parks after being introduced as a lower-contact alternative to traditional parades.'
+  },
+  'dca-31': {
+    description: 'An interactive stage show in the Hyperion Theater where Mickey and friends set off on a musical adventure with audience participation throughout.',
+    tip: 'Built for younger kids who like to sing and move along — a good pick if your group needs an energetic, kid-focused break.',
+    funFact: 'It replaced Disney Junior Dance Party, continuing the Hyperion Theater\'s long history of hosting different family-focused stage shows over the years.'
+  },
+  'dca-32': {
+    description: 'A roving jazz band that performs while driving a souped-up jalopy through Hollywood Land, playing upbeat live music throughout the day.',
+    tip: 'A spontaneous bit of entertainment rather than a scheduled show — enjoy it if you happen to cross paths with them on Hollywood Land\'s main street.',
+    funFact: 'The band\'s vintage car is a genuine, drivable vehicle dressed up with jazz-age styling to match the 1930s Hollywood theming of the land.'
+  },
 };

@@ -108,6 +108,8 @@ const MAP_MARKERS = {
     { itemId: 'dca-10', lat: 33.8059, lng: -117.9183, approx: true }, // Toy Story Mania (Pixar Pier)
     { itemId: 'dca-11', lat: 33.8068, lng: -117.9183, approx: true }, // Monsters Inc (Hollywood Land)
     { itemId: 'dca-16', lat: 33.8085, lng: -117.9190, approx: true }, // Carthay Circle (Buena Vista St)
+    { itemId: 'dca-23', lat: 33.8062, lng: -117.9195, approx: true }, // Little Mermaid (Paradise Gardens Park)
+    { itemId: 'dca-36', lat: 33.8073, lng: -117.9195, approx: true }, // Aunt Cass Cafe (San Fransokyo Square)
   ],
 };
 
