@@ -204,6 +204,63 @@ body {
   margin-bottom: 6px;
 }
 
+.hours-section {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+
+.hours-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 12px;
+  margin-bottom: 6px;
+}
+
+.hours-row:last-child {
+  margin-bottom: 0;
+}
+
+.hours-label {
+  color: var(--text-3);
+  font-weight: 500;
+  flex-shrink: 0;
+}
+
+.hours-value {
+  color: var(--text-2);
+  text-align: right;
+}
+
+.hours-override-row {
+  margin-top: 4px;
+}
+
+.hours-input {
+  flex: 1;
+  max-width: 200px;
+  padding: 5px 9px;
+  border: 1px solid var(--border-md);
+  border-radius: var(--radius-sm);
+  background: var(--bg-2);
+  color: var(--text-1);
+  font-size: 12px;
+  font-family: var(--font-body);
+  outline: none;
+  text-align: right;
+}
+
+.hours-input:focus {
+  border-color: var(--text-2);
+}
+
+.hours-input::placeholder {
+  color: var(--text-3);
+  text-align: right;
+}
+
 .category-tabs {
   display: flex;
   gap: 6px;
@@ -1104,6 +1161,39 @@ body {
 
 .menu-list li:last-child {
   border-bottom: none;
+}
+
+.status-tag {
+  display: inline-block;
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 2px 6px;
+  border-radius: var(--radius-pill);
+  margin-left: 6px;
+  vertical-align: middle;
+}
+
+.status-new {
+  background: #e1f5ee;
+  color: #0f6e56;
+}
+
+.status-closed {
+  background: #fce8e8;
+  color: #a32d2d;
+}
+
+.status-reopening {
+  background: #faecda;
+  color: #8a5c10;
+}
+
+@media (prefers-color-scheme: dark) {
+  .status-new { background: #0e2a1e; color: #5fd9ab; }
+  .status-closed { background: #2e1313; color: #f08a8a; }
+  .status-reopening { background: #2e2208; color: #e8c878; }
 }
 
 .info-btn {

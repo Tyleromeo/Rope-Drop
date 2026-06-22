@@ -21,7 +21,7 @@ function uid() {
 }
 
 function emptyTripData() {
-  return { checks: {}, counts: {}, songs: {}, stars: {}, notes: {}, activePark: PARKS[0].id, activeResort: null, timeline: [], showtimes: {} };
+  return { checks: {}, counts: {}, songs: {}, stars: {}, notes: {}, activePark: PARKS[0].id, activeResort: null, timeline: [], showtimes: {}, hoursOverride: {} };
 }
 
 const Storage = {
@@ -137,6 +137,7 @@ const Storage = {
     // existed won't have this field yet — backfill it so nothing breaks.
     if (!allData[tripId].timeline) allData[tripId].timeline = [];
     if (!allData[tripId].showtimes) allData[tripId].showtimes = {};
+    if (!allData[tripId].hoursOverride) allData[tripId].hoursOverride = {};
     return allData[tripId];
   },
   _saveTripData(data) {
@@ -263,6 +264,20 @@ const Storage = {
       if (data.songs[id].length === 0) delete data.songs[id];
       this._saveTripData(data);
     }
+  },
+
+  // ── Today's hours override (per trip, per park) ─────────────────────
+  getHoursOverride(parkId) {
+    return this._getTripData().hoursOverride[parkId] || '';
+  },
+  setHoursOverride(parkId, value) {
+    const data = this._getTripData();
+    if (value && value.trim()) {
+      data.hoursOverride[parkId] = value.trim();
+    } else {
+      delete data.hoursOverride[parkId];
+    }
+    this._saveTripData(data);
   },
 
   // ── Today's showtime override (per trip, per item) ──────────────────

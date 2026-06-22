@@ -129,6 +129,13 @@ function renderNav() {
 function renderItemRow(item, checks, opts = {}) {
   const isDone = !!checks[item.id];
   const badge = BADGE_CONFIG[item.badge] || BADGE_CONFIG.family;
+  const statusTag = item.status === 'new'
+    ? '<span class="status-tag status-new">New</span>'
+    : item.status === 'closed'
+    ? '<span class="status-tag status-closed">Closed</span>'
+    : item.status === 'reopening'
+    ? '<span class="status-tag status-reopening">Reopening soon</span>'
+    : '';
   const count = Storage.getCount(item.id);
   const hasSongPicker = !!SONG_PICKERS[item.id];
   const songLog = Storage.getSongLog(item.id);
@@ -215,7 +222,7 @@ function renderItemRow(item, checks, opts = {}) {
         <button class="item" data-id="${item.id}" aria-pressed="${isDone}" aria-label="${item.name}${isDone ? ' — completed' : ''}">
           <span class="item-check" aria-hidden="true">${checkIcon}</span>
           <span class="item-body">
-            <span class="item-name">${item.name}</span>
+            <span class="item-name">${item.name}${statusTag}</span>
             <span class="item-meta">${item.meta}${songLog.length ? ` · <span class="song-tag-inline">${songLog[songLog.length - 1]}</span>` : ''}${showtimeOverride ? ` · <span class="song-tag-inline">Today: ${showtimeOverride}</span>` : ''}</span>
           </span>
           <span class="badge ${badge.cls}">${badge.label}</span>
@@ -266,6 +273,32 @@ function renderPark() {
       </div>
     `).join('');
 
+  // Park hours — typical hours plus an editable "today's hours" override
+  const typicalHours = TYPICAL_PARK_HOURS[park.id];
+  const hoursOverride = Storage.getHoursOverride(park.id);
+  const hoursHtml = typicalHours ? `
+    <div class="hours-section">
+      <div class="hours-row">
+        <span class="hours-label">🌅 Early Entry</span>
+        <span class="hours-value">${typicalHours.early}</span>
+      </div>
+      <div class="hours-row">
+        <span class="hours-label">🕐 Typical hours</span>
+        <span class="hours-value">${typicalHours.open} – ${typicalHours.close}</span>
+      </div>
+      <div class="hours-row hours-override-row">
+        <span class="hours-label">Today's hours</span>
+        <input
+          type="text"
+          class="hours-input"
+          data-park="${park.id}"
+          placeholder="e.g. 9:00 AM – 10:00 PM"
+          value="${hoursOverride}"
+        />
+      </div>
+    </div>
+  ` : '';
+
   // Hero
   let html = `
     <div class="park-hero" style="--accent: ${park.accentColor}; --accent-light: ${park.accentLight};">
@@ -279,8 +312,9 @@ function renderPark() {
           <div class="park-progress-bar">
             <div class="park-progress-fill" style="width: ${pct}%; background: ${park.accentColor};"></div>
           </div>
-          <span class="park-progress-label" style="color: ${park.accentColor};">${done} of ${total} ${activeCategory === 'rides' ? 'rides' : activeCategory === 'show' ? 'shows' : 'food spots'} done</span>
+          <span class="park-progress-label" style="color: ${park.accentColor};">${done} of ${total} ${activeCategory === 'rides' ? 'rides' : activeCategory === 'show' ? 'shows' : 'food spots'}</span>
         </div>
+        ${hoursHtml}
         ${tally.total > 0 ? `
           <div class="tally-section">
             <div class="tally-total">
@@ -380,6 +414,13 @@ function renderPark() {
     });
   });
 
+  // Bind park hours override input
+  main.querySelectorAll('.hours-input').forEach(input => {
+    input.addEventListener('change', (e) => {
+      Storage.setHoursOverride(input.dataset.park, e.target.value);
+    });
+  });
+
   // Bind showtime override inputs
   main.querySelectorAll('.showtime-input').forEach(input => {
     input.addEventListener('change', (e) => {
@@ -468,7 +509,7 @@ function renderBottomBar(park, done, total, pct) {
   const summary = document.getElementById('progress-summary');
   summary.innerHTML = `
     <span class="progress-text">
-      <strong>${done}</strong> / ${total} completed
+      <strong>${done}</strong> / ${total}
       ${pct === 100 ? ' 🎉' : ''}
     </span>
   `;

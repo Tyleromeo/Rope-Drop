@@ -28,8 +28,8 @@ const RIDE_DETAILS = {
   },
   'mk-05': {
     description: 'A runaway mine train coaster that winds through a crumbling Western mining town, complete with flash floods, falling rocks, and an earthquake.',
-    tip: 'Genuinely more fun after dark — the lighting and effects land differently at night. Daytime waits are usually shorter than its Fantasyland neighbors.',
-    funFact: 'The mountain itself is built from a mix of real and fabricated rock, and several of the "abandoned" mining props were sourced from actual decommissioned mines out west.'
+    tip: 'Reopened in May 2026 after a 16-month refurbishment with a refreshed cavern scene and a lower height requirement — genuinely more fun after dark when the new lighting effects really pop.',
+    funFact: 'The 2026 refresh lowered the minimum height to 38" (down from 40"), and the overhauled Rainbow Caverns scene now features more than 2,000 animated bats.'
   },
   'mk-06': {
     description: 'A slow boat cruise through dozens of scenes of singing, dancing dolls representing cultures from around the world — all set to the same earworm song.',
@@ -162,5 +162,80 @@ const RIDE_DETAILS = {
     description: 'A Liberty Square counter-service stop known for sweet and savory waffle creations, including seasonal pumpkin and funnel cake variations.',
     tip: 'The seasonal specials (especially around Halloween) tend to be the standout menu items — check what\'s currently offered before defaulting to the classic options.',
     funFact: 'Over the years the menu has cycled through several waffle and funnel cake combinations, with fans online tracking and ranking each version as it comes and goes.'
+  },
+  'mk-46': {
+    description: 'A flying-galleon dark ride that lifts you over a miniature, glowing London skyline and into Neverland, retracing scenes from the Peter Pan story.',
+    tip: 'No height requirement, but waits routinely run 40+ minutes since the ride loads slowly — a Lightning Lane Multi Pass pick is genuinely worth using here.',
+    funFact: 'The flying-ship effect is created with overhead tracks, the same basic ride system used by Dumbo and the Magic Carpets, just hidden in the ceiling instead of below the vehicles.'
+  },
+  'mk-47': {
+    description: 'A simple spinning ride themed to Aladdin, where each carpet has its own up-and-down control and a small camel statue nearby that occasionally "spits" water at passersby.',
+    tip: 'Functionally similar to Dumbo — if you\'ve already ridden one flying spinner that day, this is the easiest one to skip without missing much.',
+    funFact: 'The spitting camel statues are a deliberate nod to similar gag fountains found in classic amusement parks, randomly soaking unsuspecting guests walking by.'
+  },
+  'mk-48': {
+    description: 'An elevated spinning ride where small rocket-shaped vehicles circle a central tower, letting riders tilt their own ship up and down above Tomorrowland.',
+    tip: 'The queue is deceptively long because you ride an elevator partway up before actually boarding — factor in extra time even when the posted wait looks short.',
+    funFact: 'It\'s a direct descendant of "Astro Jets," one of the opening-day attractions when Magic Kingdom debuted in 1971, just relocated and rethemed over the decades.'
+  },
+  'mk-49': {
+    description: 'A slow, elevated people-mover that loops through and around several Tomorrowland buildings, including a pass directly through Space Mountain\'s show building.',
+    tip: 'A genuinely relaxing way to rest your feet for ten minutes — great for an evening ride when Tomorrowland\'s lights are glowing.',
+    funFact: 'Part of the ride track passes directly through the Space Mountain building, letting you catch a brief glimpse of the roller coaster in the dark as you glide by.'
+  },
+  'mk-50': {
+    description: 'A small junior roller coaster themed to a barnstorming biplane stunt show gone slightly wrong, designed as many kids\' first real coaster.',
+    tip: 'Low height requirement makes it one of the most accessible thrill rides in the park — a good warmup before bigger coasters for younger riders.',
+    funFact: 'The ride sits in Storybook Circus, themed around Dumbo and a vintage traveling circus, with the "crash site" props built right into the queue.'
+  },
+  'mk-51': {
+    description: 'A real steam-powered train that circles the park, offering rare aerial views of several lands along the way.',
+    tip: 'Currently running in shuttle mode rather than the full park loop while a nearby expansion area is under construction — check signage for which stations are open.',
+    funFact: 'The locomotives are genuine vintage steam engines, originally built in the early 1900s and restored specifically to run at Magic Kingdom since it opened in 1971.'
+  },
+  'mk-52': {
+    description: 'A short ride down Main Street in vintage-style vehicles — old-fashioned cars, fire trucks, and similar early-1900s transportation.',
+    tip: 'A nice, brief novelty near the park entrance — better suited to a relaxed morning stroll than a planned must-do.',
+    funFact: 'The vehicle designs are based on real transportation styles from the early 20th century, matching Main Street\'s overall turn-of-the-century American theming.'
+  },
+  'mk-53': {
+    description: 'An interactive, app-guided scavenger hunt through Adventureland where you help a pirate captain search for treasure using clues and effects hidden throughout the area.',
+    tip: 'Pick up the free talking pirate device at the Crow\'s Nest kiosk near the start — no extra cost, and it works well for restless kids during a slow stretch of the day.',
+    funFact: 'It\'s one of the few Magic Kingdom experiences that blends a physical walking tour with a digital, choose-your-own-path style storyline.'
+  },
+  'mk-55': {
+    description: 'A walk-through attraction inside a massive artificial tree, recreating the shipwrecked family\'s makeshift home from the Swiss Family Robinson film.',
+    tip: 'Rarely has any real wait, making it a good low-effort stop if you want to see something different without committing much time.',
+    funFact: 'The tree is entirely artificial, built from steel and concrete, yet it has over half a million man-made leaves attached to give it a convincingly real appearance.'
+  },
+  'mk-56': {
+    description: 'A small-group interactive experience where guests help narrate part of the Beauty and the Beast story inside Belle\'s cottage and Maurice\'s workshop, ending with a brief meet with Belle herself.',
+    tip: 'More of a character experience than a ride — good for younger kids who love Beauty and the Beast, less essential if your group is short on time.',
+    funFact: 'Guests are assigned small roles in the retelling (like playing Mrs. Potts or Chip), so no two visits play out in quite the same way.'
+  },
+  'mk-57': {
+    description: 'A classic audio-animatronic show where singing tropical birds, tiki statues, and flowers perform a tongue-in-cheek musical number inside a small theater.',
+    tip: 'Short and air-conditioned — a solid choice to duck into during the hottest part of the afternoon when you want a guaranteed seat and a break from the sun.',
+    funFact: 'It\'s one of the very first attractions to use Disney\'s original Audio-Animatronics technology, debuting at Disneyland years before this Magic Kingdom version opened.'
+  },
+  'mk-58': {
+    description: 'An interactive comedy show where the audience becomes part of the act, with monster characters from Monsters, Inc. cracking jokes and reacting live to guests in the crowd.',
+    tip: 'If you don\'t want to be singled out for a joke, sit toward the back — the closer seats are more likely to get called on.',
+    funFact: 'Some of the jokes and crowd interactions are pre-recorded based on real submissions from guests, while others are subtly adjusted based on what\'s happening in the room that day.'
+  },
+  'mk-59': {
+    description: 'A slow-rotating theater show following one family through changing decades of American home life, set to an original score about progress and technology.',
+    tip: 'A nostalgic, low-key sit-down show — great for resting tired feet, though younger kids sometimes find the pace slow compared to other attractions.',
+    funFact: 'The entire theater itself rotates around a fixed stage, making it one of the only attractions in the park where the audience — not the show — physically moves.'
+  },
+  'mk-60': {
+    description: 'A patriotic audio-animatronic theater show featuring detailed figures of every U.S. president, with a focus on the nation\'s founding and a short address from the current president\'s figure.',
+    tip: 'A calm, air-conditioned, fairly long sit-down show — best suited to a slower point in your day rather than a quick stop between rides.',
+    funFact: 'Each presidential figure is built using detailed historical research, and the show has been periodically updated to add each new president as they take office.'
+  },
+  'mk-61': {
+    description: 'An audio-animatronic musical revue featuring a cast of singing, yodeling bear characters performing old-timey country and folk tunes.',
+    tip: 'A fun, air-conditioned break with a lighthearted, silly tone — good for younger kids or anyone wanting a low-stakes sit-down show.',
+    funFact: 'It\'s one of the longest-running original attractions still operating at Magic Kingdom, having opened with the park back in 1971 and remained largely unchanged since.'
   },
 };

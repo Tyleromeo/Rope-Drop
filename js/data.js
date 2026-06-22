@@ -13,6 +13,18 @@
 // exact prices (Disney pricing changes often and isn't worth pretending
 // to track live). $ = snack, $$ = quick-service meal, $$$ = table-service
 // or specialty item.
+// Typical operating hours per park. Real daily hours vary by season and
+// special events — these are common baselines, not a live schedule.
+// Always confirm in the My Disney Experience app before your visit.
+const TYPICAL_PARK_HOURS = {
+  mk:  { early: '8:30 AM (Early Entry, resort guests)', open: '9:00 AM', close: '9:00 PM (later in busy season, often 10–11 PM)' },
+  ep:  { early: '8:30 AM (Early Entry, resort guests)', open: '9:00 AM', close: '9:00 PM' },
+  hs:  { early: '8:00 AM (Early Entry, resort guests)', open: '8:30 AM', close: '9:00 PM' },
+  ak:  { early: '7:30 AM (Early Entry, resort guests)', open: '8:00 AM', close: '7:00 PM' },
+  dl:  { early: '7:30 AM (Early Entry, resort guests)', open: '8:00 AM', close: '10:00 PM (varies seasonally)' },
+  dca: { early: '7:30 AM (Early Entry, resort guests)', open: '8:00 AM', close: '9:00 PM (varies seasonally)' },
+};
+
 const MENU_DATA = {
   'mk-22': {
     tier: '$',
@@ -77,6 +89,181 @@ const MENU_DATA = {
       { name: 'Hot or Iced Coffee' },
     ]
   },
+  'mk-27': {
+    tier: '$$',
+    items: [
+      { name: 'Build-Your-Own Nacho Bowl' },
+      { name: 'Southwest Salad' },
+      { name: 'Pulled Pork Sandwich' },
+      { name: 'Vegetarian Taco Salad' },
+      { name: 'Tex-Mex Rice Bowl' },
+      { name: 'Churros' },
+      { name: 'Frozen Lemonade' },
+    ]
+  },
+  'mk-28': {
+    tier: '$',
+    items: [
+      { name: 'Turkey Leg (also sold here)' },
+      { name: 'Chili Cheese Dog' },
+      { name: 'Fried Pickles' },
+    ]
+  },
+  'mk-29': {
+    tier: '$',
+    items: [
+      { name: 'Frozen Lemonade' },
+      { name: 'Frozen Lemon Slush' },
+      { name: 'Soft Drinks' },
+    ]
+  },
+  'mk-30': {
+    tier: '$$$',
+    items: [
+      { name: 'All-You-Care-To-Enjoy Family-Style Turkey & Pot Roast' },
+      { name: 'Seasonal Vegetables & Mashed Potatoes' },
+      { name: 'Macaroni & Cheese' },
+      { name: "Grandma's Chicken Pot Pie" },
+      { name: 'Seasonal Cobbler' },
+    ]
+  },
+  'mk-31': {
+    tier: '$',
+    items: [
+      { name: 'Frozen Coca-Cola' },
+      { name: 'Smoked Turkey Leg' },
+      { name: 'Grab-and-go Sandwiches' },
+      { name: 'Packaged Snacks' },
+    ]
+  },
+  'mk-32': {
+    tier: '$$$',
+    items: [
+      { name: 'Chilled Seafood Tower (lunch/dinner)' },
+      { name: 'Pan-Seared Beef Tenderloin' },
+      { name: 'Herb Roasted Chicken' },
+      { name: 'Lobster & Pasta' },
+      { name: "Gooey Toffee Cake" },
+      { name: 'Character dining experience with Disney Princesses' },
+    ]
+  },
+  'mk-33': {
+    tier: '$$$',
+    items: [
+      { name: 'All-You-Care-To-Enjoy Buffet (breakfast, lunch, dinner)' },
+      { name: 'Carved Meats (lunch/dinner)' },
+      { name: 'Seasonal Salads' },
+      { name: 'Kids\' Buffet Favorites' },
+      { name: 'Character dining with Winnie the Pooh & friends' },
+    ]
+  },
+  'mk-34': {
+    tier: '$$$',
+    items: [
+      { name: "Tony's Spaghetti & Meatballs (Lady and the Tramp callback)" },
+      { name: 'Chicken Parmesan' },
+      { name: 'Lasagna' },
+      { name: 'Italian-Style Salad' },
+      { name: 'Tiramisu' },
+    ]
+  },
+  'mk-35': {
+    tier: '$$$',
+    items: [
+      { name: 'Specialty Burgers' },
+      { name: 'Reuben Sandwich' },
+      { name: 'Hand-Spun Milkshakes' },
+      { name: 'Chicken Caesar Wrap' },
+    ]
+  },
+  'mk-36': {
+    tier: '$$$',
+    items: [
+      { name: 'Pork & Watermelon Bao Buns' },
+      { name: "Falls Family Falafel" },
+      { name: 'Grilled Beef Tenderloin' },
+      { name: "S.E.A. Skewers" },
+      { name: 'Schweitzer Falls Sundae' },
+    ]
+  },
+  'mk-37': {
+    tier: '$$$',
+    items: [
+      { name: 'Currently closed — reopening planned for Fall 2026' },
+    ]
+  },
+  'mk-38': {
+    tier: '$$',
+    items: [
+      { name: 'Grilled Salmon' },
+      { name: 'Lighthouse Sandwich (lobster roll)' },
+      { name: 'Fish & Chips' },
+      { name: 'Shrimp & Lobster Salad' },
+      { name: 'Clam Chowder' },
+      { name: 'Vegetarian Chili' },
+    ]
+  },
+  'mk-39': {
+    tier: '$$',
+    items: [
+      { name: 'Bacon Cheeseburger' },
+      { name: 'Plant-Based Burger' },
+      { name: 'Rotisserie Chicken' },
+      { name: 'Buffalo Chicken Sandwich' },
+      { name: 'Kids\' Build-Your-Own Pasta' },
+    ]
+  },
+  'mk-40': {
+    tier: '$',
+    items: [
+      { name: 'Classic Ice Cream Scoops' },
+      { name: 'Sundaes' },
+      { name: 'Ice Cream Floats' },
+      { name: 'Waffle Cone Sandwiches' },
+    ]
+  },
+  'mk-41': {
+    tier: '$',
+    items: [
+      { name: 'Cinnamon Roll' },
+      { name: "LeFou's Brew (non-alcoholic specialty drink)" },
+      { name: 'Caramel Apple' },
+    ]
+  },
+  'mk-42': {
+    tier: '$',
+    items: [
+      { name: 'Citrus Swirl (orange & vanilla soft-serve)' },
+      { name: 'Orange Juice Slushy' },
+      { name: 'Fresh Fruit' },
+    ]
+  },
+  'mk-43': {
+    tier: '$$',
+    items: [
+      { name: 'Starbucks Coffee & Espresso Drinks' },
+      { name: 'Pastries & Croissants' },
+      { name: 'Breakfast Sandwiches' },
+      { name: 'Mickey-Shaped Treats' },
+    ]
+  },
+  'mk-44': {
+    tier: '$$',
+    items: [
+      { name: 'Flatbread Pizzas' },
+      { name: 'Italian Sub Sandwich' },
+      { name: 'Caesar Salad' },
+      { name: 'Kids\' Pasta' },
+    ]
+  },
+  'mk-45': {
+    tier: '$',
+    items: [
+      { name: 'Loaded Tater Tots' },
+      { name: 'Mac & Cheese' },
+      { name: 'Hot Dog Bites' },
+    ]
+  },
 };
 
 const TYPICAL_SHOWTIMES = {
@@ -138,7 +325,7 @@ const PARKS = [
           { id: 'mk-02', name: 'Haunted Mansion', meta: 'Liberty Square · all ages', badge: 'family', must: true },
           { id: 'mk-03', name: 'Pirates of the Caribbean', meta: 'Adventureland · all ages', badge: 'family', must: true },
           { id: 'mk-04', name: 'Space Mountain', meta: 'Tomorrowland · 44" min height', badge: 'thrill', must: true },
-          { id: 'mk-05', name: 'Big Thunder Mountain Railroad', meta: 'Frontierland · 40" min height', badge: 'thrill', must: true },
+          { id: 'mk-05', name: 'Big Thunder Mountain Railroad', meta: 'Frontierland · 38" min height', badge: 'thrill', must: true, status: 'new' },
         ]
       },
       {
@@ -156,10 +343,9 @@ const PARKS = [
           { id: 'mk-48', name: 'Astro Orbiter', meta: 'Tomorrowland · all ages, elevated spinning rockets', badge: 'family' },
           { id: 'mk-49', name: 'Tomorrowland Transit Authority PeopleMover', meta: 'Tomorrowland · all ages, scenic elevated ride', badge: 'family' },
           { id: 'mk-50', name: 'The Barnstormer', meta: 'Storybook Circus · 35" min height, junior coaster', badge: 'family' },
-          { id: 'mk-51', name: 'Walt Disney World Railroad', meta: 'Main Street USA · all ages, steam train loop', badge: 'family' },
+          { id: 'mk-51', name: 'Walt Disney World Railroad', meta: 'Main Street USA · all ages — currently shuttle mode, not full loop (construction)', badge: 'family' },
           { id: 'mk-52', name: 'Main Street Vehicles', meta: 'Main Street USA · all ages, vintage cars', badge: 'family' },
-          { id: 'mk-53', name: 'Liberty Square Riverboat', meta: 'Liberty Square · all ages, scenic riverboat', badge: 'family' },
-          { id: 'mk-54', name: 'Tom Sawyer Island', meta: 'Frontierland · all ages, raft-access play area', badge: 'family' },
+          { id: 'mk-53', name: 'A Pirate\'s Adventure: Treasure of the Seven Seas', meta: 'Adventureland · all ages, interactive app-based treasure hunt', badge: 'family' },
           { id: 'mk-55', name: 'Swiss Family Treehouse', meta: 'Adventureland · all ages, walk-through treehouse', badge: 'family' },
           { id: 'mk-56', name: "Enchanted Tales with Belle", meta: 'Fantasyland · all ages, interactive storytelling', badge: 'family' },
         ]
@@ -211,7 +397,7 @@ const PARKS = [
           { id: 'mk-34', name: "Tony's Town Square Restaurant", meta: 'Main Street USA · Lady and the Tramp Italian fare', badge: 'food' },
           { id: 'mk-35', name: 'The Plaza Restaurant', meta: 'Main Street USA · table-service sandwiches & shakes', badge: 'food' },
           { id: 'mk-36', name: 'Jungle Navigation Co. Ltd Skipper Canteen', meta: 'Adventureland · adventurous table-service menu', badge: 'food' },
-          { id: 'mk-37', name: 'The Diamond Horseshoe', meta: 'Frontierland · seasonal quick-service', badge: 'food' },
+          { id: 'mk-37', name: 'The Diamond Horseshoe', meta: 'Frontierland · seasonal quick-service', badge: 'food', status: 'closed' },
           { id: 'mk-38', name: 'Columbia Harbour House', meta: 'Liberty Square · seafood, quiet upstairs seating', badge: 'food' },
           { id: 'mk-39', name: "Cosmic Ray's Starlight Café", meta: 'Tomorrowland · burgers & live animatronic music', badge: 'food' },
           { id: 'mk-40', name: 'Plaza Ice Cream Parlor', meta: 'Main Street USA · classic ice cream', badge: 'food' },
