@@ -315,6 +315,10 @@ function renderPark() {
           <span class="park-progress-label" style="color: ${park.accentColor};">${done} of ${total} ${activeCategory === 'rides' ? 'rides' : activeCategory === 'show' ? 'shows' : 'food spots'}</span>
         </div>
         ${hoursHtml}
+        <div class="weather-section">
+          <div class="weather-heading">7-day forecast</div>
+          <div id="weather-widget" class="weather-widget"></div>
+        </div>
         ${tally.total > 0 ? `
           <div class="tally-section">
             <div class="tally-total">
@@ -404,6 +408,8 @@ function renderPark() {
   `;
 
   main.innerHTML = html;
+
+  renderWeatherWidget(park);
 
   // Bind category tabs
   main.querySelectorAll('.category-tab').forEach(btn => {
@@ -652,6 +658,74 @@ function resetPark(park) {
 function bindTripButton() {
   const btn = document.getElementById('trip-btn');
   if (btn) btn.addEventListener('click', openTripsModal);
+}
+
+// ── Weather forecast ─────────────────────────────────────────────────────────
+const weatherCache = {}; // parkId -> { data, fetchedAt }
+const WEATHER_CACHE_MS = 30 * 60 * 1000; // 30 minutes
+
+async function fetchWeather(park) {
+  const cached = weatherCache[park.id];
+  if (cached && Date.now() - cached.fetchedAt < WEATHER_CACHE_MS) {
+    return cached.data;
+  }
+
+  const center = PARK_MAP_CENTERS[park.id];
+  if (!center) return null;
+
+  const url = `https://api.open-meteo.com/v1/forecast?latitude=${center.lat}&longitude=${center.lng}&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max,relative_humidity_2m_mean&temperature_unit=fahrenheit&timezone=auto&forecast_days=7`;
+
+  try {
+    const res = await fetch(url);
+    if (!res.ok) throw new Error('Weather fetch failed');
+    const json = await res.json();
+    weatherCache[park.id] = { data: json, fetchedAt: Date.now() };
+    return json;
+  } catch (e) {
+    return null;
+  }
+}
+
+function renderWeatherWidget(park) {
+  const container = document.getElementById('weather-widget');
+  if (!container) return;
+
+  container.innerHTML = `<div class="weather-loading">Loading 7-day forecast…</div>`;
+
+  fetchWeather(park).then(data => {
+    if (!data || !data.daily) {
+      container.innerHTML = `<div class="weather-error">Forecast unavailable right now.</div>`;
+      return;
+    }
+
+    const { time, temperature_2m_max, temperature_2m_min, precipitation_probability_max, relative_humidity_2m_mean } = data.daily;
+
+    const dayCards = time.map((dateStr, i) => {
+      const date = new Date(dateStr + 'T12:00:00');
+      const dayLabel = i === 0 ? 'Today' : date.toLocaleDateString('en-US', { weekday: 'short' });
+      const high = Math.round(temperature_2m_max[i]);
+      const low = Math.round(temperature_2m_min[i]);
+      const rain = Math.round(precipitation_probability_max[i]);
+      const humidity = Math.round(relative_humidity_2m_mean[i]);
+
+      return `
+        <div class="weather-day">
+          <div class="weather-day-label">${dayLabel}</div>
+          <div class="weather-temps">
+            <span class="weather-high">${high}°</span>
+            <span class="weather-low">${low}°</span>
+          </div>
+          <div class="weather-detail">💧 ${rain}%</div>
+          <div class="weather-detail">💦 ${humidity}%</div>
+        </div>
+      `;
+    }).join('');
+
+    container.innerHTML = `
+      <div class="weather-scroll">${dayCards}</div>
+      <div class="weather-attribution">Forecast data: Open-Meteo.com</div>
+    `;
+  });
 }
 
 // ── Park map ─────────────────────────────────────────────────────────────────
