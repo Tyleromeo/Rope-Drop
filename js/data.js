@@ -264,6 +264,139 @@ const MENU_DATA = {
       { name: 'Hot Dog Bites' },
     ]
   },
+  'ep-16': {
+    tier: '$',
+    items: [
+      { name: 'School Bread (sweet bread with custard and coconut)' },
+      { name: 'Norwegian Waffle' },
+      { name: 'Kringle (Danish pastry)' },
+    ]
+  },
+  'ep-17': {
+    tier: '$',
+    items: [
+      { name: 'Ham & Cheese Crepe' },
+      { name: 'Nutella Crepe' },
+      { name: 'Quiche Lorraine' },
+      { name: 'French Pastries' },
+    ]
+  },
+  'ep-18': {
+    tier: '$',
+    items: [
+      { name: 'Croissant Donut' },
+      { name: 'Specialty Coffee' },
+    ]
+  },
+  'ep-19': {
+    tier: '$$',
+    items: [
+      { name: 'Fish & Chips' },
+      { name: 'Bangers & Mash' },
+      { name: 'Shepherd\'s Pie' },
+      { name: 'Scotch Egg' },
+      { name: 'Guinness & UK Beer Flight' },
+    ]
+  },
+  'ep-20': {
+    tier: '$',
+    items: [
+      { name: 'Frozen Lime Margarita' },
+      { name: 'Frozen Strawberry Margarita' },
+      { name: 'Frozen Mango Margarita' },
+      { name: 'Flight of Tequila Tastings' },
+      { name: 'Sangria' },
+    ]
+  },
+  'ep-41': {
+    tier: '$$$',
+    items: [
+      { name: 'All-You-Care-To-Enjoy German Buffet' },
+      { name: 'Schnitzel' },
+      { name: 'Spätzle' },
+      { name: 'Roasted Chicken' },
+      { name: 'Bratwurst & Sauerkraut' },
+      { name: 'German Beer Flight' },
+      { name: 'Apple Strudel' },
+    ]
+  },
+  'ep-42': {
+    tier: '$$$',
+    items: [
+      { name: 'Handmade Pappardelle' },
+      { name: 'Chicken Parmigiana' },
+      { name: 'Risotto' },
+      { name: 'Tiramisu' },
+      { name: 'Italian Wine Flight' },
+    ]
+  },
+  'ep-43': {
+    tier: '$$$',
+    items: [
+      { name: 'Tortilla Soup' },
+      { name: 'Chicken Enchiladas with Mole Sauce' },
+      { name: 'Beef Tacos' },
+      { name: 'Queso Fundido' },
+      { name: 'Flan' },
+    ]
+  },
+  'ep-44': {
+    tier: '$$',
+    items: [
+      { name: 'BBQ Pulled Pork Sandwich' },
+      { name: 'Smoked Beef Brisket' },
+      { name: 'BBQ Combo Platter' },
+      { name: 'Cornbread' },
+      { name: 'Mac & Cheese' },
+    ]
+  },
+  'ep-45': {
+    tier: '$$$',
+    items: [
+      { name: 'Hibachi Chicken' },
+      { name: 'Hibachi Steak & Shrimp' },
+      { name: 'Vegetable Tempura' },
+      { name: 'Miso Soup' },
+      { name: 'Green Tea Ice Cream' },
+    ]
+  },
+  'ep-46': {
+    tier: '$$$',
+    items: [
+      { name: 'Hummus Fries' },
+      { name: 'Roasted Cauliflower' },
+      { name: 'Lamb Shank' },
+      { name: 'Chicken Shawarma' },
+      { name: 'Homemade Sangria' },
+    ]
+  },
+  'ep-47': {
+    tier: '$$$',
+    items: [
+      { name: 'Character Dining with Disney Princesses' },
+      { name: 'Traditional Norwegian Buffet' },
+      { name: 'Kjottkake (Norwegian meatballs)' },
+      { name: 'Smoked Salmon' },
+      { name: 'Cloudberry Cream Dessert' },
+    ]
+  },
+  'ep-48': {
+    tier: '$',
+    items: [
+      { name: 'Bavarian Pretzel with Cheese Sauce' },
+      { name: 'Currywurst' },
+      { name: 'German Beer' },
+    ]
+  },
+  'ep-49': {
+    tier: '$',
+    items: [
+      { name: 'Macaron Ice Cream Sandwich' },
+      { name: 'Croque Glace' },
+      { name: 'Artisan Gelato' },
+      { name: 'Sorbet' },
+    ]
+  },
 };
 
 const TYPICAL_SHOWTIMES = {
@@ -477,30 +610,55 @@ const PARKS = [
         name: 'Must-dos',
         items: [
           { id: 'ep-01', name: 'Guardians of the Galaxy: Cosmic Rewind', meta: 'World Discovery · 42" min height', badge: 'thrill', must: true },
-          { id: 'ep-02', name: "Remy's Ratatouille Adventure", meta: 'World Showcase · all ages', badge: 'family', must: true },
-          { id: 'ep-03', name: 'Frozen Ever After', meta: 'World Showcase · all ages', badge: 'family', must: true },
-          { id: 'ep-04', name: 'Soarin\' Around the World', meta: 'World Nature · 40" min height', badge: 'family', must: true },
-          { id: 'ep-05', name: 'Test Track', meta: 'World Discovery · 40" min height', badge: 'thrill', must: true },
+          { id: 'ep-02', name: "Remy's Ratatouille Adventure", meta: 'World Showcase (France) · all ages', badge: 'family', must: true },
+          { id: 'ep-03', name: 'Frozen Ever After', meta: 'World Showcase (Norway) · all ages — refreshed animatronics Feb 2026', badge: 'family', must: true, status: 'new' },
+          { id: 'ep-04', name: 'Soarin\' Across America', meta: 'World Nature · 40" min height — new film as of May 2026', badge: 'family', must: true, status: 'new' },
+          { id: 'ep-05', name: 'Test Track', meta: 'World Discovery · 40" min height — reimagined 2025', badge: 'thrill', must: true },
         ]
       },
       {
         name: 'More rides',
         items: [
           { id: 'ep-06', name: 'Mission: SPACE', meta: 'World Discovery · 40" min height · choose Orange or Green', badge: 'thrill' },
-          { id: 'ep-07', name: 'Journey Into Imagination with Figment', meta: 'World Discovery · all ages', badge: 'family' },
+          { id: 'ep-07', name: 'Journey Into Imagination with Figment', meta: 'World Celebration · all ages', badge: 'family' },
           { id: 'ep-08', name: 'Living with the Land', meta: 'World Nature · all ages', badge: 'family' },
-          { id: 'ep-09', name: 'Gran Fiesta Tour (Mexico)', meta: 'World Showcase · all ages', badge: 'family' },
+          { id: 'ep-09', name: 'Gran Fiesta Tour Starring the Three Caballeros', meta: 'World Showcase (Mexico) · all ages', badge: 'family' },
+          { id: 'ep-21', name: 'Spaceship Earth', meta: 'World Celebration · all ages, the park\'s icon ride', badge: 'family' },
         ]
       },
       {
-        name: 'World Showcase',
+        name: 'Shows & experiences',
         items: [
-          { id: 'ep-10', name: 'Mexico pavilion', meta: 'Pyramid, Gran Fiesta Tour & La Hacienda', badge: 'family' },
-          { id: 'ep-11', name: 'Japan pavilion', meta: 'Shopping, Mitsukoshi store & sake bar', badge: 'family' },
-          { id: 'ep-12', name: 'France pavilion', meta: 'Crepes, wine & Impressions de France film', badge: 'family' },
-          { id: 'ep-13', name: 'UK pavilion', meta: 'Rose & Crown Pub, fish & chips', badge: 'family' },
-          { id: 'ep-14', name: 'Canada pavilion', meta: 'Le Cellier steakhouse, O Canada! film', badge: 'family' },
-          { id: 'ep-15', name: 'EPCOT Forever / Harmonious', meta: 'Lagoon fireworks show · evenings', badge: 'show' },
+          { id: 'ep-15', name: 'Luminous: The Symphony of Us', meta: 'World Showcase Lagoon · nightly fireworks', badge: 'show' },
+          { id: 'ep-22', name: 'Journey of Water, Inspired by Moana', meta: 'World Celebration · all ages, interactive water trail', badge: 'family' },
+          { id: 'ep-23', name: 'The American Adventure', meta: 'World Showcase (USA) · 30-minute animatronic show', badge: 'show' },
+          { id: 'ep-24', name: 'Reflections of China', meta: 'World Showcase (China) · 360° Circle-Vision film', badge: 'show' },
+          { id: 'ep-25', name: 'Canada Far and Wide', meta: 'World Showcase (Canada) · Circle-Vision film', badge: 'show' },
+          { id: 'ep-26', name: 'Impressions de France', meta: 'World Showcase (France) · widescreen film', badge: 'show' },
+          { id: 'ep-27', name: 'Beauty and the Beast Sing-Along', meta: 'World Showcase (France) · all ages', badge: 'show' },
+          { id: 'ep-28', name: 'Turtle Talk with Crush', meta: 'World Nature (The Seas) · interactive show, all ages', badge: 'show' },
+          { id: 'ep-29', name: 'Awesome Planet', meta: 'World Nature (The Land) · 15-minute film', badge: 'show' },
+          { id: 'ep-30', name: 'Mickey & Friends character meet', meta: 'World Celebration (CommuniCore Hall) · Lightning Lane available', badge: 'character' },
+          { id: 'ep-31', name: 'Meet Figment', meta: 'World Celebration (ImageWorks) · limited hours daily', badge: 'character' },
+          { id: 'ep-32', name: 'Princess characters at Akershus', meta: 'World Showcase (Norway) · character dining', badge: 'character' },
+          { id: 'ep-33', name: 'Meet Belle', meta: 'World Showcase (France) · along the promenade', badge: 'character' },
+          { id: 'ep-34', name: 'Meet Mulan', meta: 'World Showcase (China) · inside the Great Hall', badge: 'character' },
+          { id: 'ep-35', name: 'Meet Princess Jasmine', meta: 'World Showcase (Morocco)', badge: 'character' },
+        ]
+      },
+      {
+        name: 'World Showcase pavilions',
+        items: [
+          { id: 'ep-10', name: 'Mexico pavilion', meta: 'Pyramid, Gran Fiesta Tour & Mexico Folk Art Gallery', badge: 'family' },
+          { id: 'ep-36', name: 'Norway pavilion', meta: 'Frozen Ever After, Stave Church Gallery & Viking artifacts', badge: 'family' },
+          { id: 'ep-37', name: 'China pavilion', meta: 'Reflections of China film & House of Good Fortune shop', badge: 'family' },
+          { id: 'ep-38', name: 'Germany pavilion', meta: 'Biergarten, model train display & toy shops', badge: 'family' },
+          { id: 'ep-39', name: 'Italy pavilion', meta: 'Tutto Italia, Tutto Gusto Wine Cellar & street performers', badge: 'family' },
+          { id: 'ep-11', name: 'Japan pavilion', meta: 'Mitsukoshi department store, koi ponds & sake bar', badge: 'family' },
+          { id: 'ep-40', name: 'Morocco pavilion', meta: 'Intricate tilework, Spice Road Table & Jasmine meet', badge: 'family' },
+          { id: 'ep-12', name: 'France pavilion', meta: 'Remy\'s Ratatouille Adventure, Les Halles & Eiffel Tower view', badge: 'family' },
+          { id: 'ep-13', name: 'United Kingdom pavilion', meta: 'Rose & Crown Pub, gardens & Mary Poppins meet', badge: 'family' },
+          { id: 'ep-14', name: 'Canada pavilion', meta: 'Le Cellier steakhouse & Canada Far and Wide film', badge: 'family' },
         ]
       },
       {
@@ -511,6 +669,15 @@ const PARKS = [
           { id: 'ep-18', name: 'Croissant donut at Refreshment Port', meta: 'Near Canada pavilion', badge: 'food' },
           { id: 'ep-19', name: 'Rose & Crown Pub (UK)', meta: 'Fish & chips & Guinness', badge: 'food' },
           { id: 'ep-20', name: 'Frozen margarita at La Cava del Tequila (Mexico)', meta: 'World Showcase · no reservation needed', badge: 'food' },
+          { id: 'ep-41', name: 'Biergarten Restaurant (Germany)', meta: 'Buffet-style German cuisine with live entertainment', badge: 'food' },
+          { id: 'ep-42', name: 'Tutto Italia Ristorante (Italy)', meta: 'Table-service handmade pasta', badge: 'food' },
+          { id: 'ep-43', name: 'San Angel Inn Restaurante (Mexico)', meta: 'Table-service, twilight ambiance inside the pyramid', badge: 'food' },
+          { id: 'ep-44', name: 'Regal Eagle Smokehouse (USA)', meta: 'Quick-service BBQ', badge: 'food' },
+          { id: 'ep-45', name: 'Teppan Edo (Japan)', meta: 'Hibachi-style table-service dining', badge: 'food' },
+          { id: 'ep-46', name: 'Spice Road Table (Morocco)', meta: 'Waterfront small plates & sangria', badge: 'food' },
+          { id: 'ep-47', name: 'Akershus Royal Banquet Hall (Norway)', meta: 'Character dining with Disney princesses', badge: 'food' },
+          { id: 'ep-48', name: 'Sommerfest pretzels (Germany)', meta: 'Quick-service, soft pretzels with cheese sauce', badge: 'food' },
+          { id: 'ep-49', name: 'L\'Artisan des Glaces (France)', meta: 'Macaron ice cream sandwiches & artisan gelato', badge: 'food' },
         ]
       }
     ]

@@ -238,4 +238,155 @@ const RIDE_DETAILS = {
     tip: 'A fun, air-conditioned break with a lighthearted, silly tone — good for younger kids or anyone wanting a low-stakes sit-down show.',
     funFact: 'It\'s one of the longest-running original attractions still operating at Magic Kingdom, having opened with the park back in 1971 and remained largely unchanged since.'
   },
+  // ── EPCOT (additional) ──
+  'ep-06': {
+    description: 'A space-launch motion simulator where you and three teammates take on assigned roles for a "mission" — choose the intense Orange Mission (Mars) or the gentler Green Mission (orbiting Earth).',
+    tip: 'If anyone in your group gets motion sick easily, go with the Green Mission — it skips the centrifuge spin that makes Orange feel like a real launch.',
+    funFact: 'The ride vehicle cabins are genuinely cramped capsules mounted to a spinning centrifuge, which is what creates the realistic liftoff G-force sensation.'
+  },
+  'ep-07': {
+    description: 'A gentle dark ride following Figment the purple dragon through a playful journey celebrating the five senses and imagination.',
+    tip: 'One of the most reliably short waits in the whole park — a good low-key stop to recharge between bigger attractions.',
+    funFact: 'Figment has become something of a cult favorite despite the ride\'s modest scale, with merchandise and fan art keeping the character beloved long after his pavilion\'s original Imagination focus faded.'
+  },
+  'ep-08': {
+    description: 'A slow boat ride through the real greenhouses and growing labs that supply produce to restaurants across Walt Disney World, showcasing experimental farming techniques.',
+    tip: 'A relaxing, educational ride with usually very short waits — a nice change of pace if you need a break from bigger thrill rides.',
+    funFact: 'The crops grown in these greenhouses are real and are actually served in EPCOT restaurants, making this one of the few rides at Disney with a working agricultural operation behind it.'
+  },
+  'ep-09': {
+    description: 'A boat ride through the Mexico pavilion\'s pyramid, following Donald Duck and his Three Caballeros friends through a fiesta-gone-slightly-wrong storyline.',
+    tip: 'Waits are almost always short, making this one of the best "bang for your buck" rides in the park if you want a quick, fun stop.',
+    funFact: 'The ride is based on the 1944 Disney film The Three Caballeros — a movie far less well-known today than the ride itself.'
+  },
+  'ep-21': {
+    description: 'A slow-moving dark ride inside EPCOT\'s iconic geodesic sphere, tracing the history of human communication from cave paintings to the modern era.',
+    tip: 'One of the few rides that almost never has a meaningful wait — a great choice to ride right when you arrive or right before you leave.',
+    funFact: 'Disney historians worked with real museums and universities while developing the ride\'s scenes in the late 1970s to keep the history depicted accurate.'
+  },
+  'ep-22': {
+    description: 'An outdoor interactive water trail themed to Moana, where you can play with flowing water, create musical streams, and walk through small waterfalls.',
+    tip: 'You can choose a "dry path" if you don\'t want to get wet, but the interactive elements are most fun if you\'re willing to get a little splashed.',
+    funFact: 'The attraction lights up with extra effects after dark, making an evening visit noticeably more magical than a daytime one.'
+  },
+  'ep-28': {
+    description: 'A live, interactive show where an animator-controlled Crush from Finding Nemo chats directly with the audience in real time.',
+    tip: 'Sit near the front if you have kids who might want to ask Crush a question — he\'ll often call on specific guests by what they\'re wearing.',
+    funFact: 'Despite looking like a pre-recorded video, the entire show is performed live by a hidden animator and voice actor reacting to the actual audience in the room.'
+  },
+  'ep-15': {
+    description: 'EPCOT\'s nighttime spectacular over World Showcase Lagoon, combining fireworks, lights, fountains, and music celebrating connection and community.',
+    tip: 'Stand anywhere along the lagoon promenade for a good view — the show is designed to be seen from nearly the entire loop, not just one spot.',
+    funFact: 'EPCOT has cycled through several different nighttime shows over the decades, each one redesigned to reflect the park\'s evolving theme and technology.'
+  },
+  'ep-23': {
+    description: 'A 30-minute animatronic theatrical show inside a colonial-style hall, narrating pivotal moments in American history through robotic figures of historical figures.',
+    tip: 'A long, seated, air-conditioned show — great for an afternoon break when you want to sit down somewhere cool for half an hour.',
+    funFact: 'The animatronic figures used here are some of the most advanced Disney has built, with a range of motion designed to feel more lifelike than older-generation robots elsewhere in the parks.'
+  },
+  'ep-24': {
+    description: 'A 360-degree Circle-Vision film showcasing China\'s landscapes and cities, watched standing in the round as the screen wraps completely around the audience.',
+    tip: 'There\'s no seating — the room is designed for guests to stand and turn to follow the action as it moves around the circular screen.',
+    funFact: 'Circle-Vision 360° technology was originally developed for World\'s Fair pavilions decades before being adapted into EPCOT\'s World Showcase films.'
+  },
+  'ep-25': {
+    description: 'A Circle-Vision 360° film celebrating Canada\'s natural beauty and major cities, shown in the round just like its China pavilion counterpart.',
+    tip: 'Air-conditioned and standing-room, with no real wait most of the day — an easy add-on while strolling through World Showcase.',
+    funFact: 'The film has been updated multiple times since EPCOT opened in 1982 to reflect modern Canadian landmarks and scenery.'
+  },
+  'ep-26': {
+    description: 'A widescreen film showcasing the regions and culture of France, shown in a theater designed to feel like an intimate European cinema.',
+    tip: 'A relaxing seated break in the France pavilion — pair it with a pastry from Les Halles before or after.',
+    funFact: 'The five-screen panoramic format was custom-built for this theater, creating a wraparound visual effect without full 360-degree Circle-Vision.'
+  },
+  'ep-27': {
+    description: 'A sing-along show retelling Beauty and the Beast through film clips and on-screen lyrics, encouraging the whole audience to join in.',
+    tip: 'A fun, low-effort stop for families with younger kids who love singing along to the music.',
+    funFact: 'It shares its theater with Impressions de France, alternating showtimes throughout the day in the same France pavilion building.'
+  },
+  'ep-29': {
+    description: 'A short film on the second floor of The Land pavilion exploring Earth\'s natural wonders and ecosystems.',
+    tip: 'Easy to miss since it\'s tucked upstairs — worth a quick stop if you\'re already at The Land pavilion for Soarin\' or Living with the Land.',
+    funFact: 'It replaced an older attraction called Circle of Life, continuing The Land pavilion\'s long tradition of nature-and-conservation-themed short films.'
+  },
+  'ep-30': {
+    description: 'A walk-up meet-and-greet with Mickey, Minnie, and friends inside CommuniCore Hall in World Celebration.',
+    tip: 'Standby usually moves quickly, but Lightning Lane is available if you want to guarantee a shorter wait.',
+    funFact: 'CommuniCore Hall is also a climate-controlled rest stop with charging stations, making this meet-and-greet area a popular detour even for guests not looking for a character photo.'
+  },
+  'ep-31': {
+    description: 'A limited-hours meet-and-greet with Figment near ImageWorks in World Celebration.',
+    tip: 'Check the My Disney Experience app for exact hours — Figment only appears for a couple of hours most days, not all day long.',
+    funFact: 'Figment\'s popularity as a character has outlasted most of the original Imagination pavilion attractions he was created to promote.'
+  },
+  'ep-32': {
+    description: 'A Norwegian-style character dining experience inside the Norway pavilion, where Disney princesses visit your table throughout the meal.',
+    tip: 'Reservations book up quickly — this is one of the more popular character dining experiences at EPCOT, so plan ahead.',
+    funFact: 'Akershus is modeled after a real medieval fortress in Oslo, Norway, of the same name.'
+  },
+  'ep-33': {
+    description: 'A walk-up meet with Belle along the France pavilion promenade.',
+    tip: 'Check posted times near the pavilion entrance — Belle\'s appearances are scheduled rather than continuous.',
+    funFact: 'France is one of the most character-dense pavilions in World Showcase, also hosting Aurora in the Fragrance Gardens at certain times of day.'
+  },
+  'ep-34': {
+    description: 'A character meet with Mulan inside the Great Hall of the China pavilion.',
+    tip: 'A relatively low-key meet-and-greet — good for fans of Mulan who want a less crowded alternative to Magic Kingdom\'s princess hall.',
+    funFact: 'Mulan is one of the few Disney princesses whose primary meet-and-greet location is in EPCOT rather than Magic Kingdom.'
+  },
+  'ep-35': {
+    description: 'A character meet with Princess Jasmine inside the Morocco pavilion.',
+    tip: 'Morocco tends to be one of the quieter World Showcase pavilions, so this meet often has shorter waits than character spots elsewhere.',
+    funFact: 'Morocco is the only World Showcase pavilion funded directly by its home country\'s government, which is part of why its tilework and architecture feel so authentic.'
+  },
+  'ep-10': {
+    description: 'A pavilion built around a Mesoamerican pyramid, housing the Gran Fiesta Tour ride, an indoor marketplace, and the Mexico Folk Art Gallery.',
+    tip: 'La Cava del Tequila inside the pyramid is one of the most popular lounges in World Showcase — expect a wait for a table in the evening.',
+    funFact: 'The entire pyramid interior is designed to feel like dusk year-round, with a permanently dim, twilight-style lighting scheme.'
+  },
+  'ep-36': {
+    description: 'A pavilion themed to Norway, home to Frozen Ever After, the Stave Church Gallery, and authentic Norwegian shops and bakeries.',
+    tip: 'Kringla Bakeri Og Kafe is a great quick stop for the famous school bread pastry without committing to the Akershus character meal.',
+    funFact: 'The Stave Church Gallery building is modeled after real wooden churches found in Norway, some of which are nearly 1,000 years old.'
+  },
+  'ep-37': {
+    description: 'A pavilion celebrating Chinese culture, featuring the Reflections of China film, intricate temple-style architecture, and the House of Good Fortune shop.',
+    tip: 'The pavilion doesn\'t have its own dedicated restroom — the nearest one is a small shared facility between Lotus Blossom Cafe and Nine Dragons.',
+    funFact: 'The pavilion\'s centerpiece building is modeled after the Temple of Heaven in Beijing, a real UNESCO World Heritage Site.'
+  },
+  'ep-38': {
+    description: 'A Bavarian-style pavilion with no rides, but strong on food, beer, and atmosphere — home to the Biergarten buffet and a charming model train display.',
+    tip: 'Don\'t miss the small model train village set up between Germany and Italy — it\'s easy to walk past without noticing it.',
+    funFact: 'The miniature train village was originally built just for EPCOT\'s Flower and Garden Festival but became a permanent fixture due to its popularity.'
+  },
+  'ep-39': {
+    description: 'An Italian-themed pavilion with no rides, featuring two well-regarded restaurants and frequent street performers.',
+    tip: 'Catch Sergio the juggler if he\'s performing — his shows are a fan-favorite bit of unscripted World Showcase entertainment.',
+    funFact: 'Tutto Gusto Wine Cellar inside this pavilion stocks more than 200 Italian wines, one of the largest Italian wine selections at Walt Disney World.'
+  },
+  'ep-11': {
+    description: 'A pavilion centered on Japanese culture, with peaceful gardens, koi ponds, and the large Mitsukoshi department store.',
+    tip: 'Walk behind the pagoda for one of the quietest, most relaxing corners in all of World Showcase if you need a break from crowds.',
+    funFact: 'Mitsukoshi is a real, operating branch of a major Japanese department store chain, not just a themed Disney shop.'
+  },
+  'ep-40': {
+    description: 'A richly tiled pavilion themed to Morocco, with winding marketplace corridors, the Spice Road Table restaurant, and a Jasmine meet-and-greet.',
+    tip: 'Spice Road Table\'s waterfront patio is one of the better spots in the park to watch Luminous over dinner.',
+    funFact: 'Morocco is the only World Showcase pavilion that was directly funded by its represented country\'s government, which shows in the authenticity of its architecture and tile work.'
+  },
+  'ep-12': {
+    description: 'A Parisian-styled pavilion with Remy\'s Ratatouille Adventure, two classic films, and some of the best bakeries in all of Walt Disney World.',
+    tip: 'Les Halles Boulangerie-Patisserie is widely considered the best quick-service bakery in the entire park — worth the stop even if you\'re not hungry yet.',
+    funFact: 'The pavilion includes a scaled-down replica of the Eiffel Tower, built at roughly 1/10th the size of the real Paris landmark.'
+  },
+  'ep-13': {
+    description: 'A pavilion themed to the United Kingdom, with a classic pub, manicured gardens, and a Mary Poppins meet-and-greet.',
+    tip: 'Rose & Crown Pub has a small lagoon-side patio that\'s a great quiet spot to watch the nighttime show with a drink in hand.',
+    funFact: 'The pavilion\'s architecture intentionally mixes several different historical English building styles into one walkable street.'
+  },
+  'ep-14': {
+    description: 'A pavilion celebrating Canada, with Le Cellier steakhouse and the Canada Far and Wide Circle-Vision film.',
+    tip: 'Le Cellier is one of the hardest table-service reservations to book in all of EPCOT — plan well ahead if you want a table.',
+    funFact: 'The pavilion\'s landscaping was modeled after Canada\'s Butchart Gardens, a real and famous garden in British Columbia.'
+  },
 };

@@ -42,15 +42,21 @@ const MAP_MARKERS = {
     { itemId: 'mk-22', lat: 28.418433, lng: -81.583483 }, // Dole Whip at Aloha Isle (near Aladdin/Adventureland)
   ],
   ep: [
-    { itemId: 'ep-05', lat: 28.373703, lng: -81.552439 }, // Soarin'
+    { itemId: 'ep-04', lat: 28.373703, lng: -81.552439 }, // Soarin' Across America (correct: was mislabeled to ep-05)
+    { itemId: 'ep-05', lat: 28.373236, lng: -81.547522 }, // Test Track
     { itemId: 'ep-06', lat: 28.373919, lng: -81.547253 }, // Mission: SPACE
     { itemId: 'ep-08', lat: 28.373942, lng: -81.551283 }, // Living with the Land
     { itemId: 'ep-07', lat: 28.3727,   lng: -81.551197 }, // Journey Into Imagination
+    { itemId: 'ep-21', lat: 28.375542, lng: -81.549417 }, // Spaceship Earth
     { itemId: 'ep-10', lat: 28.371414, lng: -81.547586 }, // Mexico pavilion
+    { itemId: 'ep-36', lat: 28.370517, lng: -81.5471 },   // Norway pavilion
+    { itemId: 'ep-37', lat: 28.369944, lng: -81.546911 }, // China pavilion
     { itemId: 'ep-12', lat: 28.369067, lng: -81.552725 }, // France pavilion
     { itemId: 'ep-13', lat: 28.370228, lng: -81.551969 }, // UK pavilion
     { itemId: 'ep-14', lat: 28.371336, lng: -81.551375 }, // Canada pavilion
     { itemId: 'ep-11', lat: 28.368044, lng: -81.550511 }, // Japan pavilion
+    { itemId: 'ep-40', lat: 28.368353, lng: -81.551653 }, // Morocco pavilion
+    { itemId: 'ep-23', lat: 28.367928, lng: -81.549347 }, // The American Adventure
     { itemId: 'ep-17', lat: 28.369067, lng: -81.552725 }, // Crepes at Les Halles (France)
     { itemId: 'ep-19', lat: 28.370228, lng: -81.551969 }, // Rose & Crown (UK)
     { itemId: 'ep-20', lat: 28.371414, lng: -81.547586 }, // La Cava del Tequila (Mexico)
