@@ -9,6 +9,54 @@
 // live daily schedules (Disney doesn't publish a public API and times
 // shift constantly). Always double-check the My Disney Experience app
 // or park signage for the actual time on your visit day.
+// Menu items for food & drink spots, with a simple cost tier instead of
+// exact prices (Disney pricing changes often and isn't worth pretending
+// to track live). $ = snack, $$ = quick-service meal, $$$ = table-service
+// or specialty item.
+const MENU_DATA = {
+  'mk-22': {
+    tier: '$',
+    items: [
+      { name: 'Pineapple Dole Whip Cup' },
+      { name: 'Dole Whip Float (with pineapple juice)' },
+      { name: 'Tropical Serenade Float' },
+      { name: 'Coconut Cup (coconut or coconut-pineapple swirl)' },
+      { name: 'Pineapple Upside-Down Cake with Dole Whip' },
+    ]
+  },
+  'mk-23': {
+    tier: '$$$',
+    items: [
+      { name: 'Breakfast entrées (table-service)' },
+      { name: 'Lunch entrées (table-service)' },
+      { name: 'The Grey Stuff (dessert)' },
+    ]
+  },
+  'mk-24': {
+    tier: '$$',
+    items: [
+      { name: 'Smoked Turkey Leg' },
+    ]
+  },
+  'mk-25': {
+    tier: '$$',
+    items: [
+      { name: 'All-Beef Hot Dog' },
+      { name: 'Chipotle BBQ Foot-Long Hot Dog' },
+      { name: 'Corn Dog Nuggets' },
+      { name: 'Assorted Fountain Beverage' },
+      { name: 'Pressed Penny Silk Pie' },
+    ]
+  },
+  'mk-26': {
+    tier: '$$',
+    items: [
+      { name: 'Sweet or savory waffle (seasonal flavors rotate)' },
+      { name: 'Funnel cake (seasonal toppings)' },
+    ]
+  },
+};
+
 const TYPICAL_SHOWTIMES = {
   'mk-15': ['2:00 PM'],
   'mk-16': ['Varies — check app, usually one nightly show at park close'],

@@ -1024,6 +1024,44 @@ body {
   }
 }
 
+.menu-block strong {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.cost-tier {
+  font-size: 11px;
+  font-weight: 700;
+  color: #2f7a4a;
+  background: #e4f5ea;
+  padding: 1px 7px;
+  border-radius: var(--radius-pill);
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+@media (prefers-color-scheme: dark) {
+  .cost-tier { color: #7ad498; background: #122a1c; }
+}
+
+.menu-list {
+  list-style: none;
+  padding: 0;
+  margin: 4px 0 0;
+}
+
+.menu-list li {
+  font-size: 13px;
+  color: var(--text-2);
+  padding: 4px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.menu-list li:last-child {
+  border-bottom: none;
+}
+
 .info-btn {
   display: flex;
   align-items: center;

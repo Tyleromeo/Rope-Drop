@@ -134,6 +134,8 @@ function renderItemRow(item, checks, opts = {}) {
   const isStarred = Storage.isStarred(item.id);
   const inMustDos = !!opts.inMustDos;
   const details = (typeof RIDE_DETAILS !== 'undefined') ? RIDE_DETAILS[item.id] : null;
+  const menuData = (typeof MENU_DATA !== 'undefined') ? MENU_DATA[item.id] : null;
+  const hasInfo = !!(details || menuData);
 
   const starOrRemoveBtn = inMustDos
     ? `<button class="remove-must-btn" data-id="${item.id}" aria-label="Remove from must-dos" title="Remove from must-dos">✕</button>`
@@ -143,7 +145,7 @@ function renderItemRow(item, checks, opts = {}) {
     ? '<svg width="12" height="12" viewBox="0 0 12 12" fill="none"><polyline points="2,6 5,9 10,3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>'
     : '';
 
-  const infoBtn = details
+  const infoBtn = hasInfo
     ? `<button class="info-btn" data-id="${item.id}" aria-expanded="false" aria-label="More details about ${item.name}" title="More details">ⓘ</button>`
     : '';
 
@@ -165,11 +167,23 @@ function renderItemRow(item, checks, opts = {}) {
     </button>
   ` : '';
 
-  const detailPanelHtml = details ? `
+  const menuHtml = menuData ? `
+    <div class="detail-block menu-block">
+      <strong>🍽️ Menu highlights <span class="cost-tier">${menuData.tier}</span></strong>
+      <ul class="menu-list">
+        ${menuData.items.map(i => `<li>${i.name}</li>`).join('')}
+      </ul>
+    </div>
+  ` : '';
+
+  const detailPanelHtml = hasInfo ? `
     <div class="item-detail-panel" id="detail-${item.id}" hidden>
-      <p class="detail-block"><strong>What it is</strong><br/>${details.description}</p>
-      <p class="detail-block"><strong>💡 Tip</strong><br/>${details.tip}</p>
-      <p class="detail-block"><strong>✨ Fun fact</strong><br/>${details.funFact}</p>
+      ${details ? `
+        <p class="detail-block"><strong>What it is</strong><br/>${details.description}</p>
+        <p class="detail-block"><strong>💡 Tip</strong><br/>${details.tip}</p>
+        <p class="detail-block"><strong>✨ Fun fact</strong><br/>${details.funFact}</p>
+      ` : ''}
+      ${menuHtml}
     </div>
   ` : '';
 
