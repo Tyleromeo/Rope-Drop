@@ -309,6 +309,101 @@ const Storage = {
     return !!data.stars[id];
   },
 
+  // ── All-time stats across every trip ────────────────────────────────
+  // Aggregates checks, ride counts, and song logs from every trip ever
+  // created, plus a year-by-year breakdown based on each trip's createdAt.
+  // This is read-only and never modifies any trip's data.
+  getAllTimeStats() {
+    const allTripsMeta = this.getAllTrips();
+    const allTripsData = this.getAllTripsData();
+
+    // itemId -> { item, totalTimes, tripIds: Set }
+    const perItem = {};
+    // songText -> count (across all Cosmic-Rewind-style song pickers, by itemId)
+    const perItemSongs = {}; // itemId -> { songText: count }
+    // year -> { rides, show, food, total }
+    const perYear = {};
+
+    const allItemsById = {};
+    PARKS.forEach(park => park.sections.forEach(s => s.items.forEach(item => {
+      allItemsById[item.id] = item;
+    })));
+
+    Object.entries(allTripsData).forEach(([tripId, tripData]) => {
+      const meta = allTripsMeta[tripId];
+      const year = meta ? new Date(meta.createdAt).getFullYear() : 'Unknown';
+      if (!perYear[year]) perYear[year] = { rides: 0, show: 0, food: 0, character: 0, total: 0 };
+
+      const checks = tripData.checks || {};
+      const counts = tripData.counts || {};
+      const songs = tripData.songs || {};
+
+      Object.keys(checks).forEach(itemId => {
+        if (!checks[itemId]) return;
+        const item = allItemsById[itemId];
+        if (!item) return; // item no longer exists in current data (e.g. removed)
+        const times = 1 + (counts[itemId] || 0);
+
+        if (!perItem[itemId]) {
+          perItem[itemId] = { item, totalTimes: 0 };
+        }
+        perItem[itemId].totalTimes += times;
+
+        if (perYear[year][item.badge] !== undefined) {
+          perYear[year][item.badge] += times;
+        } else if (item.badge === 'thrill' || item.badge === 'family') {
+          perYear[year].rides += times;
+        }
+        perYear[year].total += times;
+      });
+
+      Object.entries(songs).forEach(([itemId, songList]) => {
+        if (!perItemSongs[itemId]) perItemSongs[itemId] = {};
+        songList.forEach(song => {
+          perItemSongs[itemId][song] = (perItemSongs[itemId][song] || 0) + 1;
+        });
+      });
+    });
+
+    // Grand totals by category (rides = thrill+family combined, like elsewhere)
+    const grandTotals = { rides: 0, show: 0, food: 0, character: 0, total: 0 };
+    Object.values(perItem).forEach(({ item, totalTimes }) => {
+      const key = (item.badge === 'thrill' || item.badge === 'family') ? 'rides' : item.badge;
+      if (grandTotals[key] !== undefined) grandTotals[key] += totalTimes;
+      grandTotals.total += totalTimes;
+    });
+
+    // Most-ridden item overall
+    let mostRidden = null;
+    Object.values(perItem).forEach(({ item, totalTimes }) => {
+      if (!mostRidden || totalTimes > mostRidden.totalTimes) {
+        mostRidden = { item, totalTimes };
+      }
+    });
+
+    // Favorite song per item with a song picker (most logged song)
+    const favoriteSongs = {}; // itemId -> { song, count }
+    Object.entries(perItemSongs).forEach(([itemId, songCounts]) => {
+      let best = null;
+      Object.entries(songCounts).forEach(([song, count]) => {
+        if (!best || count > best.count) best = { song, count };
+      });
+      if (best) favoriteSongs[itemId] = best;
+    });
+
+    // Sorted list of every item ever done, most-done first
+    const allItemsRanked = Object.values(perItem).sort((a, b) => b.totalTimes - a.totalTimes);
+
+    return {
+      grandTotals,
+      mostRidden,
+      favoriteSongs,
+      perYear,
+      allItemsRanked,
+      totalTrips: Object.keys(allTripsMeta).length,
+    };
+  },
+
   // ── Stats helpers ───────────────────────────────────────────────────
   getParkStats(parkId) {
     const park = PARKS.find(p => p.id === parkId);

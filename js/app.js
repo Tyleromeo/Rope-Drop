@@ -839,6 +839,124 @@ function openParkMap(park) {
   });
 }
 
+// ── All-time stats modal ────────────────────────────────────────────────────
+let allTimeView = 'alltime'; // 'alltime' | 'byyear'
+
+function openAllTimeStatsModal() {
+  const stats = Storage.getAllTimeStats();
+
+  const CAT_LABELS = { rides: '🎢 Rides', show: '🎭 Shows', food: '🍽️ Food', character: '👋 Meets' };
+  const BADGE_EMOJI = { thrill: '🎢', family: '🎢', show: '🎭', character: '👋', food: '🍽️' };
+
+  const overlay = document.createElement('div');
+  overlay.className = 'modal-overlay';
+  overlay.innerHTML = `
+    <div class="modal-card alltime-card">
+      <div class="modal-header">
+        <h3>🏆 All-Time Stats</h3>
+        <button class="modal-close" aria-label="Close">✕</button>
+      </div>
+      <p class="modal-subtitle">Across ${stats.totalTrips} trip${stats.totalTrips !== 1 ? 's' : ''} — every ride, show, and bite ever checked off.</p>
+
+      <div class="alltime-tabs">
+        <button class="alltime-tab${allTimeView === 'alltime' ? ' active' : ''}" data-view="alltime">All-Time</button>
+        <button class="alltime-tab${allTimeView === 'byyear' ? ' active' : ''}" data-view="byyear">By Year</button>
+      </div>
+
+      <div id="alltime-content"></div>
+    </div>
+  `;
+
+  document.body.appendChild(overlay);
+  document.body.style.overflow = 'hidden';
+
+  const close = () => {
+    overlay.remove();
+    document.body.style.overflow = '';
+  };
+
+  overlay.querySelector('.modal-close').addEventListener('click', close);
+  overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
+
+  overlay.querySelectorAll('.alltime-tab').forEach(btn => {
+    btn.addEventListener('click', () => {
+      allTimeView = btn.dataset.view;
+      overlay.querySelectorAll('.alltime-tab').forEach(b => b.classList.toggle('active', b === btn));
+      renderAllTimeContent(overlay, stats);
+    });
+  });
+
+  renderAllTimeContent(overlay, stats);
+
+  function renderAllTimeContent(overlay, stats) {
+    const container = overlay.querySelector('#alltime-content');
+
+    if (allTimeView === 'alltime') {
+      const tallyChips = Object.entries(stats.grandTotals)
+        .filter(([key, count]) => key !== 'total' && count > 0)
+        .map(([cat, count]) => `<div class="tally-chip"><span class="tally-num">${count}</span><span class="tally-label">${CAT_LABELS[cat]}</span></div>`)
+        .join('');
+
+      const songRows = Object.entries(stats.favoriteSongs).map(([itemId, fav]) => {
+        const item = stats.allItemsRanked.find(r => r.item.id === itemId)?.item;
+        if (!item) return '';
+        return `<div class="alltime-song-row"><strong>${item.name}</strong><span>🎵 ${fav.song} <span class="song-count">(${fav.count}×)</span></span></div>`;
+      }).join('');
+
+      const rankedRows = stats.allItemsRanked.map((r, i) => `
+        <div class="alltime-rank-row">
+          <span class="rank-num">${i + 1}</span>
+          <span class="rank-emoji">${BADGE_EMOJI[r.item.badge] || '•'}</span>
+          <span class="rank-name">${r.item.name}</span>
+          <span class="rank-count">${r.totalTimes}×</span>
+        </div>
+      `).join('');
+
+      container.innerHTML = `
+        <div class="alltime-total">
+          <span class="alltime-total-num">${stats.grandTotals.total}</span>
+          <span class="alltime-total-label">total activities, all-time</span>
+        </div>
+        <div class="tally-chips">${tallyChips}</div>
+        ${stats.mostRidden ? `
+          <div class="alltime-highlight">⭐ Most done overall: <strong>${stats.mostRidden.item.name}</strong> — ${stats.mostRidden.totalTimes}×</div>
+        ` : ''}
+        ${songRows ? `
+          <div class="alltime-section-heading">Favorite songs</div>
+          ${songRows}
+        ` : ''}
+        ${rankedRows ? `
+          <div class="alltime-section-heading">Everything, ranked</div>
+          <div class="alltime-rank-list">${rankedRows}</div>
+        ` : `<p class="alltime-empty">Nothing logged yet — check a few things off on a trip!</p>`}
+      `;
+    } else {
+      const years = Object.keys(stats.perYear).sort((a, b) => b - a);
+      if (years.length === 0) {
+        container.innerHTML = `<p class="alltime-empty">Nothing logged yet — check a few things off on a trip!</p>`;
+        return;
+      }
+      container.innerHTML = years.map(year => {
+        const y = stats.perYear[year];
+        const chips = Object.entries(CAT_LABELS)
+          .filter(([cat]) => y[cat] > 0)
+          .map(([cat, label]) => `<div class="tally-chip"><span class="tally-num">${y[cat]}</span><span class="tally-label">${label}</span></div>`)
+          .join('');
+        return `
+          <div class="alltime-year-block">
+            <div class="alltime-year-heading">${year}</div>
+            <div class="alltime-total alltime-total-small">
+              <span class="alltime-total-num">${y.total}</span>
+              <span class="alltime-total-label">activities</span>
+            </div>
+            <div class="tally-chips">${chips}</div>
+          </div>
+        `;
+      }).join('');
+    }
+  }
+}
+
 function openTripsModal() {
   const trips = Storage.listTrips();
   const activeId = Storage.getActiveTripId();
@@ -866,6 +984,7 @@ function openTripsModal() {
         `).join('')}
       </div>
       <button class="new-trip-btn">+ Start a new trip</button>
+      <button class="alltime-stats-btn">🏆 All-Time Stats</button>
 
       <div class="recap-section">
         <div class="recap-section-heading">Share a recap of your current trip</div>
@@ -950,6 +1069,10 @@ function openTripsModal() {
     // resort picker first — this is the default in emptyTripData().
     showToast('New trip started 🎉');
     close(true);
+  });
+
+  overlay.querySelector('.alltime-stats-btn').addEventListener('click', () => {
+    openAllTimeStatsModal();
   });
 
   // Export a single trip
