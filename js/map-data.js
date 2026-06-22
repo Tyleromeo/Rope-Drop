@@ -93,6 +93,9 @@ const MAP_MARKERS = {
     { itemId: 'dl-09', lat: 33.8122, lng: -117.9220, approx: true }, // Big Thunder (Frontierland)
     { itemId: 'dl-11', lat: 33.8113, lng: -117.9213, approx: true }, // Jungle Cruise (Adventureland)
     { itemId: 'dl-12', lat: 33.8157, lng: -117.9228, approx: true }, // Smugglers Run (Galaxy's Edge)
+    { itemId: 'dl-07', lat: 33.8108, lng: -117.9165, approx: true }, // Tiana's Bayou Adventure (Bayou Country)
+    { itemId: 'dl-41', lat: 33.8148, lng: -117.9175, approx: true }, // Mickey & Minnie's Runaway Railway (Toontown)
+    { itemId: 'dl-35', lat: 33.8108, lng: -117.9190, approx: true }, // Disneyland Railroad (Main Street)
   ],
   dca: [
     { itemId: 'dca-01', lat: 33.8045, lng: -117.9226, approx: true }, // Radiator Springs Racers (Cars Land)

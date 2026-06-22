@@ -1051,6 +1051,203 @@ const MENU_DATA = {
       { name: 'Draft Beer' },
     ]
   },
+  'dl-17': {
+    tier: '$$$',
+    items: [
+      { name: 'Monte Cristo Sandwich' },
+      { name: 'Roasted Chicken' },
+      { name: 'Crescent City Salad' },
+      { name: 'Filet Mignon' },
+      { name: 'Seasonal Salad' },
+      { name: 'Non-Alcoholic Mint Julep' },
+      { name: 'Signature Hurricane Cocktail' },
+      { name: 'Crème Brûlée' },
+    ]
+  },
+  'dl-18': {
+    tier: '$',
+    items: [
+      { name: 'Pineapple Dole Whip Cup' },
+      { name: 'Pineapple Dole Whip Float' },
+      { name: 'Pineapple Juice' },
+    ]
+  },
+  'dl-19': {
+    tier: '$',
+    items: [
+      { name: 'Non-Alcoholic Mint Julep' },
+      { name: 'Lemonade' },
+    ]
+  },
+  'dl-20': {
+    tier: '$',
+    items: [
+      { name: 'Hand-Dipped Corn Dog' },
+      { name: 'Chips' },
+      { name: 'Cold Drinks' },
+    ]
+  },
+  'dl-21': {
+    tier: '$',
+    items: [
+      { name: 'Classic Churro' },
+      { name: 'Seasonal Flavored Churros' },
+    ]
+  },
+  'dl-22': {
+    tier: '$',
+    items: [
+      { name: 'Ronto Wrap (pork & sausage)' },
+      { name: 'Ronto Morning Wrap (breakfast)' },
+      { name: 'Tatooine Sunset Cocktail' },
+    ]
+  },
+  'dl-48': {
+    tier: '$$$',
+    items: [
+      { name: 'Pommes Frites with Pulled Pork' },
+      { name: 'Monte Cristo Sandwich' },
+      { name: 'Farro with Mushrooms & Vegetables' },
+      { name: 'Gumbo' },
+      { name: 'Seasonal Beignets' },
+      { name: 'Calamari' },
+    ]
+  },
+  'dl-49': {
+    tier: '$$$',
+    items: [
+      { name: 'Mickey Mouse-Shaped Waffles' },
+      { name: 'Eggs Benedict' },
+      { name: 'Pot Roast' },
+      { name: 'Grilled Salmon' },
+      { name: 'French Onion Soup' },
+      { name: 'Seasonal Pie' },
+    ]
+  },
+  'dl-50': {
+    tier: '$$',
+    items: [
+      { name: 'Bao Buns' },
+      { name: 'Chilled Ramen Salad' },
+      { name: 'Sweet Pineapple Lumpia' },
+      { name: 'Dole Whip Float' },
+      { name: 'Dole Whip Swirl' },
+    ]
+  },
+  'dl-51': {
+    tier: '$$$',
+    items: [
+      { name: 'Fried Chicken Brunch' },
+      { name: 'Pot Roast' },
+      { name: 'Smokehouse BBQ Platter' },
+      { name: 'Cornbread' },
+      { name: 'Seasonal Cobbler' },
+    ]
+  },
+  'dl-52': {
+    tier: '$$',
+    items: [
+      { name: 'Carne Asada' },
+      { name: 'Chicken Mole Poblano' },
+      { name: 'Cheese Enchiladas' },
+      { name: 'Tamales' },
+      { name: 'Churro Bites' },
+      { name: 'Horchata' },
+    ]
+  },
+  'dl-53': {
+    tier: '$$',
+    items: [
+      { name: 'Character Breakfast with Minnie & Friends' },
+      { name: 'Omelets Cooked to Order' },
+      { name: 'Signature Fried Chicken' },
+      { name: 'Pot Roast' },
+      { name: 'Penne Pasta' },
+      { name: 'Seasonal Pie' },
+    ]
+  },
+  'dl-54': {
+    tier: '$',
+    items: [
+      { name: 'Fresh Pastries' },
+      { name: 'Specialty Coffees' },
+      { name: 'Sandwiches' },
+      { name: 'Salads' },
+      { name: 'Soups & Quiches' },
+    ]
+  },
+  'dl-55': {
+    tier: '$',
+    items: [
+      { name: 'Beef Skewers' },
+      { name: 'Vegetable Skewers' },
+      { name: 'Chicken Skewers' },
+    ]
+  },
+  'dl-56': {
+    tier: '$$',
+    items: [
+      { name: 'Bao Buns' },
+      { name: 'Chilled Ramen Salad' },
+      { name: 'Sweet Pineapple Lumpia' },
+      { name: 'Dole Whip Float' },
+      { name: 'Dole Whip Swirl' },
+    ]
+  },
+  'dl-57': {
+    tier: '$',
+    items: [
+      { name: 'Fried Chicken Sandwich' },
+      { name: 'Loaded Fries' },
+      { name: 'Root Beer Float' },
+    ]
+  },
+  'dl-58': {
+    tier: '$$',
+    items: [
+      { name: 'Pulled Pork Sandwich' },
+      { name: 'Smoked Ribs' },
+      { name: 'Plant-Based BBQ Option' },
+      { name: 'Cornbread' },
+      { name: 'Coleslaw' },
+    ]
+  },
+  'dl-59': {
+    tier: '$$',
+    items: [
+      { name: 'Lobster Roll' },
+      { name: 'Tuna Salad Sandwich' },
+      { name: 'Clam Chowder in a Sourdough Bowl' },
+    ]
+  },
+  'dl-60': {
+    tier: '$$',
+    items: [
+      { name: "Gaston's Grilled Chicken" },
+      { name: 'Braised Short Rib' },
+      { name: 'Mickey-Shaped Pretzel Bread' },
+      { name: 'Seasonal Specialty Cake' },
+    ]
+  },
+  'dl-61': {
+    tier: '$$',
+    items: [
+      { name: 'Felucian Garden Spread' },
+      { name: 'Endorian Chicken "Tip Yip"' },
+      { name: 'Batuu Beef Combo' },
+      { name: 'Galactic Lava Cake' },
+    ]
+  },
+  'dl-62': {
+    tier: '$$',
+    items: [
+      { name: 'Fuzzy Tauntaun Cocktail' },
+      { name: 'Jedi Mind Trick Cocktail' },
+      { name: 'Outer Rim Cocktail' },
+      { name: 'Batuu Bits (snack mix)' },
+      { name: 'Yub Nub (non-alcoholic)' },
+    ]
+  },
 };
 
 const TYPICAL_SHOWTIMES = {
@@ -1068,7 +1265,7 @@ const TYPICAL_SHOWTIMES = {
   'ak-12': ['After dark — short looping projections until close, seasonal Nov–March'],
   'ak-21': ['10:30 AM', '12:30 PM', '2:30 PM', '4:30 PM'],
   'dl-13': ['Varies — typically nightly, check app'],
-  'dl-14': ['Varies — typically nightly at DCA, check app'],
+  'dl-44': ['Multiple showtimes daily, check app'],
   'dl-15': ['Seasonal — check app for current run dates and time'],
   'dl-16': ['Varies — usually one nightly show, check app'],
   'dca-05': ['Varies — typically nightly, check app'],
@@ -1469,21 +1666,45 @@ const PARKS = [
       {
         name: 'Classic Disneyland',
         items: [
-          { id: 'dl-07', name: 'Splash Mountain → Tiana\'s Bayou Adventure', meta: 'Critter Country · 40" min height · you will get wet', badge: 'family' },
+          { id: 'dl-07', name: "Tiana's Bayou Adventure", meta: 'Bayou Country (formerly Critter Country) · 40" min height · you will get wet', badge: 'family' },
           { id: 'dl-08', name: 'Space Mountain', meta: 'Tomorrowland · 40" min height', badge: 'thrill' },
           { id: 'dl-09', name: 'Big Thunder Mountain Railroad', meta: 'Frontierland · 40" min height', badge: 'thrill' },
-          { id: 'dl-10', name: 'Peter Pan\'s Flight', meta: 'Fantasyland · all ages', badge: 'family' },
+          { id: 'dl-10', name: "Peter Pan's Flight", meta: 'Fantasyland · all ages', badge: 'family' },
           { id: 'dl-11', name: 'Jungle Cruise', meta: 'Adventureland · all ages', badge: 'family' },
           { id: 'dl-12', name: 'Millennium Falcon: Smugglers Run', meta: "Galaxy's Edge · 38\" min height", badge: 'thrill' },
+          { id: 'dl-23', name: "Mr. Toad's Wild Ride", meta: 'Fantasyland · all ages', badge: 'family' },
+          { id: 'dl-24', name: "Snow White's Enchanted Wish", meta: 'Fantasyland · all ages', badge: 'family' },
+          { id: 'dl-25', name: "Alice in Wonderland", meta: 'Fantasyland · all ages', badge: 'family' },
+          { id: 'dl-26', name: "Pinocchio's Daring Journey", meta: 'Fantasyland · all ages', badge: 'family' },
+          { id: 'dl-27', name: 'King Arthur Carrousel', meta: 'Fantasyland · all ages', badge: 'family' },
+          { id: 'dl-28', name: 'Mad Tea Party', meta: 'Fantasyland · all ages, spinning teacups', badge: 'family' },
+          { id: 'dl-29', name: 'Dumbo the Flying Elephant', meta: 'Fantasyland · all ages', badge: 'family' },
+          { id: 'dl-30', name: 'Casey Jr. Circus Train', meta: 'Fantasyland · all ages', badge: 'family' },
+          { id: 'dl-31', name: 'Storybook Land Canal Boats', meta: 'Fantasyland · all ages, miniature scenes', badge: 'family' },
+          { id: 'dl-32', name: 'Astro Orbitor', meta: 'Tomorrowland · all ages, spinning rockets near entrance', badge: 'family' },
+          { id: 'dl-33', name: 'Autopia', meta: 'Tomorrowland · 32" to ride, 52" to drive alone', badge: 'family' },
+          { id: 'dl-34', name: 'Buzz Lightyear Astro Blasters', meta: 'Tomorrowland · all ages, interactive shooting dark ride', badge: 'family' },
+          { id: 'dl-35', name: "Disneyland Railroad", meta: 'Main Street USA · all ages, steam train loop around the park', badge: 'family' },
+          { id: 'dl-36', name: 'Main Street Vehicles', meta: 'Main Street USA · all ages, limited operating hours', badge: 'family' },
+          { id: 'dl-37', name: 'Mark Twain Riverboat', meta: 'Frontierland · all ages, scenic riverboat', badge: 'family' },
+          { id: "dl-38", name: 'Sailing Ship Columbia', meta: 'Frontierland · all ages, tall ship (seasonal hours)', badge: 'family' },
+          { id: 'dl-39', name: "Pirate's Lair on Tom Sawyer Island", meta: 'Frontierland · all ages, walk-through exploration island', badge: 'family' },
+          { id: 'dl-40', name: "Davy Crockett's Explorer Canoes", meta: 'Bayou Country · all ages, guest-paddled canoe ride, seasonal hours', badge: 'family' },
+          { id: 'dl-41', name: "Mickey & Minnie's Runaway Railway", meta: 'Mickey\'s Toontown · all ages, trackless dark ride', badge: 'family' },
+          { id: 'dl-42', name: "Roger Rabbit's Car Toon Spin", meta: 'Mickey\'s Toontown · all ages, spinning dark ride', badge: 'family' },
+          { id: "dl-43", name: "Chip 'n' Dale's GADGETcoaster", meta: 'Mickey\'s Toontown · 35" min height, family coaster', badge: 'family' },
         ]
       },
       {
         name: 'Shows & experiences',
         items: [
           { id: 'dl-13', name: 'Fantasmic!', meta: 'Rivers of America · evenings, check schedule', badge: 'show' },
-          { id: 'dl-14', name: 'World of Color', meta: 'Paradise Bay, DCA · evenings', badge: 'show' },
           { id: 'dl-15', name: 'Main Street Electrical Parade', meta: 'Check schedule — seasonal', badge: 'show' },
           { id: 'dl-16', name: 'Disneyland Forever Fireworks', meta: 'Check schedule', badge: 'show' },
+          { id: 'dl-44', name: "Bluey's Best Day Ever!", meta: 'Fantasyland Theatre · opened March 22, 2026', badge: 'show', status: 'new' },
+          { id: 'dl-45', name: 'Great Moments with Mr. Lincoln', meta: 'Main Street USA (Disneyland Story) · animatronic theater presentation', badge: 'show' },
+          { id: 'dl-46', name: 'Frontierland Shootin\' Exposition', meta: 'Frontierland · interactive shooting gallery, small fee', badge: 'family' },
+          { id: 'dl-47', name: "Sleeping Beauty Castle Walkthrough", meta: 'Fantasyland · all ages, walk-through diorama', badge: 'family' },
         ]
       },
       {
@@ -1491,10 +1712,25 @@ const PARKS = [
         items: [
           { id: 'dl-17', name: 'Monte Cristo at Blue Bayou', meta: 'New Orleans Square · reservations suggested', badge: 'food', must: true },
           { id: 'dl-18', name: 'Dole Whip at Tiki Juice Bar', meta: 'Adventureland · the original Disneyland Dole Whip', badge: 'food', must: true },
-          { id: 'dl-19', name: 'Mint julep at Royal St. Verandah', meta: 'New Orleans Square · non-alcoholic', badge: 'food' },
+          { id: 'dl-19', name: 'Mint julep at Royal Street Veranda', meta: 'New Orleans Square · non-alcoholic', badge: 'food' },
           { id: 'dl-20', name: 'Corn dog at Little Red Wagon', meta: 'Main Street USA · Disneyland institution', badge: 'food' },
           { id: 'dl-21', name: 'Churro from a cart', meta: 'Available throughout the park', badge: 'food' },
           { id: 'dl-22', name: 'Ronto Wrap at Ronto Roasters', meta: "Galaxy's Edge", badge: 'food' },
+          { id: 'dl-48', name: 'Cafe Orleans', meta: 'New Orleans Square · table-service, less formal than Blue Bayou', badge: 'food' },
+          { id: 'dl-49', name: 'Carnation Cafe', meta: 'Main Street USA · table-service American comfort food', badge: 'food' },
+          { id: 'dl-50', name: "Tiana's Palace", meta: 'New Orleans Square · quick-service Creole-inspired fare', badge: 'food' },
+          { id: 'dl-51', name: 'River Belle Terrace', meta: 'Frontierland · table-service, hearty American brunch', badge: 'food' },
+          { id: 'dl-52', name: 'Rancho del Zócalo Restaurante', meta: 'Frontierland · quick-service Mexican', badge: 'food' },
+          { id: 'dl-53', name: 'Plaza Inn', meta: 'Main Street USA · character breakfast, fried chicken & pot roast', badge: 'food' },
+          { id: 'dl-54', name: 'Jolly Holiday Bakery Cafe', meta: 'Main Street USA · pastries, sandwiches & coffee', badge: 'food' },
+          { id: 'dl-55', name: 'Bengal Barbecue', meta: 'Adventureland · skewers, quick-service snack', badge: 'food' },
+          { id: 'dl-56', name: 'The Tropical Hideaway', meta: 'Adventureland · bao buns & Dole Whip variations', badge: 'food' },
+          { id: 'dl-57', name: 'Golden Horseshoe', meta: 'Frontierland · quick-service with live entertainment', badge: 'food' },
+          { id: 'dl-58', name: 'Hungry Bear Restaurant', meta: 'Bayou Country · BBQ quick-service', badge: 'food' },
+          { id: 'dl-59', name: 'Harbour Galley', meta: 'Bayou Country · seafood, clam chowder & lobster roll', badge: 'food' },
+          { id: 'dl-60', name: 'Red Rose Taverne', meta: "Fantasyland · Beauty and the Beast-themed quick-service", badge: 'food' },
+          { id: 'dl-61', name: "Docking Bay 7 Food and Cargo", meta: "Galaxy's Edge · creative quick-service", badge: 'food' },
+          { id: 'dl-62', name: "Oga's Cantina", meta: "Galaxy's Edge · themed lounge, reservations recommended", badge: 'food' },
         ]
       }
     ]

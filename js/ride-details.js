@@ -561,4 +561,205 @@ const RIDE_DETAILS = {
     tip: 'Easy to rush past on the way to bigger rides, but worth a slow look on your way out at the end of the day when crowds have thinned.',
     funFact: 'The Oasis was deliberately designed as a decompression zone, meant to slow guests down and shift their mindset before they reach the wide-open energy of Discovery Island.'
   },
+  // ── Disneyland ──
+  'dl-01': {
+    description: 'A jeep ride through ancient ruins, dodging boulders, snakes, and fire while searching for treasure, with a randomized path that varies between rides.',
+    tip: 'The single most physically intense dark ride at Disneyland — genuinely jostling. There\'s no Lightning Lane here, so ride it early or accept the standby wait.',
+    funFact: 'There are multiple possible ride paths programmed into the attraction, meaning you can ride it several times in a row and still see different scenes each time.'
+  },
+  'dl-02': {
+    description: 'The original version of the boat cruise past dozens of singing dolls representing cultures from around the world — the attraction that started the whole "Small World" concept.',
+    tip: 'Calm, indoor, and air-conditioned — useful for cooling off during the hottest stretch of a Southern California afternoon.',
+    funFact: 'This is the original 1966 version of the ride, predating every other "Small World" built at Disney parks worldwide since.'
+  },
+  'dl-03': {
+    description: 'A sprawling, multi-room Star Wars experience that puts you in the middle of a battle between the Resistance and the First Order, blending several different ride systems into one continuous story.',
+    tip: 'Widely regarded as the best ride at Disneyland. No Lightning Lane standby skip exists — only a separate paid Single Pass — so plan around rope drop or be ready to pay.',
+    funFact: 'The ride uses several entirely different ride vehicle types stitched together, including a trackless segment and a simulated drop, making it feel like multiple attractions in one.'
+  },
+  'dl-04': {
+    description: 'A slow "doom buggy" ride through a haunted mansion filled with ghosts, holograms, and classic Disney special effects.',
+    tip: 'A reliable, lower-wait choice most of the day since the ride moves a continuous stream of guests — a good one to slot in when bigger rides have long lines.',
+    funFact: 'This is the original Haunted Mansion, opened in 1969, which every other version of the ride at other Disney parks has drawn inspiration from.'
+  },
+  'dl-05': {
+    description: 'A boat ride through scenes of pirates raiding a Caribbean town, with cannon fire, treasure, and a memorable drop near the start.',
+    tip: 'The original and longest version of this ride at any Disney park — the extra length means extra scenes you won\'t find at the Florida version.',
+    funFact: 'Walt Disney personally oversaw this 1967 attraction\'s design — it was the last ride he helped create before he passed away.'
+  },
+  'dl-06': {
+    description: 'A bobsled-style coaster that winds through and around a scale model of the Matterhorn mountain, with a brief Yeti encounter inside.',
+    tip: 'Ride sensation varies noticeably depending on which side of the mountain your sled takes — if you didn\'t love it the first time, try again, since the two tracks feel different.',
+    funFact: 'It was the first tubular steel track roller coaster ever built, a design innovation that influenced coaster engineering well beyond Disney parks.'
+  },
+  'dl-07': {
+    description: 'A log flume coaster following Princess Tiana and Louis as they prepare for their first Mardi Gras performance, with a steep splashdown finale.',
+    tip: 'You will get wet, especially in the front seats — if you want to stay dry for the rest of your day, sit toward the back or bring a poncho.',
+    funFact: 'The ride track and overall layout are unchanged from the previous Splash Mountain — only the scenes, music, and characters were swapped during the retheme.'
+  },
+  'dl-08': {
+    description: 'An indoor space-themed roller coaster that runs almost entirely in the dark, so the drops and turns catch you by surprise.',
+    tip: 'The darkness makes the ride feel faster and more intense than its actual top speed — a great choice to ride more than once since the mystery factor doesn\'t fade much.',
+    funFact: 'It was one of the first roller coasters in the world to be built almost entirely indoors, opening in 1977 and influencing similar dark coasters built afterward.'
+  },
+  'dl-09': {
+    description: 'A runaway mine train coaster winding through a crumbling Western mining town, complete with flash floods and falling rocks.',
+    tip: 'A great ride after dark, when the lighting effects and theming read very differently than they do in daylight.',
+    funFact: 'This was the very first "mine train" style coaster Disney ever built, debuting the concept that would later be reused at Magic Kingdom and other parks.'
+  },
+  'dl-10': {
+    description: 'A flying-galleon dark ride that lifts you over a miniature glowing London and into Neverland, retracing scenes from the Peter Pan story.',
+    tip: 'No height requirement, but waits build fast since the ride loads slowly — go early or be ready for a real line later in the day.',
+    funFact: 'The "flying" effect comes from overhead tracks, the same basic technology used by Dumbo and several other Fantasyland attractions, just hidden in the ceiling.'
+  },
+  'dl-11': {
+    description: 'A boat cruise past animatronic animals and ruins, narrated by a deliberately corny skipper delivering puns the whole way.',
+    tip: 'The humor is the main draw — an enthusiastic skipper can make the same ride feel completely different from one you\'ve done before.',
+    funFact: 'Disneyland\'s Jungle Cruise queue and boats predate every other version of this ride built at Disney parks elsewhere.'
+  },
+  'dl-12': {
+    description: 'A flight-simulator ride where you and your party take on roles as pilot, gunner, or engineer aboard the actual Millennium Falcon.',
+    tip: 'Volunteering to pilot gives you the most interactive role and lets you actually steer — worth calling dibs if you\'re riding with a group.',
+    funFact: 'The cockpit set is a near screen-accurate recreation of the Millennium Falcon from the films, down to the placement of individual switches and panels.'
+  },
+  'dl-23': {
+    description: 'A whimsical dark ride retelling scenes from the 1949 animated short, riding "as Mr. Toad" through a chaotic, occasionally fiery journey.',
+    tip: 'Short and silly — a fun nostalgic stop, though modern riders sometimes find the pace and theming a bit dated compared to newer dark rides.',
+    funFact: 'This Disneyland version is one of the only places in the world where you can still ride Mr. Toad\'s Wild Ride — the Magic Kingdom version closed in 1998.'
+  },
+  'dl-24': {
+    description: 'A dark ride retelling the story of Snow White, including her escape from the Evil Queen through a genuinely spooky forest sequence.',
+    tip: 'A bit more intense than its cheerful title suggests — the witch and forest scenes can startle very young children.',
+    funFact: 'The ride was renamed and reworked in 2021 to add Snow White herself into more of the story, addressing a long-standing fan complaint that the original barely featured her.'
+  },
+  'dl-25': {
+    description: 'A dark ride following Alice down the rabbit hole and through a series of surreal, brightly colored scenes from the film.',
+    tip: 'One of the more underrated Fantasyland dark rides — usually shorter waits than its more famous neighbors.',
+    funFact: 'The ride opened in 1958, three years after Disneyland itself, making it one of the park\'s older surviving attractions.'
+  },
+  'dl-26': {
+    description: 'A dark ride retracing Pinocchio\'s journey, including his transformation temptation at Pleasure Island and his escape from Monstro the whale.',
+    tip: 'A classic, gentle dark ride — good for younger kids, though the Pleasure Island scene has a slightly eerie undertone worth knowing about beforehand.',
+    funFact: 'It was one of three new dark rides added to Fantasyland in 1983 as part of a major overhaul, alongside Snow White\'s and a redesigned Mr. Toad.'
+  },
+  'dl-27': {
+    description: 'A classic carousel ride with hand-painted horses, set at the literal center of Fantasyland.',
+    tip: 'Quick, simple, and rarely has a meaningful wait — an easy add-on for younger kids without eating into your schedule.',
+    funFact: 'Several of the horses date back to an antique carousel built in 1875, restored and incorporated when Disneyland opened in 1955.'
+  },
+  'dl-28': {
+    description: 'A spinning ride where guests sit in giant teacups and can spin themselves faster by turning a center wheel.',
+    tip: 'Genuinely dizzying if you spin hard — sit this one out if you\'re prone to motion sickness, or take it easy on the wheel.',
+    funFact: 'It\'s based on the "Unbirthday Party" scene from Alice in Wonderland, one of several Fantasyland rides drawn directly from that film.'
+  },
+  'dl-29': {
+    description: 'A classic spinning ride where each rider controls their own flying elephant, raising and lowering it by hand.',
+    tip: 'A simple, low-key ride best suited to younger kids — skip it if your group is short on time.',
+    funFact: 'It was one of Disneyland\'s original opening-day attractions in 1955 and has barely changed in concept since.'
+  },
+  'dl-30': {
+    description: 'A small train ride through a "circus tent" tunnel and around Storybook Land, themed to Dumbo\'s circus train friend.',
+    tip: 'A gentle, short ride that pairs naturally with Storybook Land Canal Boats nearby — good for a slower-paced stretch of your day.',
+    funFact: 'It was also part of Disneyland\'s original 1955 opening-day lineup, making it one of the longest continuously running attractions in the park.'
+  },
+  'dl-31': {
+    description: 'A slow boat ride past miniature recreations of scenes and buildings from classic Disney animated films.',
+    tip: 'Easy to underestimate — the detail in the tiny models rewards a slow, attentive ride rather than rushing through.',
+    funFact: 'Many of the miniature buildings were hand-built using forced-perspective techniques, making them look larger and more distant than they actually are.'
+  },
+  'dl-32': {
+    description: 'A spinning ride where small rocket-shaped vehicles circle a tower near the entrance to Tomorrowland, letting riders tilt their ship up and down.',
+    tip: 'Similar to Dumbo conceptually — an easy one to skip if you\'ve already done a flying spinner ride elsewhere in the park.',
+    funFact: 'Unlike its Magic Kingdom counterpart, Disneyland\'s version sits at ground level rather than elevated on a platform.'
+  },
+  'dl-33': {
+    description: 'A driving ride along a winding track in small gas-powered cars, with kids old enough able to take the wheel themselves.',
+    tip: 'The loading process is slower than the posted wait time suggests — a lower priority pick unless your kids are excited to drive.',
+    funFact: 'The cars are genuine gas-powered vehicles guided by a center rail, not pure simulators, so you can actually smell the exhaust while waiting in the queue.'
+  },
+  'dl-34': {
+    description: 'An interactive dark ride where you and a partner aim laser blasters at targets while battling the Evil Emperor Zurg alongside Buzz Lightyear.',
+    tip: 'Twist the handle on your ride vehicle to spin it and improve your aim at different targets — most first-time riders don\'t realize the car rotates.',
+    funFact: 'Your score is tallied and displayed at the end, and dedicated fans have mapped out the highest-value hidden targets across the ride.'
+  },
+  'dl-35': {
+    description: 'A real steam-powered train that loops around the perimeter of the park, including a pass through a recreated Grand Canyon diorama.',
+    tip: 'A relaxing way to see the whole park from a different vantage point — good for resting tired feet partway through your day.',
+    funFact: 'The locomotives are genuine vintage-style steam engines, and the ride has operated continuously since Disneyland\'s 1955 opening day.'
+  },
+  'dl-36': {
+    description: 'A short ride down Main Street in vintage-style vehicles, including old-fashioned cars and a horse-drawn streetcar.',
+    tip: 'Limited operating hours compared to most attractions — catch it if you happen to be on Main Street when it\'s running rather than planning around it.',
+    funFact: 'The horse-drawn streetcar is pulled by real horses, making it one of the only attractions at any Disney park that uses live animals as part of the ride itself.'
+  },
+  'dl-37': {
+    description: 'A scenic paddle-wheel riverboat cruise around the Rivers of America, passing Tom Sawyer Island and other Frontierland scenery.',
+    tip: 'A relaxing, low-energy ride — good for a slower moment in your day or for guests who want to sit down without committing to a full meal break.',
+    funFact: 'It\'s a genuine, functioning paddle-wheel steamboat, not just a themed boat — one of very few operating in the United States at all.'
+  },
+  'dl-38': {
+    description: 'A tall sailing ship that cruises the same Rivers of America route as the Mark Twain Riverboat, offering a different vantage point and a more nautical theme.',
+    tip: 'Operates on seasonal hours rather than running all day — check the app to see if it\'s currently sailing before planning around it.',
+    funFact: 'It\'s a working reproduction of an 18th-century merchant ship, complete with real rigging and sails, even though the boat is mechanically powered.'
+  },
+  'dl-39': {
+    description: 'A walk-through exploration area accessible by raft, with caves, bridges, and pirate-themed details to wander through at your own pace.',
+    tip: 'A great choice for letting kids burn energy and explore freely — there\'s no fixed path, so budget extra time if your group likes to poke around.',
+    funFact: 'The island previously had a more general "Tom Sawyer" theme before being reworked with a pirate overlay following the success of the Pirates of the Caribbean films.'
+  },
+  'dl-40': {
+    description: 'A guest-paddled canoe ride around Tom Sawyer Island, with everyone in the canoe helping paddle the route.',
+    tip: 'A genuinely tiring ride since you\'re doing real physical work — a fun novelty rather than something to prioritize if you\'re trying to conserve energy for later in the day.',
+    funFact: 'It\'s one of the only attractions at any Disney park where guests provide the actual propulsion for the ride vehicle.'
+  },
+  'dl-41': {
+    description: 'A trackless dark ride that shrinks you to cartoon size and sends you through a chaotic adventure alongside Mickey and Minnie.',
+    tip: 'No height requirement and genuinely fun for all ages — a great pick early in the day before Toontown gets crowded.',
+    funFact: 'It was the first ride-through attraction built entirely around classic Mickey Mouse cartoon shorts, rather than a feature film.'
+  },
+  'dl-42': {
+    description: 'A spinning dark ride through a cartoon Los Angeles, dodging chaotic obstacles alongside characters from Who Framed Roger Rabbit.',
+    tip: 'A fast-moving, slightly disorienting ride due to the spinning vehicle — skip it if your group is sensitive to that kind of motion.',
+    funFact: 'It\'s one of the only major Disney attractions based on a film not produced or distributed solely by Disney Animation, since Who Framed Roger Rabbit was a Touchstone release.'
+  },
+  'dl-43': {
+    description: 'A small family coaster themed to Chip and Dale, winding through an oversized cartoon backyard.',
+    tip: 'A good first real coaster for younger kids thanks to its modest height requirement and gentle pacing.',
+    funFact: 'It replaced a previous Toontown attraction called Gadget\'s Go Coaster, rethemed with updated characters and a refreshed layout.'
+  },
+  'dl-13': {
+    description: 'A nighttime spectacular combining live performers, pyrotechnics, water effects, and classic Disney characters across the Rivers of America.',
+    tip: 'Seating fills up well before showtime on busy nights — arrive at least 30-45 minutes early, or consider a dining package for guaranteed seating.',
+    funFact: 'The show uses the Rivers of America itself as a stage, with performers, sets, and effects appearing directly on and around the water.'
+  },
+  'dl-15': {
+    description: 'A nostalgic nighttime parade featuring glowing, light-covered floats and classic Disney characters, dating back to the park\'s early decades.',
+    tip: 'Only runs seasonally — check the app to see if it\'s currently scheduled before planning your evening around it.',
+    funFact: 'The parade first debuted in 1972 and has returned for limited seasonal runs multiple times since, each revival drawing crowds of longtime fans.'
+  },
+  'dl-16': {
+    description: 'A fireworks show over Sleeping Beauty Castle combining pyrotechnics, music, and projection effects across the castle façade.',
+    tip: 'Arrive at least 30-45 minutes early for a good spot on Main Street or near the Hub on busy nights.',
+    funFact: 'The show incorporates archival audio and visual references spanning decades of Disney history, making it as much a tribute show as a fireworks display.'
+  },
+  'dl-44': {
+    description: 'An interactive stage show transforming the Fantasyland Theatre into Bluey\'s school, with Bluey and Bingo leading the audience through songs and games from the show.',
+    tip: 'Opened March 22, 2026 — newer and often less crowded than longer-running shows, so it can be easier to walk into without a long wait.',
+    funFact: 'Audience participation includes playing actual games from the show, like Keepy Uppy, alongside Bluey and Bingo themselves.'
+  },
+  'dl-45': {
+    description: 'A historical theater presentation featuring an Audio-Animatronic Abraham Lincoln delivering portions of his real speeches.',
+    tip: 'A quiet, seated, air-conditioned break — good for resting tired feet in the middle of a long day on Main Street.',
+    funFact: 'The Lincoln figure debuted at the 1964 World\'s Fair before being moved to Disneyland, making it one of the very first Audio-Animatronics Disney ever built.'
+  },
+  'dl-46': {
+    description: 'A small-fee interactive shooting gallery in Frontierland, using infrared rifles aimed at gags hidden throughout a Western-themed set.',
+    tip: 'A fun, low-cost diversion if you have a few extra minutes and quarters to spare — not essential, but a nice change of pace.',
+    funFact: 'It\'s one of the last coin-operated attractions still running at Disneyland, a holdover from an earlier era of theme park entertainment.'
+  },
+  'dl-47': {
+    description: 'A self-guided walk-through diorama inside Sleeping Beauty Castle itself, narrating the story of the film through small scenes and displays.',
+    tip: 'Quick and easy to fit in on your way past the castle — a nice bit of detail most guests walk right past without noticing.',
+    funFact: 'It was one of Disneyland\'s original 1955 opening-day attractions and has been refreshed multiple times while keeping its core storytelling concept intact.'
+  },
 };
