@@ -507,6 +507,18 @@ function openParkMap(park) {
     return;
   }
 
+  const stars = Storage.getStars();
+  const allItems = park.sections.flatMap(s => s.items);
+  const allMarkersHere = MAP_MARKERS[park.id] || [];
+  // Only show pins for rides currently starred as a must-do
+  const starredMarkers = allMarkersHere.filter(m => stars[m.itemId]);
+  // Starred items that don't have a pin available, so we can be upfront about it
+  const starredWithoutPins = Object.keys(stars).filter(id => {
+    const item = allItems.find(i => i.id === id);
+    if (!item) return false; // belongs to a different park
+    return !allMarkersHere.some(m => m.itemId === id);
+  });
+
   const overlay = document.createElement('div');
   overlay.className = 'map-overlay';
   overlay.innerHTML = `
@@ -517,10 +529,16 @@ function openParkMap(park) {
       </div>
       <div id="leaflet-map" class="leaflet-container"></div>
       <div class="map-legend">
-        <span class="map-legend-item"><span class="map-dot map-dot-ride"></span> Rides &amp; attractions</span>
+        <span class="map-legend-item"><span class="map-dot map-dot-ride"></span> Your must-dos</span>
         <span class="map-legend-item"><span class="map-dot map-dot-land"></span> Lands &amp; areas</span>
       </div>
-      ${MAP_MARKERS[park.id]?.some(m => m.approx) ? `
+      ${starredMarkers.length === 0 ? `
+        <div class="map-empty-note">⭐ Star a ride as a must-do to see it pinned here.</div>
+      ` : ''}
+      ${starredWithoutPins.length > 0 ? `
+        <div class="map-approx-note">📍 ${starredWithoutPins.length} of your starred pick${starredWithoutPins.length > 1 ? 's' : ''} ${starredWithoutPins.length > 1 ? "don't" : "doesn't"} have map data yet, so it's not pinned.</div>
+      ` : ''}
+      ${starredMarkers.some(m => m.approx) ? `
         <div class="map-approx-note">📍 Pin locations for this park are approximate — based on the park's general layout, not exact GPS data.</div>
       ` : ''}
     </div>
@@ -568,20 +586,19 @@ function openParkMap(park) {
       }).addTo(map).bindTooltip(land.name, { permanent: false, direction: 'top' });
     });
 
-    // Ride/attraction markers — resolve item names from PARKS data
-    const allItems = park.sections.flatMap(s => s.items);
-    (MAP_MARKERS[park.id] || []).forEach(marker => {
+    // Ride/attraction markers — only the person's current starred must-dos
+    starredMarkers.forEach(marker => {
       const item = allItems.find(i => i.id === marker.itemId);
       if (!item) return;
       const isChecked = !!Storage.getChecked()[item.id];
       L.circleMarker([marker.lat, marker.lng], {
-        radius: 8,
+        radius: 9,
         color: '#fff',
         weight: 2,
         fillColor: isChecked ? '#9e9b96' : park.accentColor,
         fillOpacity: 0.95,
       }).addTo(map).bindPopup(`
-        <strong>${item.name}</strong><br/>
+        <strong>⭐ ${item.name}</strong><br/>
         <span style="color:#888;font-size:12px;">${item.meta}</span>
         ${marker.approx ? '<br/><span style="color:#b8761f;font-size:11px;">approximate location</span>' : ''}
       `);
