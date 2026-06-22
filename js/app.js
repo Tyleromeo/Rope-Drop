@@ -133,58 +133,65 @@ function renderItemRow(item, checks, opts = {}) {
   const songLog = Storage.getSongLog(item.id);
   const isStarred = Storage.isStarred(item.id);
   const inMustDos = !!opts.inMustDos;
+  const details = (typeof RIDE_DETAILS !== 'undefined') ? RIDE_DETAILS[item.id] : null;
+
+  const starOrRemoveBtn = inMustDos
+    ? `<button class="remove-must-btn" data-id="${item.id}" aria-label="Remove from must-dos" title="Remove from must-dos">✕</button>`
+    : `<button class="star-btn${isStarred ? ' starred' : ''}" data-id="${item.id}" aria-pressed="${isStarred}" aria-label="${isStarred ? 'Remove from your must-dos' : 'Add to your must-dos'}" title="${isStarred ? 'Your must-do' : 'Mark as your must-do'}">${isStarred ? '★' : '☆'}</button>`;
+
+  const checkIcon = isDone
+    ? '<svg width="12" height="12" viewBox="0 0 12 12" fill="none"><polyline points="2,6 5,9 10,3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>'
+    : '';
+
+  const infoBtn = details
+    ? `<button class="info-btn" data-id="${item.id}" aria-expanded="false" aria-label="More details about ${item.name}" title="More details">ⓘ</button>`
+    : '';
+
+  const stepperHtml = isDone ? `
+    <div class="count-stepper">
+      <button class="count-minus" data-id="${item.id}" title="Remove a ride" ${count === 0 ? 'disabled' : ''}>
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 12h14"/></svg>
+      </button>
+      <span class="count-display">${count + 1}×</span>
+      <button class="count-plus" data-id="${item.id}" title="Add another ride">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+      </button>
+    </div>
+  ` : '';
+
+  const songBtnHtml = (isDone && hasSongPicker) ? `
+    <button class="song-btn" data-id="${item.id}" title="Log which song you got">
+      🎵${songLog.length > 1 ? ` <span class="count-num">${songLog.length}</span>` : ''}
+    </button>
+  ` : '';
+
+  const detailPanelHtml = details ? `
+    <div class="item-detail-panel" id="detail-${item.id}" hidden>
+      <p class="detail-block"><strong>What it is</strong><br/>${details.description}</p>
+      <p class="detail-block"><strong>💡 Tip</strong><br/>${details.tip}</p>
+      <p class="detail-block"><strong>✨ Fun fact</strong><br/>${details.funFact}</p>
+    </div>
+  ` : '';
 
   return `
-    <div class="item-row${isDone ? ' item-done' : ''}" data-id="${item.id}">
-      ${inMustDos ? `
-        <button
-          class="remove-must-btn"
-          data-id="${item.id}"
-          aria-label="Remove from must-dos"
-          title="Remove from must-dos"
-        >✕</button>
-      ` : `
-        <button
-          class="star-btn${isStarred ? ' starred' : ''}"
-          data-id="${item.id}"
-          aria-pressed="${isStarred}"
-          aria-label="${isStarred ? 'Remove from your must-dos' : 'Add to your must-dos'}"
-          title="${isStarred ? 'Your must-do' : 'Mark as your must-do'}"
-        >${isStarred ? '★' : '☆'}</button>
-      `}
-      <button
-        class="item"
-        data-id="${item.id}"
-        aria-pressed="${isDone}"
-        aria-label="${item.name}${isDone ? ' — completed' : ''}"
-      >
-        <span class="item-check" aria-hidden="true">
-          ${isDone ? `<svg width="12" height="12" viewBox="0 0 12 12" fill="none"><polyline points="2,6 5,9 10,3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>` : ''}
-        </span>
-        <span class="item-body">
-          <span class="item-name">${item.name}</span>
-          <span class="item-meta">${item.meta}${songLog.length ? ` · <span class="song-tag-inline">${songLog[songLog.length - 1]}</span>` : ''}</span>
-        </span>
-        <span class="badge ${badge.cls}">${badge.label}</span>
-      </button>
-      <div class="item-extras">
-        ${isDone ? `
-          <div class="count-stepper">
-            <button class="count-minus" data-id="${item.id}" title="Remove a ride" ${count === 0 ? 'disabled' : ''}>
-              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 12h14"/></svg>
-            </button>
-            <span class="count-display">${count + 1}×</span>
-            <button class="count-plus" data-id="${item.id}" title="Add another ride">
-              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
-            </button>
-          </div>
-        ` : ''}
-        ${isDone && hasSongPicker ? `
-          <button class="song-btn" data-id="${item.id}" title="Log which song you got">
-            🎵${songLog.length > 1 ? ` <span class="count-num">${songLog.length}</span>` : ''}
-          </button>
-        ` : ''}
+    <div class="item-wrap">
+      <div class="item-row${isDone ? ' item-done' : ''}" data-id="${item.id}">
+        ${starOrRemoveBtn}
+        <button class="item" data-id="${item.id}" aria-pressed="${isDone}" aria-label="${item.name}${isDone ? ' — completed' : ''}">
+          <span class="item-check" aria-hidden="true">${checkIcon}</span>
+          <span class="item-body">
+            <span class="item-name">${item.name}</span>
+            <span class="item-meta">${item.meta}${songLog.length ? ` · <span class="song-tag-inline">${songLog[songLog.length - 1]}</span>` : ''}</span>
+          </span>
+          <span class="badge ${badge.cls}">${badge.label}</span>
+        </button>
+        <div class="item-extras">
+          ${infoBtn}
+          ${stepperHtml}
+          ${songBtnHtml}
+        </div>
       </div>
+      ${detailPanelHtml}
     </div>
   `;
 }
@@ -288,6 +295,21 @@ function renderPark() {
   `;
 
   main.innerHTML = html;
+
+  // Bind info buttons (expand/collapse ride details)
+  main.querySelectorAll('.info-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      e.stopImmediatePropagation();
+      const panel = document.getElementById(`detail-${btn.dataset.id}`);
+      if (!panel) return;
+      const isHidden = panel.hidden;
+      panel.hidden = !isHidden;
+      btn.setAttribute('aria-expanded', String(isHidden));
+      btn.classList.toggle('info-btn-active', isHidden);
+    });
+  });
 
   // Bind star buttons
   main.querySelectorAll('.star-btn').forEach(btn => {

@@ -966,6 +966,69 @@ body {
   font-weight: 500;
 }
 
+.info-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 1px solid var(--border-md);
+  background: var(--bg);
+  color: var(--text-3);
+  font-size: 13px;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.12s, color 0.12s, border-color 0.12s;
+}
+
+.info-btn:hover {
+  background: var(--bg-2);
+  color: var(--text-1);
+}
+
+.info-btn.info-btn-active {
+  background: var(--text-1);
+  color: var(--bg);
+  border-color: var(--text-1);
+}
+
+.item-detail-panel {
+  margin: 2px 0 8px 50px;
+  padding: 12px 14px;
+  background: var(--bg-2);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  animation: fadeIn 0.15s ease-out;
+}
+
+.detail-block {
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text-2);
+  margin-bottom: 10px;
+}
+
+.detail-block:last-child {
+  margin-bottom: 0;
+}
+
+.detail-block strong {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-1);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 3px;
+}
+
+@media (max-width: 480px) {
+  .item-detail-panel {
+    margin-left: 38px;
+  }
+}
+
 /* ── Modal ── */
 .modal-overlay {
   position: fixed;
