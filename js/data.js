@@ -270,6 +270,11 @@ const MENU_DATA = {
       { name: 'School Bread (sweet bread with custard and coconut)' },
       { name: 'Norwegian Waffle' },
       { name: 'Kringle (Danish pastry)' },
+      { name: 'Sweet Lefse Flatbread' },
+      { name: 'Kringla (soft pretzel-shaped pastry)' },
+      { name: 'Norwegian Open-Faced Sandwich' },
+      { name: 'Hot Cocoa' },
+      { name: 'Norwegian Coffee' },
     ]
   },
   'ep-17': {
@@ -279,6 +284,11 @@ const MENU_DATA = {
       { name: 'Nutella Crepe' },
       { name: 'Quiche Lorraine' },
       { name: 'French Pastries' },
+      { name: 'Croissant' },
+      { name: 'Baguette Sandwich' },
+      { name: 'Macarons' },
+      { name: 'Fruit Tart' },
+      { name: 'French Press Coffee' },
     ]
   },
   'ep-18': {
@@ -286,6 +296,9 @@ const MENU_DATA = {
     items: [
       { name: 'Croissant Donut' },
       { name: 'Specialty Coffee' },
+      { name: 'Iced Coffee' },
+      { name: 'Hot Tea' },
+      { name: 'Bottled Water' },
     ]
   },
   'ep-19': {
@@ -296,6 +309,9 @@ const MENU_DATA = {
       { name: 'Shepherd\'s Pie' },
       { name: 'Scotch Egg' },
       { name: 'Guinness & UK Beer Flight' },
+      { name: 'Ploughman\'s Platter' },
+      { name: 'Sticky Toffee Pudding' },
+      { name: 'Pimm\'s Cup Cocktail' },
     ]
   },
   'ep-20': {
@@ -306,6 +322,9 @@ const MENU_DATA = {
       { name: 'Frozen Mango Margarita' },
       { name: 'Flight of Tequila Tastings' },
       { name: 'Sangria' },
+      { name: 'Mexican Beer' },
+      { name: 'Avocado Margarita' },
+      { name: 'Spicy Mango Margarita' },
     ]
   },
   'ep-41': {
@@ -318,6 +337,9 @@ const MENU_DATA = {
       { name: 'Bratwurst & Sauerkraut' },
       { name: 'German Beer Flight' },
       { name: 'Apple Strudel' },
+      { name: 'Pretzel Roll & Obatzda Cheese' },
+      { name: 'Red Cabbage & Potato Dumplings' },
+      { name: 'Black Forest Cake' },
     ]
   },
   'ep-42': {
@@ -328,6 +350,10 @@ const MENU_DATA = {
       { name: 'Risotto' },
       { name: 'Tiramisu' },
       { name: 'Italian Wine Flight' },
+      { name: 'Lasagna Bolognese' },
+      { name: 'Caprese Salad' },
+      { name: 'Branzino (whole roasted fish)' },
+      { name: 'Cannoli' },
     ]
   },
   'ep-43': {
@@ -338,6 +364,10 @@ const MENU_DATA = {
       { name: 'Beef Tacos' },
       { name: 'Queso Fundido' },
       { name: 'Flan' },
+      { name: 'Carne Asada' },
+      { name: 'Shrimp Ceviche' },
+      { name: 'Churros' },
+      { name: 'Margarita Flight' },
     ]
   },
   'ep-44': {
@@ -348,6 +378,10 @@ const MENU_DATA = {
       { name: 'BBQ Combo Platter' },
       { name: 'Cornbread' },
       { name: 'Mac & Cheese' },
+      { name: 'Kansas City Smoked Chicken' },
+      { name: 'Coleslaw' },
+      { name: 'Craft Beer Flight' },
+      { name: 'Banana Pudding' },
     ]
   },
   'ep-45': {
@@ -358,6 +392,10 @@ const MENU_DATA = {
       { name: 'Vegetable Tempura' },
       { name: 'Miso Soup' },
       { name: 'Green Tea Ice Cream' },
+      { name: 'Hibachi Scallops' },
+      { name: 'Fried Rice' },
+      { name: 'Edamame' },
+      { name: 'Sake Flight' },
     ]
   },
   'ep-46': {
@@ -368,6 +406,10 @@ const MENU_DATA = {
       { name: 'Lamb Shank' },
       { name: 'Chicken Shawarma' },
       { name: 'Homemade Sangria' },
+      { name: 'Lamb Kefta' },
+      { name: 'Moroccan Salad' },
+      { name: 'Baklava' },
+      { name: 'Mint Tea' },
     ]
   },
   'ep-47': {
@@ -378,6 +420,9 @@ const MENU_DATA = {
       { name: 'Kjottkake (Norwegian meatballs)' },
       { name: 'Smoked Salmon' },
       { name: 'Cloudberry Cream Dessert' },
+      { name: 'Norwegian Cured Meats Platter' },
+      { name: 'Roasted Pork Loin' },
+      { name: 'Lefse with Lingonberry Jam' },
     ]
   },
   'ep-48': {
@@ -386,6 +431,9 @@ const MENU_DATA = {
       { name: 'Bavarian Pretzel with Cheese Sauce' },
       { name: 'Currywurst' },
       { name: 'German Beer' },
+      { name: 'Bratwurst' },
+      { name: 'Apple Strudel' },
+      { name: 'German Riesling' },
     ]
   },
   'ep-49': {
@@ -395,6 +443,270 @@ const MENU_DATA = {
       { name: 'Croque Glace' },
       { name: 'Artisan Gelato' },
       { name: 'Sorbet' },
+      { name: 'Affogato' },
+      { name: 'Brioche Ice Cream Sandwich' },
+      { name: 'Seasonal Sundae' },
+    ]
+  },
+  'ep-50': {
+    tier: '$$$',
+    items: [
+      { name: 'Filet Mignon' },
+      { name: 'Bluehouse Salmon' },
+      { name: 'Galaxy-Inspired Dessert' },
+      { name: 'Space-Themed Mocktails' },
+      { name: 'Prix Fixe Tasting Menu' },
+      { name: 'Roasted Chicken' },
+      { name: 'Seasonal Vegetable Plate' },
+      { name: 'Constellation Cocktails (Lounge)' },
+    ]
+  },
+  'ep-51': {
+    tier: '$$$',
+    items: [
+      { name: 'Seafood Platter' },
+      { name: 'Grilled Salmon' },
+      { name: 'Lobster Bisque' },
+      { name: 'Shrimp Pasta' },
+      { name: 'Coconut Fried Shrimp' },
+      { name: 'Seafood Boil' },
+      { name: 'Key Lime Tart' },
+      { name: 'Grilled Chicken Wings' },
+    ]
+  },
+  'ep-52': {
+    tier: '$$$',
+    items: [
+      { name: 'All-You-Care-To-Enjoy Family-Style Service' },
+      { name: 'Garden-Grown Vegetables' },
+      { name: 'Char-Grilled Beef Sirloin' },
+      { name: 'Character Dining with Chip & Dale' },
+      { name: 'Roasted Chicken' },
+      { name: 'Honey-Glazed Salmon' },
+      { name: 'Seasonal Salad' },
+      { name: 'Harvest Pie' },
+    ]
+  },
+  'ep-53': {
+    tier: '$$',
+    items: [
+      { name: 'French Bistro Burger' },
+      { name: 'Curry-Spiced Pizza' },
+      { name: 'Asian Noodle Bowl' },
+      { name: 'General Tso Chicken Salad' },
+      { name: 'Starbucks Coffee & Espresso' },
+      { name: 'Pepperoni Pizza' },
+      { name: 'Grilled Chicken Sandwich' },
+      { name: 'Seasonal Pastries' },
+    ]
+  },
+  'ep-54': {
+    tier: '$$',
+    items: [
+      { name: 'Rotisserie Chicken' },
+      { name: 'Mongolian Beef' },
+      { name: 'Birria Tacos' },
+      { name: 'Plant-Based Bowls' },
+      { name: 'Wood-Grilled Salmon' },
+      { name: 'Asian Noodle Salad' },
+      { name: 'Mickey-Shaped Macarons' },
+      { name: 'Fresh Fruit & Cheese Plate' },
+    ]
+  },
+  'ep-55': {
+    tier: '$',
+    items: [
+      { name: 'Free Coca-Cola Flavor Sampling (international flavors)' },
+      { name: 'Beverly (the infamous bitter sample)' },
+      { name: 'Standard Fountain Drinks' },
+      { name: 'Fanta Flavors from Around the World' },
+      { name: 'Sprite Variants' },
+    ]
+  },
+  'ep-56': {
+    tier: '$$$',
+    items: [
+      { name: 'Tortilla Soup' },
+      { name: 'Market Tacos' },
+      { name: 'Fresh Corn Tortilla Skillets' },
+      { name: 'Variety of Margaritas' },
+      { name: 'Mole Poblano' },
+      { name: 'Carnitas' },
+      { name: 'Guacamole & Chips' },
+      { name: 'Tres Leches Cake' },
+    ]
+  },
+  'ep-57': {
+    tier: '$',
+    items: [
+      { name: 'Tacos' },
+      { name: 'Nachos' },
+      { name: 'Mini Churros' },
+      { name: 'Avocado Margarita' },
+      { name: 'El Diablo Cocktail' },
+      { name: 'Guacamole & Chips' },
+      { name: 'Quesadilla' },
+    ]
+  },
+  'ep-58': {
+    tier: '$$$',
+    items: [
+      { name: 'Kung Pao Chicken' },
+      { name: 'Sweet & Sour Pork' },
+      { name: 'Beijing Duck' },
+      { name: 'Egg Drop Soup' },
+      { name: 'Mongolian Beef' },
+      { name: 'Vegetable Spring Rolls' },
+      { name: 'Fried Rice' },
+      { name: 'Almond Cookies' },
+    ]
+  },
+  'ep-59': {
+    tier: '$',
+    items: [
+      { name: 'Egg Rolls' },
+      { name: 'Potstickers' },
+      { name: 'Orange Chicken' },
+      { name: 'Chicken Fried Rice' },
+      { name: 'Mongolian Beef' },
+      { name: 'Vegetable Stir Fry' },
+      { name: 'Wonton Soup' },
+      { name: 'Fortune Cookie Dessert' },
+    ]
+  },
+  'ep-60': {
+    tier: '$$',
+    items: [
+      { name: 'Italian Wine Flights' },
+      { name: 'Charcuterie & Cheese Boards' },
+      { name: 'Bruschetta' },
+      { name: 'Meatballs' },
+      { name: 'Arancini (fried risotto balls)' },
+      { name: 'Prosciutto & Melon' },
+      { name: 'Italian Cocktails' },
+    ]
+  },
+  'ep-61': {
+    tier: '$$',
+    items: [
+      { name: 'Margherita Pizza' },
+      { name: 'Quattro Formaggi Pizza' },
+      { name: 'Caprese Salad' },
+      { name: 'Tiramisu' },
+      { name: 'Meatball Hero' },
+      { name: 'Pepperoni Pizza' },
+      { name: 'Italian Soda' },
+    ]
+  },
+  'ep-62': {
+    tier: '$$',
+    items: [
+      { name: 'Teriyaki Chicken Bowl' },
+      { name: 'Sushi Combo' },
+      { name: 'Udon Noodle Soup' },
+      { name: 'Teriyaki Beef Bowl' },
+      { name: 'Edamame' },
+      { name: 'Miso Soup' },
+      { name: 'Green Tea' },
+    ]
+  },
+  'ep-63': {
+    tier: '$',
+    items: [
+      { name: 'Kakigōri (Shaved Ice)' },
+      { name: 'Snack Sushi' },
+      { name: 'Frozen Kirin Beer' },
+      { name: 'Sake (hot or cold)' },
+      { name: 'Sake Cocktails' },
+    ]
+  },
+  'ep-64': {
+    tier: '$',
+    items: [
+      { name: 'Lamb Shawarma' },
+      { name: 'Chicken Shawarma' },
+      { name: 'Falafel' },
+      { name: 'Festival-Rotating Specials' },
+      { name: 'Hummus Plate' },
+      { name: 'Moroccan Lemonade' },
+      { name: 'Baklava' },
+    ]
+  },
+  'ep-65': {
+    tier: '$$$',
+    items: [
+      { name: 'French Onion Soup' },
+      { name: 'Duck à l\'Orange' },
+      { name: 'Crème Brûlée' },
+      { name: 'Coq au Vin' },
+      { name: 'Escargot' },
+      { name: 'Beef Bourguignon' },
+      { name: 'Croque Monsieur' },
+      { name: 'French Wine Flight' },
+    ]
+  },
+  'ep-66': {
+    tier: '$$$',
+    items: [
+      { name: 'Prix Fixe Tasting Menu (fine dining)' },
+      { name: 'Seasonal French Entrées' },
+      { name: 'Wine Pairings' },
+      { name: 'Foie Gras' },
+      { name: 'Lobster Bisque' },
+      { name: 'Soufflé' },
+    ]
+  },
+  'ep-67': {
+    tier: '$$',
+    items: [
+      { name: 'Smoked Salmon Galette' },
+      { name: 'Pear & Chocolate Crêpe' },
+      { name: 'Ham & Cheese Galette' },
+      { name: 'Mushroom & Cheese Galette' },
+      { name: 'Nutella Banana Crêpe' },
+      { name: 'Cider Flight' },
+      { name: 'Hot Chocolate' },
+    ]
+  },
+  'ep-68': {
+    tier: '$',
+    items: [
+      { name: 'Fish & Chips' },
+      { name: 'Mushy Peas (side)' },
+      { name: 'Malt Vinegar' },
+      { name: 'Battered Cod' },
+    ]
+  },
+  'ep-69': {
+    tier: '$$$',
+    items: [
+      { name: 'Canadian Cheddar Cheese Soup' },
+      { name: 'Filet Mignon' },
+      { name: 'Maple Crème Brûlée' },
+      { name: 'Canadian Whisky Flight' },
+      { name: 'Signature Poutine' },
+      { name: 'Steakhouse Wedge Salad' },
+      { name: 'Butcher\'s Cuts (various steaks)' },
+      { name: 'Canadian Icewine Flight' },
+    ]
+  },
+  'ep-70': {
+    tier: '$',
+    items: [
+      { name: 'Soft Pretzel with Beer Cheese' },
+      { name: 'American Craft Beer Flight' },
+      { name: 'Seasonal Cider' },
+      { name: 'Bavarian Pretzel' },
+    ]
+  },
+  'ep-71': {
+    tier: '$',
+    items: [
+      { name: 'Poutine' },
+      { name: 'Chicken Nuggets' },
+      { name: 'Soft-Serve Ice Cream' },
+      { name: 'Canadian Draft Beer' },
+      { name: 'Maple Popcorn' },
     ]
   },
 };
@@ -672,12 +984,34 @@ const PARKS = [
           { id: 'ep-41', name: 'Biergarten Restaurant (Germany)', meta: 'Buffet-style German cuisine with live entertainment', badge: 'food' },
           { id: 'ep-42', name: 'Tutto Italia Ristorante (Italy)', meta: 'Table-service handmade pasta', badge: 'food' },
           { id: 'ep-43', name: 'San Angel Inn Restaurante (Mexico)', meta: 'Table-service, twilight ambiance inside the pyramid', badge: 'food' },
-          { id: 'ep-44', name: 'Regal Eagle Smokehouse (USA)', meta: 'Quick-service BBQ', badge: 'food' },
+          { id: 'ep-44', name: 'Regal Eagle Smokehouse (USA)', meta: 'Kansas City, Texas & Carolina-style BBQ', badge: 'food' },
           { id: 'ep-45', name: 'Teppan Edo (Japan)', meta: 'Hibachi-style table-service dining', badge: 'food' },
           { id: 'ep-46', name: 'Spice Road Table (Morocco)', meta: 'Waterfront small plates & sangria', badge: 'food' },
           { id: 'ep-47', name: 'Akershus Royal Banquet Hall (Norway)', meta: 'Character dining with Disney princesses', badge: 'food' },
           { id: 'ep-48', name: 'Sommerfest pretzels (Germany)', meta: 'Quick-service, soft pretzels with cheese sauce', badge: 'food' },
           { id: 'ep-49', name: 'L\'Artisan des Glaces (France)', meta: 'Macaron ice cream sandwiches & artisan gelato', badge: 'food' },
+          { id: 'ep-50', name: 'Space 220', meta: 'World Discovery · "space station" dining with Earth views', badge: 'food' },
+          { id: 'ep-51', name: 'Coral Reef Restaurant', meta: 'World Nature (The Seas) · dine beside a real aquarium', badge: 'food' },
+          { id: 'ep-52', name: 'Garden Grill Restaurant', meta: 'World Nature (The Land) · character dining with Chip & Dale', badge: 'food' },
+          { id: 'ep-53', name: 'Connections Cafe & Eatery', meta: 'World Celebration · Starbucks + globally-inspired quick-service', badge: 'food' },
+          { id: 'ep-54', name: 'Sunshine Seasons', meta: 'World Nature (The Land) · large food-court with fresh, healthy options', badge: 'food' },
+          { id: 'ep-55', name: 'Club Cool', meta: 'World Celebration · free international Coca-Cola flavor sampling', badge: 'food' },
+          { id: 'ep-56', name: 'La Hacienda de San Angel (Mexico)', meta: 'Lagoon-view table-service Mexican dining', badge: 'food' },
+          { id: 'ep-57', name: 'La Cantina de San Angel (Mexico)', meta: 'Quick-service tacos by the water', badge: 'food' },
+          { id: 'ep-58', name: 'Nine Dragons Restaurant (China)', meta: 'Table-service Chinese cuisine', badge: 'food' },
+          { id: 'ep-59', name: 'Lotus Blossom Café (China)', meta: 'Quick-service egg rolls, potstickers & orange chicken', badge: 'food' },
+          { id: 'ep-60', name: 'Tutto Gusto Wine Cellar (Italy)', meta: 'Over 200 Italian wines & small plates', badge: 'food' },
+          { id: 'ep-61', name: 'Via Napoli Ristorante e Pizzeria (Italy)', meta: 'Wood-fired Neapolitan pizza', badge: 'food' },
+          { id: 'ep-62', name: 'Katsura Grill (Japan)', meta: 'Quiet garden-side teriyaki & sushi bowls', badge: 'food' },
+          { id: 'ep-63', name: 'Kabuki Café (Japan)', meta: 'Shaved ice (kakigōri) & frozen Kirin beer', badge: 'food' },
+          { id: 'ep-64', name: 'Tangierine Café (Morocco)', meta: 'Quick-service lamb & chicken dishes, rotating festival menu', badge: 'food' },
+          { id: 'ep-65', name: 'Chefs de France', meta: 'Table-service French bistro classics', badge: 'food' },
+          { id: 'ep-66', name: 'Monsieur Paul', meta: 'Upscale fine-dining French cuisine', badge: 'food' },
+          { id: 'ep-67', name: 'La Crêperie de Paris', meta: 'Sit-down sweet & savory crêpes', badge: 'food' },
+          { id: 'ep-68', name: 'Yorkshire County Fish Shop (UK)', meta: 'Quick-service fish & chips window', badge: 'food' },
+          { id: 'ep-69', name: 'Le Cellier Steakhouse (Canada)', meta: 'Table-service steakhouse, one of the hardest EPCOT reservations', badge: 'food' },
+          { id: 'ep-70', name: 'Block & Hans (USA)', meta: 'Pretzels & American craft beer kiosk', badge: 'food' },
+          { id: 'ep-71', name: 'Refreshment Port (near Canada)', meta: 'Poutine, chicken nuggets & soft-serve', badge: 'food' },
         ]
       }
     ]
