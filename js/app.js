@@ -245,7 +245,7 @@ function renderPark() {
   const park = PARKS.find(p => p.id === activeParkId);
   const checks = Storage.getChecked();
   const notes = Storage.getNotes();
-  const { done, total, pct } = Storage.getParkStats(park.id);
+  const { done, total, pct } = Storage.getParkStatsForCategory(park.id, activeCategory);
   const tally = Storage.getActivityTally(park.id);
   const main = document.getElementById('main-content');
 
@@ -279,7 +279,7 @@ function renderPark() {
           <div class="park-progress-bar">
             <div class="park-progress-fill" style="width: ${pct}%; background: ${park.accentColor};"></div>
           </div>
-          <span class="park-progress-label" style="color: ${park.accentColor};">${done} of ${total} done</span>
+          <span class="park-progress-label" style="color: ${park.accentColor};">${done} of ${total} ${activeCategory === 'rides' ? 'rides' : activeCategory === 'show' ? 'shows' : 'food spots'} done</span>
         </div>
         ${tally.total > 0 ? `
           <div class="tally-section">

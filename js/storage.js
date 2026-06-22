@@ -306,6 +306,22 @@ const Storage = {
     return { total, done, pct: total ? Math.round((done / total) * 100) : 0 };
   },
 
+  // Same as getParkStats but scoped to just one category tab (rides/show/food)
+  getParkStatsForCategory(parkId, category) {
+    const park = PARKS.find(p => p.id === parkId);
+    const checks = this.getChecked();
+    let total = 0, done = 0;
+    park?.sections.forEach(s => s.items.forEach(i => {
+      const cat = (i.badge === 'thrill' || i.badge === 'family') ? 'rides'
+        : (i.badge === 'show' || i.badge === 'character') ? 'show'
+        : (i.badge === 'food') ? 'food' : 'rides';
+      if (cat !== category) return;
+      total++;
+      if (checks[i.id]) done++;
+    }));
+    return { total, done, pct: total ? Math.round((done / total) * 100) : 0 };
+  },
+
   // Total "activity count" — every checked item counts at least once,
   // plus any extra times logged via the ride counter. Rides (thrill +
   // family combined) get one tally, shows and food stay separate.
