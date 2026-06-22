@@ -966,6 +966,64 @@ body {
   font-weight: 500;
 }
 
+.showtime-panel {
+  margin: 0 0 6px 50px;
+  padding: 10px 12px;
+  background: var(--bg-2);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+}
+
+.showtime-row,
+.showtime-override-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  margin-bottom: 6px;
+}
+
+.showtime-override-row {
+  margin-bottom: 0;
+}
+
+.showtime-label {
+  color: var(--text-3);
+  font-weight: 500;
+  flex-shrink: 0;
+}
+
+.showtime-typical {
+  color: var(--text-2);
+}
+
+.showtime-input {
+  flex: 1;
+  padding: 5px 9px;
+  border: 1px solid var(--border-md);
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+  color: var(--text-1);
+  font-size: 12px;
+  font-family: var(--font-body);
+  outline: none;
+  min-width: 0;
+}
+
+.showtime-input:focus {
+  border-color: var(--text-2);
+}
+
+.showtime-input::placeholder {
+  color: var(--text-3);
+}
+
+@media (max-width: 480px) {
+  .showtime-panel {
+    margin-left: 38px;
+  }
+}
+
 .info-btn {
   display: flex;
   align-items: center;

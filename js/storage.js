@@ -21,7 +21,7 @@ function uid() {
 }
 
 function emptyTripData() {
-  return { checks: {}, counts: {}, songs: {}, stars: {}, notes: {}, activePark: PARKS[0].id, activeResort: null, timeline: [] };
+  return { checks: {}, counts: {}, songs: {}, stars: {}, notes: {}, activePark: PARKS[0].id, activeResort: null, timeline: [], showtimes: {} };
 }
 
 const Storage = {
@@ -136,6 +136,7 @@ const Storage = {
     // Migration safety net: trips created before the timeline feature
     // existed won't have this field yet — backfill it so nothing breaks.
     if (!allData[tripId].timeline) allData[tripId].timeline = [];
+    if (!allData[tripId].showtimes) allData[tripId].showtimes = {};
     return allData[tripId];
   },
   _saveTripData(data) {
@@ -179,6 +180,7 @@ const Storage = {
         delete data.counts[i.id];
         delete data.songs[i.id];
         delete data.stars[i.id];
+        delete data.showtimes[i.id];
         idsInPark.add(i.id);
       })
     );
@@ -261,6 +263,20 @@ const Storage = {
       if (data.songs[id].length === 0) delete data.songs[id];
       this._saveTripData(data);
     }
+  },
+
+  // ── Today's showtime override (per trip, per item) ──────────────────
+  getShowtimeOverride(id) {
+    return this._getTripData().showtimes[id] || '';
+  },
+  setShowtimeOverride(id, value) {
+    const data = this._getTripData();
+    if (value && value.trim()) {
+      data.showtimes[id] = value.trim();
+    } else {
+      delete data.showtimes[id];
+    }
+    this._saveTripData(data);
   },
 
   // ── Personal stars (your own must-dos, per trip) ────────────────────

@@ -5,6 +5,32 @@
 
 // Items that support a song/variant picker after being checked.
 // Used for rides with randomized soundtracks like Cosmic Rewind.
+// Typical showtimes for entertainment — these are common patterns, not
+// live daily schedules (Disney doesn't publish a public API and times
+// shift constantly). Always double-check the My Disney Experience app
+// or park signage for the actual time on your visit day.
+const TYPICAL_SHOWTIMES = {
+  'mk-15': ['2:00 PM'],
+  'mk-16': ['Varies — check app, usually one nightly show at park close'],
+  'mk-17': ['Continuous — runs all day, just walk up'],
+  'mk-18': ['11:30 AM', '4:00 PM'],
+  'hs-09': ['9:30 AM', '11:30 AM', '2:00 PM', '4:00 PM'],
+  'hs-10': ['Varies — typically 1–2 shows nightly, check app'],
+  'hs-11': ['Varies — one nightly show, usually around park close'],
+  'hs-12': ['Continuous throughout the day — just walk up'],
+  'ep-15': ['9:00 PM (seasonal, check app for current schedule)'],
+  'ak-08': ['11:00 AM', '1:00 PM', '3:00 PM', '5:00 PM'],
+  'ak-09': ['Continuous throughout the day — just walk up'],
+  'ak-12': ['After dark — short looping projections until close'],
+  'dl-13': ['Varies — typically nightly, check app'],
+  'dl-14': ['Varies — typically nightly at DCA, check app'],
+  'dl-15': ['Seasonal — check app for current run dates and time'],
+  'dl-16': ['Varies — usually one nightly show, check app'],
+  'dca-05': ['Varies — typically nightly, check app'],
+  'dca-14': ['Continuous cavalcades throughout the day'],
+  'dca-15': ['Seasonal — check app for current showtimes'],
+};
+
 const SONG_PICKERS = {
   'ep-01': {
     label: 'Which song did you get?',

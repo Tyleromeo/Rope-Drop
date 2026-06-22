@@ -173,6 +173,26 @@ function renderItemRow(item, checks, opts = {}) {
     </div>
   ` : '';
 
+  // Showtimes — only for items badged 'show' that have typical time data
+  const typicalTimes = TYPICAL_SHOWTIMES[item.id];
+  const showtimeOverride = Storage.getShowtimeOverride(item.id);
+  const showtimeHtml = (item.badge === 'show' && typicalTimes) ? `
+    <div class="showtime-row">
+      <span class="showtime-label">🕐 Typical:</span>
+      <span class="showtime-typical">${typicalTimes.join(' · ')}</span>
+    </div>
+    <div class="showtime-override-row">
+      <span class="showtime-label">Today's time:</span>
+      <input
+        type="text"
+        class="showtime-input"
+        data-id="${item.id}"
+        placeholder="e.g. 3:15 PM"
+        value="${showtimeOverride}"
+      />
+    </div>
+  ` : '';
+
   return `
     <div class="item-wrap">
       <div class="item-row${isDone ? ' item-done' : ''}" data-id="${item.id}">
@@ -181,7 +201,7 @@ function renderItemRow(item, checks, opts = {}) {
           <span class="item-check" aria-hidden="true">${checkIcon}</span>
           <span class="item-body">
             <span class="item-name">${item.name}</span>
-            <span class="item-meta">${item.meta}${songLog.length ? ` · <span class="song-tag-inline">${songLog[songLog.length - 1]}</span>` : ''}</span>
+            <span class="item-meta">${item.meta}${songLog.length ? ` · <span class="song-tag-inline">${songLog[songLog.length - 1]}</span>` : ''}${showtimeOverride ? ` · <span class="song-tag-inline">Today: ${showtimeOverride}</span>` : ''}</span>
           </span>
           <span class="badge ${badge.cls}">${badge.label}</span>
         </button>
@@ -191,6 +211,7 @@ function renderItemRow(item, checks, opts = {}) {
           ${songBtnHtml}
         </div>
       </div>
+      ${showtimeHtml ? `<div class="showtime-panel">${showtimeHtml}</div>` : ''}
       ${detailPanelHtml}
     </div>
   `;
@@ -295,6 +316,16 @@ function renderPark() {
   `;
 
   main.innerHTML = html;
+
+  // Bind showtime override inputs
+  main.querySelectorAll('.showtime-input').forEach(input => {
+    input.addEventListener('change', (e) => {
+      Storage.setShowtimeOverride(input.dataset.id, e.target.value);
+      // Refresh just the meta line tag without a full re-render, to avoid
+      // losing focus mid-typing on mobile keyboards
+      renderPark();
+    });
+  });
 
   // Bind info buttons (expand/collapse ride details)
   main.querySelectorAll('.info-btn').forEach(btn => {
