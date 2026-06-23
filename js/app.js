@@ -27,6 +27,9 @@ function renderResortScreen() {
   nav.innerHTML = '';
   nav.style.display = 'none';
 
+  const resortsBtn = document.getElementById('resorts-btn');
+  if (resortsBtn) resortsBtn.style.display = 'none';
+
   const html = `
     <div class="resort-screen">
       <div class="resort-screen-header">
@@ -90,13 +93,6 @@ function renderNav() {
 
   const parksHere = PARKS.filter(p => p.resortId === activeResortId);
 
-  const backBtn = `
-    <button class="park-tab back-tab" data-action="back-to-resorts">
-      <span class="tab-emoji">←</span>
-      <span class="tab-name">Resorts</span>
-    </button>
-  `;
-
   const parkTabs = parksHere.map(park => {
     const { total: tallyTotal } = Storage.getActivityTally(park.id);
     const isActive = park.id === activeParkId;
@@ -117,24 +113,19 @@ function renderNav() {
     `;
   }).join('');
 
-  nav.innerHTML = backBtn + parkTabs;
+  nav.innerHTML = parkTabs;
 
-  nav.querySelector('[data-action="back-to-resorts"]').addEventListener('click', backToResorts);
   nav.querySelectorAll('.park-tab[data-park]').forEach(btn => {
     btn.addEventListener('click', () => switchPark(btn.dataset.park));
   });
 
-  // Show the right-edge fade only when there's more to scroll to —
-  // hides itself once the nav is scrolled all the way to the end.
-  const fadeEl = document.querySelector('.park-nav-fade');
-  function updateNavFade() {
-    if (!fadeEl) return;
-    const canScrollMore = nav.scrollWidth - nav.clientWidth - nav.scrollLeft > 4;
-    fadeEl.style.opacity = canScrollMore ? '1' : '0';
+  // Show the "← Resorts" button in the header whenever we're inside a
+  // park view, since it's no longer part of the scrollable tab row.
+  const resortsBtn = document.getElementById('resorts-btn');
+  if (resortsBtn) {
+    resortsBtn.style.display = '';
+    resortsBtn.onclick = backToResorts;
   }
-  updateNavFade();
-  nav.addEventListener('scroll', updateNavFade);
-  window.addEventListener('resize', updateNavFade);
 }
 
 // ── Render a single item row (used by both Must-Dos and regular sections) ──

@@ -110,6 +110,12 @@ body {
   letter-spacing: -0.01em;
 }
 
+.header-btn-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .header-btn {
   height: 36px;
   padding: 0 14px;
@@ -126,38 +132,35 @@ body {
   font-family: var(--font-body);
 }
 
+.header-btn:hover {
+  background: var(--bg-2);
+}
+
+.header-btn-arrow {
+  font-size: 15px;
+  line-height: 1;
+}
+
 .header-btn-label {
   font-size: 13px;
   font-weight: 600;
   white-space: nowrap;
 }
 
+@media (max-width: 380px) {
+  .header-btn { padding: 0 10px; gap: 4px; }
+  .header-btn-label { font-size: 12px; }
+  .brand-name { font-size: 17px; }
+}
+
 .header-btn:hover { background: var(--bg-2); }
 
 /* ── Park nav ── */
-.park-nav-wrap {
+.park-nav {
   position: sticky;
   top: var(--header-h);
   z-index: 90;
   background: var(--bg);
-}
-
-.park-nav-fade {
-  position: absolute;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  width: 36px;
-  background: linear-gradient(to right, transparent, var(--bg) 70%);
-  pointer-events: none;
-  transition: opacity 0.15s;
-}
-
-.park-nav {
-  position: static;
-  top: auto;
-  z-index: auto;
-  background: transparent;
   border-bottom: 1px solid var(--border);
   display: flex;
   overflow-x: auto;
