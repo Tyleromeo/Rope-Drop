@@ -849,13 +849,11 @@ function renderTriviaLevels(park) {
 
   const levelCards = TRIVIA_LEVELS.map(lvl => {
     const isUnlocked = lvl.id <= unlocked;
-    const poolSize = (cat.levels[lvl.id] || []).length;
     return `
       <button class="trivia-level-card${isUnlocked ? '' : ' trivia-level-locked'}" data-level="${lvl.id}" ${isUnlocked ? '' : 'disabled'} style="${isUnlocked ? `border-color: ${park.accentColor};` : ''}">
         <span class="trivia-level-num">${isUnlocked ? lvl.id : '🔒'}</span>
         <span class="trivia-level-label">${lvl.label}</span>
         <span class="trivia-level-sub">${lvl.sub}${!isUnlocked ? ' — ace the level above to unlock' : ''}</span>
-        <span class="trivia-level-pool">${poolSize} question${poolSize !== 1 ? 's' : ''} in rotation</span>
       </button>
     `;
   }).join('');
@@ -888,6 +886,14 @@ function bindTriviaLevels(park) {
 }
 
 // ── Round play ───────────────────────────────────────────────────────────────
+function quitTriviaRound(park) {
+  const isCategoryMode = triviaActiveCategory !== 'general' && triviaActiveCategory !== 'park';
+  triviaState = null;
+  triviaView = isCategoryMode ? 'levels' : 'home';
+  renderPark();
+  showToast('Round ended — no progress lost on your unlocked levels.', { wrap: true, duration: 2600 });
+}
+
 function startTriviaRound(park) {
   let pool;
   if (triviaActiveCategory === 'general') {
@@ -926,7 +932,10 @@ function renderTriviaQuestion(park) {
   const q = triviaState.questions[triviaState.index];
   area.innerHTML = `
     <div class="trivia-card">
-      <div class="trivia-progress">Question ${triviaState.index + 1} of ${triviaState.questions.length}</div>
+      <div class="trivia-card-header">
+        <button class="trivia-quit-btn" id="trivia-quit-btn">← Quit round</button>
+        <div class="trivia-progress">Question ${triviaState.index + 1} of ${triviaState.questions.length}</div>
+      </div>
       <div class="trivia-question">${q.q}</div>
       <div class="trivia-options">
         ${q.options.map((opt, i) => `
@@ -935,6 +944,11 @@ function renderTriviaQuestion(park) {
       </div>
     </div>
   `;
+
+  document.getElementById('trivia-quit-btn').addEventListener('click', () => {
+    if (!confirm('Quit this round? Your progress on this round will be lost.')) return;
+    quitTriviaRound(park);
+  });
 
   area.querySelectorAll('.trivia-option').forEach(btn => {
     btn.addEventListener('click', () => {
