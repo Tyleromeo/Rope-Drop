@@ -16,6 +16,7 @@ const STORAGE_KEY_TRIPS_DATA = 'rd_trips_data_v1';
 const STORAGE_KEY_TRIPS_META = 'rd_trips_meta_v1';
 const STORAGE_KEY_ACTIVE_TRIP = 'rd_active_trip_v1';
 const STORAGE_KEY_TRIVIA_PROGRESS = 'rd_trivia_progress_v1';
+const STORAGE_KEY_CUSTOM_COLLECTIONS = 'rd_custom_collections_v1';
 
 function uid() {
   return 'trip_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
@@ -726,5 +727,72 @@ const Storage = {
   getHighestUnlockedLevel(categoryKey) {
     const progress = this.getTriviaProgress();
     return progress[categoryKey] || 1;
+  },
+
+  // ── Custom collections ───────────────────────────────────────────────
+  // User-created collections (e.g. "My Top 5 Coasters"), global across
+  // all trips since a personal collection isn't tied to any one visit.
+  // Stored as { [collectionId]: { id, name, emoji, itemIds: [] } }.
+  getCustomCollections() {
+    try {
+      return JSON.parse(localStorage.getItem(STORAGE_KEY_CUSTOM_COLLECTIONS) || '{}');
+    } catch { return {}; }
+  },
+  saveCustomCollections(obj) {
+    localStorage.setItem(STORAGE_KEY_CUSTOM_COLLECTIONS, JSON.stringify(obj));
+  },
+  listCustomCollections() {
+    return Object.values(this.getCustomCollections());
+  },
+  createCustomCollection(name, emoji) {
+    const collections = this.getCustomCollections();
+    const id = 'custom_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+    collections[id] = { id, name: name || 'My Collection', emoji: emoji || '⭐', itemIds: [] };
+    this.saveCustomCollections(collections);
+    return id;
+  },
+  deleteCustomCollection(id) {
+    const collections = this.getCustomCollections();
+    delete collections[id];
+    this.saveCustomCollections(collections);
+  },
+  renameCustomCollection(id, newName) {
+    const collections = this.getCustomCollections();
+    if (collections[id]) {
+      collections[id].name = newName;
+      this.saveCustomCollections(collections);
+    }
+  },
+  // Adds or removes a single item from a custom collection.
+  toggleItemInCustomCollection(collectionId, itemId) {
+    const collections = this.getCustomCollections();
+    const col = collections[collectionId];
+    if (!col) return;
+    const idx = col.itemIds.indexOf(itemId);
+    if (idx === -1) col.itemIds.push(itemId);
+    else col.itemIds.splice(idx, 1);
+    this.saveCustomCollections(collections);
+  },
+
+  // ── Collection progress (works for both pre-built and custom) ───────
+  // A collection is "done" per-item based on whether that item is
+  // currently checked off in the active trip — collections are just a
+  // lens over the same checklist data, not a separate tracking system.
+  getCollectionProgress(itemIds) {
+    const checks = this.getChecked();
+    const allItemsById = {};
+    PARKS.forEach(park => park.sections.forEach(s => s.items.forEach(item => {
+      allItemsById[item.id] = item;
+    })));
+    const items = itemIds.map(id => allItemsById[id]).filter(Boolean);
+    const done = items.filter(item => !!checks[item.id]);
+    const remaining = items.filter(item => !checks[item.id]);
+    return {
+      total: items.length,
+      doneCount: done.length,
+      pct: items.length > 0 ? Math.round((done.length / items.length) * 100) : 0,
+      doneItems: done,
+      remainingItems: remaining,
+    };
   },
 };

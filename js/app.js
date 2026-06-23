@@ -21,6 +21,50 @@ if (activeResortId && PARKS.some(p => p.id === activeParkId && p.resortId === ac
 }
 
 // ── Render resort picker screen ─────────────────────────────────────────────
+// ── Progress dashboard — front and center on the resort picker ─────────────
+function renderProgressDashboard() {
+  const resortBlocks = RESORTS.map(resort => {
+    const parksHere = PARKS.filter(p => p.resortId === resort.id);
+    const parkStats = parksHere.map(park => ({ park, stats: Storage.getParkStats(park.id) }));
+
+    const totalDone = parkStats.reduce((sum, p) => sum + p.stats.done, 0);
+    const totalItems = parkStats.reduce((sum, p) => sum + p.stats.total, 0);
+    const overallPct = totalItems > 0 ? Math.round((totalDone / totalItems) * 100) : 0;
+
+    // Skip resorts with zero progress entirely so this never feels like
+    // a wall of empty bars before someone's even started a trip.
+    if (totalDone === 0) return '';
+
+    const parkRows = parkStats.map(({ park, stats }) => `
+      <button class="progress-dash-park-row" data-park="${park.id}">
+        <span class="progress-dash-park-label">${park.emoji} ${park.shortName}</span>
+        <span class="progress-dash-bar-track">
+          <span class="progress-dash-bar-fill" style="width: ${stats.pct}%; background: ${park.accentColor};"></span>
+        </span>
+        <span class="progress-dash-pct">${stats.pct}%</span>
+      </button>
+    `).join('');
+
+    return `
+      <div class="progress-dash-resort">
+        <div class="progress-dash-resort-header">
+          <span class="progress-dash-resort-title">${resort.emoji} ${resort.shortName}</span>
+          <span class="progress-dash-overall">Overall <strong>${overallPct}%</strong></span>
+        </div>
+        ${parkRows}
+      </div>
+    `;
+  }).join('');
+
+  if (!resortBlocks.trim()) return ''; // nobody's checked anything off anywhere yet
+
+  return `
+    <div class="progress-dashboard">
+      ${resortBlocks}
+    </div>
+  `;
+}
+
 function renderResortScreen() {
   const main = document.getElementById('main-content');
   const nav = document.getElementById('park-nav');
@@ -32,6 +76,7 @@ function renderResortScreen() {
 
   const html = `
     <div class="resort-screen">
+      ${renderProgressDashboard()}
       <div class="resort-screen-header">
         <h1 class="resort-screen-title">Where to?</h1>
         <p class="resort-screen-subtitle">Pick a resort to see its parks</p>
@@ -58,6 +103,16 @@ function renderResortScreen() {
 
   main.querySelectorAll('.resort-card').forEach(btn => {
     btn.addEventListener('click', () => switchResort(btn.dataset.resort));
+  });
+
+  main.querySelectorAll('.progress-dash-park-row').forEach(row => {
+    row.addEventListener('click', () => {
+      const parkId = row.dataset.park;
+      const park = PARKS.find(p => p.id === parkId);
+      if (!park) return;
+      switchResort(park.resortId);
+      switchPark(parkId);
+    });
   });
 
   document.getElementById('progress-summary').innerHTML = '';
@@ -1219,6 +1274,187 @@ function openParkMap(park) {
 // ── All-time stats modal ────────────────────────────────────────────────────
 let allTimeView = 'alltime'; // 'alltime' | 'byyear'
 
+// ── Collections — list view + detail view ("What am I missing?") ──────────
+let collectionsDetailId = null; // currently-open collection's id, or null for the list
+
+function openCollectionsModal() {
+  collectionsDetailId = null;
+  renderCollectionsOverlay();
+}
+
+function renderCollectionsOverlay() {
+  // Tear down any existing collections overlay before rebuilding, so
+  // re-renders (e.g. after adding an item) don't stack duplicates.
+  const existing = document.querySelector('.collections-overlay');
+  if (existing) existing.remove();
+
+  const overlay = document.createElement('div');
+  overlay.className = 'modal-overlay collections-overlay';
+
+  if (collectionsDetailId) {
+    overlay.innerHTML = renderCollectionDetailHtml(collectionsDetailId);
+  } else {
+    overlay.innerHTML = renderCollectionsListHtml();
+  }
+
+  document.body.appendChild(overlay);
+  document.body.style.overflow = 'hidden';
+
+  const close = () => {
+    overlay.remove();
+    document.body.style.overflow = '';
+  };
+
+  overlay.querySelector('.modal-close').addEventListener('click', close);
+  overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
+
+  if (collectionsDetailId) {
+    bindCollectionDetail(overlay, close);
+  } else {
+    bindCollectionsList(overlay, close);
+  }
+}
+
+function getAllCollections() {
+  const prebuilt = PREBUILT_COLLECTIONS.map(c => getValidatedCollection(c)).map(c => ({ ...c, isCustom: false }));
+  const custom = Storage.listCustomCollections().map(c => ({ ...c, isCustom: true }));
+  return [...prebuilt, ...custom];
+}
+
+function renderCollectionsListHtml() {
+  const collections = getAllCollections();
+  const rows = collections.map(col => {
+    const progress = Storage.getCollectionProgress(col.itemIds);
+    return `
+      <button class="collection-row" data-id="${col.id}">
+        <span class="collection-row-emoji">${col.emoji}</span>
+        <span class="collection-row-body">
+          <span class="collection-row-name">${col.name}${col.isCustom ? ' <span class="collection-custom-tag">custom</span>' : ''}</span>
+          <span class="collection-row-sub">${progress.doneCount} of ${progress.total} done</span>
+        </span>
+        <span class="collection-row-pct" style="color: ${progress.pct === 100 ? '#0f6e56' : 'inherit'}">${progress.pct === 100 ? '✅' : progress.pct + '%'}</span>
+      </button>
+    `;
+  }).join('');
+
+  return `
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>📦 Collections</h3>
+        <button class="modal-close" aria-label="Close">✕</button>
+      </div>
+      <p class="modal-subtitle">Track themed sets of attractions across every park — and see exactly what's left.</p>
+      <div class="collection-list">${rows}</div>
+      <button class="new-collection-btn">+ Create a custom collection</button>
+    </div>
+  `;
+}
+
+function bindCollectionsList(overlay, close) {
+  overlay.querySelectorAll('.collection-row').forEach(btn => {
+    btn.addEventListener('click', () => {
+      collectionsDetailId = btn.dataset.id;
+      renderCollectionsOverlay();
+    });
+  });
+  overlay.querySelector('.new-collection-btn').addEventListener('click', () => {
+    const name = prompt('Name your collection (e.g. "My Top 5 Coasters")', '');
+    if (name === null) return;
+    const emoji = prompt('Pick an emoji for it (optional)', '⭐') || '⭐';
+    const id = Storage.createCustomCollection(name.trim() || 'My Collection', emoji.trim().slice(0, 4));
+    collectionsDetailId = id;
+    renderCollectionsOverlay();
+  });
+}
+
+function renderCollectionDetailHtml(collectionId) {
+  const collections = getAllCollections();
+  const col = collections.find(c => c.id === collectionId);
+  if (!col) {
+    collectionsDetailId = null;
+    return renderCollectionsListHtml();
+  }
+  const progress = Storage.getCollectionProgress(col.itemIds);
+
+  const remainingHtml = progress.remainingItems.length > 0 ? `
+    <div class="collection-section-heading">Only ${progress.remainingItems.length} left</div>
+    <div class="collection-item-list">
+      ${progress.remainingItems.map(item => `
+        <div class="collection-item-row">
+          <span class="collection-checkbox">□</span>
+          <span class="collection-item-name">${item.name}</span>
+        </div>
+      `).join('')}
+    </div>
+  ` : `<div class="collection-complete-banner">🎉 You've completed this whole collection!</div>`;
+
+  const doneHtml = progress.doneItems.length > 0 ? `
+    <div class="collection-section-heading">Already done</div>
+    <div class="collection-item-list">
+      ${progress.doneItems.map(item => `
+        <div class="collection-item-row collection-item-done">
+          <span class="collection-checkbox">✅</span>
+          <span class="collection-item-name">${item.name}</span>
+        </div>
+      `).join('')}
+    </div>
+  ` : '';
+
+  const customManageHtml = col.isCustom ? `
+    <div class="collection-section-heading">Add or remove rides</div>
+    <p class="collection-manage-hint">Tap any ride below to add or remove it from this collection.</p>
+    <select class="collection-add-select">
+      <option value="">+ Add a ride, show, or food spot…</option>
+      ${PARKS.flatMap(park => park.sections.flatMap(s => s.items)).filter(item => !col.itemIds.includes(item.id)).map(item => `<option value="${item.id}">${item.name}</option>`).join('')}
+    </select>
+    <button class="collection-delete-btn">🗑 Delete this collection</button>
+  ` : '';
+
+  return `
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>${col.emoji} ${col.name}</h3>
+        <button class="modal-close" aria-label="Close">✕</button>
+      </div>
+      <button class="collection-back-btn">← All collections</button>
+      <p class="collection-progress-line">You've completed <strong>${progress.pct}%</strong> of ${col.name}.</p>
+      <div class="collection-progress-bar-track">
+        <div class="collection-progress-bar-fill" style="width: ${progress.pct}%;"></div>
+      </div>
+      ${remainingHtml}
+      ${doneHtml}
+      ${customManageHtml}
+    </div>
+  `;
+}
+
+function bindCollectionDetail(overlay, close) {
+  overlay.querySelector('.collection-back-btn').addEventListener('click', () => {
+    collectionsDetailId = null;
+    renderCollectionsOverlay();
+  });
+
+  const addSelect = overlay.querySelector('.collection-add-select');
+  if (addSelect) {
+    addSelect.addEventListener('change', (e) => {
+      const itemId = e.target.value;
+      if (!itemId) return;
+      Storage.toggleItemInCustomCollection(collectionsDetailId, itemId);
+      renderCollectionsOverlay();
+    });
+  }
+
+  const deleteBtn = overlay.querySelector('.collection-delete-btn');
+  if (deleteBtn) {
+    deleteBtn.addEventListener('click', () => {
+      if (!confirm('Delete this collection? This cannot be undone.')) return;
+      Storage.deleteCustomCollection(collectionsDetailId);
+      collectionsDetailId = null;
+      renderCollectionsOverlay();
+    });
+  }
+}
+
 function openAllTimeStatsModal() {
   const stats = Storage.getAllTimeStats();
 
@@ -1359,6 +1595,7 @@ function openTripsModal() {
       </div>
       <button class="new-trip-btn">+ Start a new trip</button>
       <button class="alltime-stats-btn">🏆 All-Time Stats</button>
+      <button class="collections-btn">📦 Collections</button>
 
       <div class="recap-section">
         <div class="recap-section-heading">Share a recap of your current trip</div>
@@ -1370,7 +1607,7 @@ function openTripsModal() {
 
       <div class="recap-section">
         <div class="recap-section-heading">Move trips between devices</div>
-        <p class="trip-io-hint">For example: export your trip on your phone, then send the file to Gretchen's phone so her app has the same trip data too.</p>
+        <p class="trip-io-hint">For example: import or export your trip from another device to have all trips stored on one device.</p>
         <div class="trip-io-row">
           <button class="trip-export-all-btn">Send all my trips</button>
           <button class="trip-import-btn">Add trips from a file</button>
@@ -1474,6 +1711,11 @@ function openTripsModal() {
 
   overlay.querySelector('.alltime-stats-btn').addEventListener('click', () => {
     openAllTimeStatsModal();
+  });
+
+  overlay.querySelector('.collections-btn').addEventListener('click', () => {
+    close(false);
+    openCollectionsModal();
   });
 
   // Export a single trip
