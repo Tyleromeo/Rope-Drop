@@ -70,6 +70,23 @@ const Storage = {
     }
   },
 
+  // Lets a person correct or set a trip's date after the fact — useful
+  // for trips logged from memory well after the actual visit, since the
+  // By-Year stats are grouped by this date. Accepts a JS Date or anything
+  // the Date constructor understands (e.g. an ISO date string).
+  setTripDate(tripId, newDate) {
+    const meta = this.getAllTrips();
+    if (meta[tripId]) {
+      const parsed = new Date(newDate);
+      if (!isNaN(parsed.getTime())) {
+        meta[tripId].createdAt = parsed.getTime();
+        this.saveTripsMeta(meta);
+        return true;
+      }
+    }
+    return false;
+  },
+
   deleteTrip(tripId) {
     const meta = this.getAllTrips();
     const allData = this.getAllTripsData();

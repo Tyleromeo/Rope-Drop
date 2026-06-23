@@ -1350,7 +1350,8 @@ function openTripsModal() {
               <span class="trip-name">${trip.name}</span>
               <span class="trip-date">${new Date(trip.createdAt).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}</span>
             </button>
-            <button class="trip-export" data-id="${trip.id}" aria-label="Export this trip" title="Export / share">⬆</button>
+            <button class="trip-export" data-id="${trip.id}" aria-label="Send this trip to another device" title="Send to another device">⬆</button>
+            <button class="trip-date-btn" data-id="${trip.id}" aria-label="Edit trip date" title="Edit trip date">📅</button>
             <button class="trip-rename" data-id="${trip.id}" aria-label="Rename trip" title="Rename">✎</button>
             ${trips.length > 1 ? `<button class="trip-delete" data-id="${trip.id}" aria-label="Delete trip" title="Delete">🗑</button>` : ''}
           </div>
@@ -1367,9 +1368,13 @@ function openTripsModal() {
         </div>
       </div>
 
-      <div class="trip-io-row">
-        <button class="trip-export-all-btn">Export all trips (data)</button>
-        <button class="trip-import-btn">Import a file</button>
+      <div class="recap-section">
+        <div class="recap-section-heading">Move trips between devices</div>
+        <p class="trip-io-hint">For example: export your trip on your phone, then send the file to Gretchen's phone so her app has the same trip data too.</p>
+        <div class="trip-io-row">
+          <button class="trip-export-all-btn">Send all my trips</button>
+          <button class="trip-import-btn">Add trips from a file</button>
+        </div>
       </div>
       <input type="file" id="trip-import-input" accept="application/json,.json" style="display:none;" />
     </div>
@@ -1418,6 +1423,29 @@ function openTripsModal() {
         Storage.renameTrip(btn.dataset.id, newName.trim());
         close(false);
         openTripsModal();
+      }
+    });
+  });
+
+  overlay.querySelectorAll('.trip-date-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const trips = Storage.listTrips();
+      const trip = trips.find(t => t.id === btn.dataset.id);
+      const currentDate = trip ? new Date(trip.createdAt) : new Date();
+      const defaultValue = currentDate.toISOString().slice(0, 10); // YYYY-MM-DD
+      const input = prompt(
+        `What date was this trip? (YYYY-MM-DD)\nUseful if you're logging a trip from memory — this controls which year it shows up under in your stats.`,
+        defaultValue
+      );
+      if (input === null) return; // cancelled
+      const success = Storage.setTripDate(btn.dataset.id, input.trim());
+      if (success) {
+        showToast('Trip date updated 📅');
+        close(false);
+        openTripsModal();
+      } else {
+        showToast('That doesn\'t look like a valid date — try YYYY-MM-DD.', { wrap: true, duration: 3000 });
       }
     });
   });
