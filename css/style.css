@@ -1269,6 +1269,329 @@ body {
 .bottom-spacer { height: 24px; }
 
 /* ── Resort picker screen ── */
+.progress-dashboard {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-bottom: 28px;
+}
+
+.progress-dash-resort {
+  padding: 16px 18px;
+  border-radius: 16px;
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+}
+
+.progress-dash-resort-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.progress-dash-resort-title {
+  font-family: var(--font-display);
+  font-size: 17px;
+  color: var(--text-1);
+}
+
+.progress-dash-overall {
+  font-size: 12px;
+  color: var(--text-2);
+}
+
+.progress-dash-overall strong {
+  font-size: 14px;
+  color: var(--text-1);
+}
+
+.progress-dash-park-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 6px 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-family: var(--font-body);
+  text-align: left;
+}
+
+.progress-dash-park-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-1);
+  width: 100px;
+  flex-shrink: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.progress-dash-bar-track {
+  flex: 1;
+  height: 8px;
+  border-radius: var(--radius-pill);
+  background: var(--bg-3);
+  overflow: hidden;
+}
+
+.progress-dash-bar-fill {
+  display: block;
+  height: 100%;
+  border-radius: var(--radius-pill);
+  transition: width 0.3s ease-out;
+}
+
+.progress-dash-pct {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-2);
+  width: 36px;
+  flex-shrink: 0;
+  text-align: right;
+}
+
+.collections-btn {
+  width: 100%;
+  padding: 13px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-md);
+  background: var(--bg-2);
+  color: var(--text-1);
+  font-size: 14px;
+  font-weight: 600;
+  font-family: var(--font-body);
+  cursor: pointer;
+  margin-top: 8px;
+  transition: background 0.12s, border-color 0.12s;
+}
+
+.collections-btn:hover {
+  background: var(--bg-3);
+  border-color: var(--text-2);
+}
+
+.collection-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 14px 0 16px;
+  max-height: 360px;
+  overflow-y: auto;
+}
+
+.collection-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--bg);
+  cursor: pointer;
+  text-align: left;
+  font-family: var(--font-body);
+  transition: background 0.12s;
+}
+
+.collection-row:hover {
+  background: var(--bg-2);
+}
+
+.collection-row-emoji {
+  font-size: 22px;
+  flex-shrink: 0;
+}
+
+.collection-row-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.collection-row-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-1);
+}
+
+.collection-custom-tag {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-3);
+  background: var(--bg-2);
+  padding: 1px 6px;
+  border-radius: var(--radius-pill);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.collection-row-sub {
+  font-size: 12px;
+  color: var(--text-2);
+}
+
+.collection-row-pct {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-1);
+  flex-shrink: 0;
+}
+
+.new-collection-btn {
+  width: 100%;
+  padding: 13px;
+  border-radius: var(--radius-sm);
+  border: 1px dashed var(--border-md);
+  background: transparent;
+  color: var(--text-2);
+  font-size: 14px;
+  font-weight: 500;
+  font-family: var(--font-body);
+  cursor: pointer;
+  transition: background 0.12s, border-color 0.12s;
+}
+
+.new-collection-btn:hover {
+  background: var(--bg-2);
+  border-color: var(--text-2);
+  color: var(--text-1);
+}
+
+.collection-back-btn {
+  background: none;
+  border: none;
+  color: var(--text-2);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 6px 0 10px;
+  font-family: var(--font-body);
+}
+
+.collection-back-btn:hover {
+  color: var(--text-1);
+}
+
+.collection-progress-line {
+  font-size: 14px;
+  color: var(--text-2);
+  margin-bottom: 8px;
+}
+
+.collection-progress-line strong {
+  color: var(--text-1);
+  font-size: 16px;
+}
+
+.collection-progress-bar-track {
+  height: 8px;
+  border-radius: var(--radius-pill);
+  background: var(--bg-3);
+  overflow: hidden;
+  margin-bottom: 16px;
+}
+
+.collection-progress-bar-fill {
+  height: 100%;
+  border-radius: var(--radius-pill);
+  background: #e0a04a;
+  transition: width 0.3s ease-out;
+}
+
+.collection-section-heading {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-3);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin: 16px 0 8px;
+}
+
+.collection-item-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.collection-item-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  color: var(--text-1);
+}
+
+.collection-item-done {
+  opacity: 0.55;
+}
+
+.collection-checkbox {
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.collection-complete-banner {
+  padding: 14px 16px;
+  border-radius: var(--radius-sm);
+  background: #e1f5ee;
+  color: #0f6e56;
+  font-size: 14px;
+  font-weight: 700;
+  text-align: center;
+  margin-top: 8px;
+}
+
+@media (prefers-color-scheme: dark) {
+  .collection-complete-banner { background: #0e2a1e; color: #5fd9ab; }
+}
+
+.collection-manage-hint {
+  font-size: 12px;
+  color: var(--text-2);
+  margin-bottom: 8px;
+}
+
+.collection-add-select {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-md);
+  background: var(--bg);
+  color: var(--text-1);
+  font-size: 13px;
+  font-family: var(--font-body);
+  margin-bottom: 10px;
+}
+
+.collection-delete-btn {
+  width: 100%;
+  padding: 11px;
+  border-radius: var(--radius-sm);
+  border: 1px solid #c0392b;
+  background: transparent;
+  color: #c0392b;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: var(--font-body);
+  cursor: pointer;
+}
+
+.collection-delete-btn:hover {
+  background: #fce8e8;
+}
+
+@media (prefers-color-scheme: dark) {
+  .collection-delete-btn:hover { background: #2e1313; }
+}
+
 .resort-screen {
   padding: 32px 18px 24px;
 }
