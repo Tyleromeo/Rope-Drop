@@ -227,6 +227,10 @@ function renderItemRow(item, checks, opts = {}) {
 
   const isRideType = item.badge === 'thrill' || item.badge === 'family';
 
+  const waitBadgeHtml = isRideType
+    ? `<span class="wait-badge" data-wait-name="${item.name.replace(/"/g, '&quot;')}" data-item-id="${item.id}"></span>`
+    : '';
+
   const infoBtn = (hasInfo || isRideType)
     ? `<button class="info-btn" data-id="${item.id}" aria-expanded="false" aria-label="More details about ${item.name}" title="More details">ⓘ</button>`
     : '';
@@ -291,6 +295,7 @@ function renderItemRow(item, checks, opts = {}) {
           <span class="item-body">
             <span class="item-name">${item.name}${statusTag}${singlePassTag}</span>
             <span class="item-meta">${item.meta}${songLog.length ? ` · <span class="song-tag-inline">${songLog[songLog.length - 1]}</span>` : ''}</span>
+            ${waitBadgeHtml}
           </span>
           <span class="badge ${badge.cls}">${badge.label}</span>
         </button>
@@ -361,7 +366,10 @@ function renderPark() {
       <div class="park-hero-inner">
         <div class="park-meta-row">
           <div class="park-meta">${park.resort}</div>
-          <button class="map-btn" id="open-map-btn" style="color: ${park.accentColor}; border-color: ${park.accentColor};">🗺️ Map</button>
+          <div class="park-meta-btns">
+            <button class="map-btn" id="open-waits-btn" style="color: ${park.accentColor}; border-color: ${park.accentColor};">🕐 Live Waits</button>
+            <button class="map-btn" id="open-map-btn" style="color: ${park.accentColor}; border-color: ${park.accentColor};">🗺️ Map</button>
+          </div>
         </div>
         <h1 class="park-name">${park.emoji} ${park.name}</h1>
         <div class="park-progress-wrap">
@@ -537,6 +545,7 @@ function renderPark() {
   main.innerHTML = html;
 
   renderWeatherWidget(park);
+  if (activeCategory === 'rides') loadWaitTimeBadges(park);
 
   // Bind category tabs
   main.querySelectorAll('.category-tab').forEach(btn => {
@@ -652,6 +661,9 @@ function renderPark() {
 
   const mapBtn = document.getElementById('open-map-btn');
   if (mapBtn) mapBtn.addEventListener('click', () => openParkMap(park));
+
+  const waitsBtn = document.getElementById('open-waits-btn');
+  if (waitsBtn) waitsBtn.addEventListener('click', () => openLiveWaitsModal(park));
 }
 
 // ── Bottom bar ───────────────────────────────────────────────────────────────
@@ -1092,6 +1104,47 @@ function renderTriviaResults(park) {
   });
 }
 
+// ── Live wait time badges (rendered into placeholders after page load) ─────
+async function loadWaitTimeBadges(park) {
+  const badges = document.querySelectorAll('.wait-badge');
+  if (badges.length === 0) return;
+
+  // Show a subtle loading state immediately so the row doesn't look broken
+  // while the network call is in flight.
+  badges.forEach(el => { el.textContent = ''; el.classList.add('wait-badge-loading'); });
+
+  const liveLookup = await getLiveWaitTimes(park.id);
+
+  // Re-query in case the view changed (e.g. user switched tabs) while the
+  // fetch was in flight — stale DOM nodes would just silently no-op here.
+  document.querySelectorAll('.wait-badge').forEach(el => {
+    el.classList.remove('wait-badge-loading');
+    const name = el.dataset.waitName;
+    const match = matchWaitTime(liveLookup, name);
+
+    if (!match) {
+      el.textContent = '';
+      return;
+    }
+
+    if (match.status === 'DOWN') {
+      el.textContent = '⚠️ Temporarily down';
+      el.className = 'wait-badge wait-badge-down';
+    } else if (match.status === 'REFURBISHMENT') {
+      el.textContent = '🔧 Refurbishment';
+      el.className = 'wait-badge wait-badge-down';
+    } else if (match.status === 'CLOSED') {
+      el.textContent = '';
+    } else if (typeof match.waitTime === 'number') {
+      const level = match.waitTime >= 60 ? 'high' : match.waitTime >= 30 ? 'medium' : 'low';
+      el.textContent = `🕐 ${match.waitTime} min wait`;
+      el.className = `wait-badge wait-badge-${level}`;
+    } else {
+      el.textContent = '';
+    }
+  });
+}
+
 // ── Weather forecast ─────────────────────────────────────────────────────────
 const weatherCache = {}; // parkId -> { data, fetchedAt }
 const WEATHER_CACHE_MS = 30 * 60 * 1000; // 30 minutes
@@ -1162,6 +1215,105 @@ function renderWeatherWidget(park) {
 
 // ── Park map ─────────────────────────────────────────────────────────────────
 let activeLeafletMap = null;
+
+// ── Live Waits modal — sortable list of real-time ride wait times ──────────
+let liveWaitsSortMode = 'wait-desc'; // 'wait-desc' | 'wait-asc' | 'alpha'
+
+async function openLiveWaitsModal(park) {
+  let cachedRideEntries = [];
+
+  const overlay = document.createElement('div');
+  overlay.className = 'modal-overlay';
+  overlay.innerHTML = `
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>🕐 Live Waits — ${park.shortName}</h3>
+        <button class="modal-close" aria-label="Close">✕</button>
+      </div>
+      <div class="waits-sort-row">
+        <button class="waits-sort-btn active" data-sort="wait-desc">Longest first</button>
+        <button class="waits-sort-btn" data-sort="wait-asc">Shortest first</button>
+        <button class="waits-sort-btn" data-sort="alpha">A–Z</button>
+      </div>
+      <div id="live-waits-list" class="live-waits-list">
+        <div class="waits-loading">Loading live wait times…</div>
+      </div>
+      <p class="waits-attribution">Wait times powered by <a href="https://themeparks.wiki" target="_blank" rel="noopener">ThemeParks.wiki</a>, updated every few minutes.</p>
+    </div>
+  `;
+
+  document.body.appendChild(overlay);
+  document.body.style.overflow = 'hidden';
+
+  const close = () => {
+    overlay.remove();
+    document.body.style.overflow = '';
+  };
+  overlay.querySelector('.modal-close').addEventListener('click', close);
+  overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
+
+  overlay.querySelectorAll('.waits-sort-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      liveWaitsSortMode = btn.dataset.sort;
+      overlay.querySelectorAll('.waits-sort-btn').forEach(b => b.classList.toggle('active', b === btn));
+      renderLiveWaitsList(overlay, park, cachedRideEntries);
+    });
+  });
+
+  // Gather every ride/family item in this park, then fetch live data once
+  const allRides = park.sections.flatMap(s => s.items).filter(i => i.badge === 'thrill' || i.badge === 'family');
+  const liveLookup = await getLiveWaitTimes(park.id);
+
+  if (!liveLookup) {
+    overlay.querySelector('#live-waits-list').innerHTML = `<p class="waits-empty">Live wait times aren't available right now — check your connection and try again.</p>`;
+    return;
+  }
+
+  cachedRideEntries = allRides.map(item => {
+    const match = matchWaitTime(liveLookup, item.name);
+    return { item, match };
+  });
+
+  renderLiveWaitsList(overlay, park, cachedRideEntries);
+}
+
+function renderLiveWaitsList(overlay, park, entries) {
+  const container = overlay.querySelector('#live-waits-list');
+
+  const withData = entries.filter(e => e.match && typeof e.match.waitTime === 'number' && e.match.status !== 'CLOSED');
+  const downOrClosed = entries.filter(e => e.match && (e.match.status === 'DOWN' || e.match.status === 'REFURBISHMENT'));
+  const noData = entries.filter(e => !e.match || (e.match.status === 'CLOSED' && typeof e.match.waitTime !== 'number'));
+
+  let sorted = [...withData];
+  if (liveWaitsSortMode === 'wait-desc') sorted.sort((a, b) => b.match.waitTime - a.match.waitTime);
+  else if (liveWaitsSortMode === 'wait-asc') sorted.sort((a, b) => a.match.waitTime - b.match.waitTime);
+  else sorted.sort((a, b) => a.item.name.localeCompare(b.item.name));
+
+  const rowHtml = (entry, extra) => {
+    const level = entry.match && typeof entry.match.waitTime === 'number'
+      ? (entry.match.waitTime >= 60 ? 'high' : entry.match.waitTime >= 30 ? 'medium' : 'low')
+      : 'down';
+    return `
+      <div class="waits-row">
+        <span class="waits-row-name">${entry.item.name}</span>
+        <span class="waits-row-time wait-badge-${level}">${extra}</span>
+      </div>
+    `;
+  };
+
+  const sortedHtml = sorted.map(e => rowHtml(e, `🕐 ${e.match.waitTime} min`)).join('');
+  const downHtml = downOrClosed.map(e => rowHtml(e, e.match.status === 'DOWN' ? '⚠️ Down' : '🔧 Refurb')).join('');
+  const noDataHtml = noData.length > 0 ? `
+    <div class="waits-section-heading">No live data</div>
+    ${noData.map(e => `<div class="waits-row waits-row-muted"><span class="waits-row-name">${e.item.name}</span><span class="waits-row-time">—</span></div>`).join('')}
+  ` : '';
+
+  container.innerHTML = `
+    ${sortedHtml || '<p class="waits-empty">No current wait times to show.</p>'}
+    ${downHtml}
+    ${noDataHtml}
+  `;
+}
 
 function openParkMap(park) {
   const center = PARK_MAP_CENTERS[park.id];
