@@ -1781,6 +1781,14 @@ function openTripsModal() {
       </div>
 
       <div class="recap-section">
+        <div class="recap-section-heading">Master list — every trip, combined</div>
+        <p class="trip-io-hint">A grand tally of how many times you've done each ride, show, and food spot across all your trips ever.</p>
+        <div class="recap-btn-row">
+          <button class="master-pdf-btn">📄 Save master list as PDF</button>
+        </div>
+      </div>
+
+      <div class="recap-section">
         <div class="recap-section-heading">Move trips between devices</div>
         <p class="trip-io-hint">For example: import or export your trip from another device to have all trips stored on one device.</p>
         <div class="trip-io-row">
@@ -1914,6 +1922,10 @@ function openTripsModal() {
     exportRecapPDF();
   });
 
+  overlay.querySelector('.master-pdf-btn').addEventListener('click', () => {
+    exportMasterListPDF();
+  });
+
   // Export every trip at once
   overlay.querySelector('.trip-export-all-btn').addEventListener('click', () => {
     const data = Storage.exportAllTrips();
@@ -1983,12 +1995,14 @@ function buildRecapCanvas(summary) {
   const HEADER_H = 220;
   const PARK_CARD_BASE_H = 100; // header area within each park card before the list starts
   const LINE_H = 19;
-  const MAX_LINES_SHOWN = 8;
   const FOOTER_H = 70;
 
   const parkCardHeights = summary.parkSummaries.map(ps => {
-    const lines = Math.min(ps.timeline.length, MAX_LINES_SHOWN) || 1;
-    return PARK_CARD_BASE_H + lines * LINE_H + 20;
+    const lines = ps.timeline.length || 1;
+    const songLines = (ps.checkedItems || [])
+      .filter(item => item.songBreakdown && item.songBreakdown.length > 0)
+      .reduce((sum, item) => sum + 1 + item.songBreakdown.length, 0); // +1 for each song section heading
+    return PARK_CARD_BASE_H + lines * LINE_H + (songLines > 0 ? songLines * LINE_H + 16 : 0) + 20;
   });
   const totalParkH = parkCardHeights.reduce((a, b) => a + b, 0);
   const H = HEADER_H + totalParkH + FOOTER_H + 40;
@@ -2096,10 +2110,9 @@ function buildRecapCanvas(summary) {
     ctx.fillStyle = '#6b6760';
     ctx.fillText(breakdown || 'No activities logged', CARD_PADDING, cardY + 70);
 
-    // Chronological timeline with timestamps
+    // Chronological timeline with timestamps — show every entry, no cap
     ctx.font = '400 13px "DM Sans", sans-serif';
-    const itemsToShow = ps.timeline.slice(0, MAX_LINES_SHOWN);
-    itemsToShow.forEach((entry, idx) => {
+    ps.timeline.forEach((entry, idx) => {
       const lineY = cardY + 100 + idx * LINE_H;
       ctx.fillStyle = '#9e9b96';
       ctx.fillText(entry.timeLabel, CARD_PADDING + 4, lineY);
@@ -2109,10 +2122,23 @@ function buildRecapCanvas(summary) {
       if (nameLabel.length > 60) nameLabel = nameLabel.slice(0, 57) + '…';
       ctx.fillText(nameLabel, CARD_PADDING + 4 + timeW, lineY);
     });
-    if (ps.timeline.length > MAX_LINES_SHOWN) {
-      ctx.fillStyle = '#9e9b96';
-      ctx.fillText(`+ ${ps.timeline.length - MAX_LINES_SHOWN} more`, CARD_PADDING + 4, cardY + 100 + MAX_LINES_SHOWN * LINE_H);
-    }
+
+    // Song breakdowns (e.g. Cosmic Rewind) — listed under the timeline,
+    // most-heard song first, for any ride with a song picker this trip.
+    let songY = cardY + 100 + ps.timeline.length * LINE_H + 16;
+    (ps.checkedItems || []).forEach(item => {
+      if (!item.songBreakdown || item.songBreakdown.length === 0) return;
+      ctx.font = '600 13px "DM Sans", sans-serif';
+      ctx.fillStyle = '#3a3630';
+      ctx.fillText(`🎵 ${item.name} — songs heard`, CARD_PADDING + 4, songY);
+      songY += LINE_H;
+      ctx.font = '400 13px "DM Sans", sans-serif';
+      item.songBreakdown.forEach((s, idx) => {
+        ctx.fillStyle = idx === 0 ? '#b8761f' : '#6b6760';
+        ctx.fillText(`${idx === 0 ? '🏆' : '•'} ${s.song} — ${s.count}×`, CARD_PADDING + 16, songY);
+        songY += LINE_H;
+      });
+    });
 
     y += cardH;
   });
@@ -2237,7 +2263,7 @@ function exportRecapPDF() {
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(12);
     doc.setTextColor(40, 40, 40);
-    doc.text(`${ps.park.emoji}  ${ps.park.name}`, margin, y);
+    doc.text(ps.park.name, margin, y);
     doc.setFont('helvetica', 'bold');
     doc.text(`${ps.tally.total} activities`, pageW - margin - 90, y);
     y += 20;
@@ -2251,7 +2277,7 @@ function exportRecapPDF() {
     doc.setFont('times', 'normal');
     doc.setFontSize(24);
     doc.setTextColor(30, 28, 24);
-    doc.text(`${ps.park.emoji}  ${ps.park.name}`, margin, y);
+    doc.text(ps.park.name, margin, y);
     y += 14;
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(11);
@@ -2297,6 +2323,38 @@ function exportRecapPDF() {
       doc.setTextColor(150, 150, 150);
       doc.text('Nothing logged here yet.', margin, y);
     }
+
+    // Song breakdowns (e.g. Cosmic Rewind) — listed after the timeline,
+    // most-heard song first, for any ride with a song picker this trip.
+    const itemsWithSongs = (ps.checkedItems || []).filter(item => item.songBreakdown && item.songBreakdown.length > 0);
+    if (itemsWithSongs.length > 0) {
+      y += 16;
+      if (y > pageH - margin - 40) { doc.addPage(); y = margin; }
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(12);
+      doc.setTextColor(30, 28, 24);
+      doc.text('Songs heard', margin, y);
+      y += 20;
+
+      itemsWithSongs.forEach(item => {
+        if (y > pageH - margin - 20) { doc.addPage(); y = margin; }
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(11);
+        doc.setTextColor(40, 40, 40);
+        doc.text(item.name, margin, y);
+        y += 18;
+
+        item.songBreakdown.forEach((s, idx) => {
+          if (y > pageH - margin) { doc.addPage(); y = margin; }
+          doc.setFont('helvetica', 'normal');
+          doc.setFontSize(11);
+          doc.setTextColor(idx === 0 ? 184 : 100, idx === 0 ? 118 : 100, idx === 0 ? 31 : 100);
+          doc.text(`${idx === 0 ? '★' : '-'} ${s.song} — ${s.count}×`, margin + 14, y);
+          y += 16;
+        });
+        y += 6;
+      });
+    }
   });
 
   // Footer disclaimer on every page
@@ -2311,6 +2369,152 @@ function exportRecapPDF() {
 
   doc.save(`${slugify(summary.tripName)}-recap.pdf`);
   showToast('Recap PDF saved 📄');
+}
+
+// ── Master list PDF — grand tally across every trip ever logged ────────────
+function exportMasterListPDF() {
+  const stats = Storage.getAllTimeStats();
+  if (stats.grandTotals.total === 0) {
+    showToast('Nothing logged yet across any trip — check a few things off first!', { wrap: true, duration: 3400 });
+    return;
+  }
+  if (typeof window.jspdf === 'undefined') {
+    showToast('PDF export isn\'t available right now — try again in a moment.', { wrap: true, duration: 3400 });
+    return;
+  }
+
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit: 'pt', format: 'letter' });
+  const pageW = doc.internal.pageSize.getWidth();
+  const pageH = doc.internal.pageSize.getHeight();
+  const margin = 50;
+  let y = margin;
+
+  const CAT_LABELS = { rides: 'Rides', show: 'Shows', food: 'Food & drink', character: 'Character meets' };
+  const BADGE_LABEL = { thrill: 'Ride', family: 'Ride', show: 'Show', character: 'Meet', food: 'Food' };
+
+  // ── Overview ──
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(11);
+  doc.setTextColor(120, 120, 120);
+  doc.text('ROPE DROP MASTER LIST', margin, y);
+  y += 28;
+
+  doc.setFont('times', 'normal');
+  doc.setFontSize(28);
+  doc.setTextColor(30, 28, 24);
+  doc.text('Every Trip, Combined', margin, y);
+  y += 40;
+
+  doc.setFontSize(11);
+  doc.setTextColor(100, 100, 100);
+  doc.text(`Across ${stats.totalTrips} trip${stats.totalTrips !== 1 ? 's' : ''}`, margin, y);
+  y += 30;
+
+  doc.setFontSize(48);
+  doc.setTextColor(224, 146, 42);
+  doc.text(String(stats.grandTotals.total), margin, y);
+  const totalNumWidth = doc.getTextWidth(String(stats.grandTotals.total));
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(13);
+  doc.setTextColor(100, 100, 100);
+  doc.text('total activities, all-time', margin + totalNumWidth + 14, y - 6);
+  y += 36;
+
+  const catLine = Object.entries(stats.grandTotals)
+    .filter(([k, c]) => k !== 'total' && c > 0)
+    .map(([cat, c]) => `${CAT_LABELS[cat]}: ${c}`)
+    .join('    ·    ');
+  doc.setFontSize(12);
+  doc.setTextColor(70, 70, 70);
+  doc.text(catLine, margin, y);
+  y += 30;
+
+  if (stats.mostRidden) {
+    doc.setFillColor(251, 238, 226);
+    doc.rect(margin - 10, y - 16, pageW - margin * 2 + 20, 30, 'F');
+    doc.setTextColor(184, 118, 31);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(11);
+    doc.text(`Most done overall: ${stats.mostRidden.item.name} — ${stats.mostRidden.totalTimes}×`, margin, y + 4);
+    y += 46;
+  }
+
+  // ── Songs heard, all-time (if any) ──
+  const songEntries = Object.entries(stats.songBreakdown || {});
+  if (songEntries.length > 0) {
+    doc.setDrawColor(225, 225, 225);
+    doc.line(margin, y, pageW - margin, y);
+    y += 26;
+
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(13);
+    doc.setTextColor(30, 28, 24);
+    doc.text('Songs heard, all-time', margin, y);
+    y += 22;
+
+    songEntries.forEach(([itemId, songList]) => {
+      const item = stats.allItemsRanked.find(r => r.item.id === itemId)?.item;
+      if (!item) return;
+      if (y > pageH - margin - 20) { doc.addPage(); y = margin; }
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(11);
+      doc.setTextColor(40, 40, 40);
+      doc.text(item.name, margin, y);
+      y += 18;
+      songList.forEach((s, idx) => {
+        if (y > pageH - margin) { doc.addPage(); y = margin; }
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(11);
+        doc.setTextColor(idx === 0 ? 184 : 100, idx === 0 ? 118 : 100, idx === 0 ? 31 : 100);
+        doc.text(`${idx === 0 ? '★' : '-'} ${s.song} — ${s.count}×`, margin + 14, y);
+        y += 16;
+      });
+      y += 8;
+    });
+    y += 10;
+  }
+
+  // ── Full ranked list — every item ever done, grouped by category ──
+  if (y > pageH - margin - 60) { doc.addPage(); y = margin; }
+  doc.setDrawColor(225, 225, 225);
+  doc.line(margin, y, pageW - margin, y);
+  y += 26;
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(13);
+  doc.setTextColor(30, 28, 24);
+  doc.text('Grand tally — everything, ranked', margin, y);
+  y += 24;
+
+  stats.allItemsRanked.forEach((entry, idx) => {
+    if (y > pageH - margin) { doc.addPage(); y = margin; }
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(11);
+    doc.setTextColor(150, 150, 150);
+    doc.text(String(idx + 1), margin, y);
+    doc.setTextColor(40, 40, 40);
+    doc.text(entry.item.name, margin + 28, y);
+    doc.setTextColor(130, 130, 130);
+    doc.text(BADGE_LABEL[entry.item.badge] || '', pageW - margin - 130, y);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(30, 28, 24);
+    doc.text(`${entry.totalTimes}×`, pageW - margin - 40, y);
+    y += 18;
+  });
+
+  // Footer disclaimer on every page
+  const pageCount = doc.internal.getNumberOfPages();
+  for (let i = 1; i <= pageCount; i++) {
+    doc.setPage(i);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9);
+    doc.setTextColor(170, 170, 170);
+    doc.text('Made with Rope Drop · Not affiliated with The Walt Disney Company', margin, pageH - 28);
+  }
+
+  doc.save('rope-drop-master-list.pdf');
+  showToast('Master list saved 📄');
 }
 
 // ── Toast ────────────────────────────────────────────────────────────────────

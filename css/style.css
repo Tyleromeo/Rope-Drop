@@ -2164,7 +2164,8 @@ body {
 }
 
 .recap-image-btn,
-.recap-pdf-btn {
+.recap-pdf-btn,
+.master-pdf-btn {
   flex: 1;
   padding: 13px;
   border-radius: var(--radius-sm);
@@ -2179,7 +2180,8 @@ body {
 }
 
 .recap-image-btn:hover,
-.recap-pdf-btn:hover {
+.recap-pdf-btn:hover,
+.master-pdf-btn:hover {
   background: var(--bg-3);
   border-color: var(--text-2);
 }

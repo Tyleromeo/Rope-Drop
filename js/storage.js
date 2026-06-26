@@ -562,6 +562,7 @@ const Storage = {
 
     const checks = this.getChecked();
     const counts = this.getCounts();
+    const songs = this.getSongs ? this.getSongs() : (this._getTripData().songs || {});
     const timeline = this._getTripData().timeline || [];
 
     // Build a quick lookup from itemId -> the park it belongs to, so
@@ -579,7 +580,20 @@ const Storage = {
       park.sections.forEach(s => s.items.forEach(item => {
         if (!checks[item.id]) return;
         const times = 1 + (counts[item.id] || 0);
-        checkedItems.push({ name: item.name, badge: item.badge, times });
+
+        // Tally this item's song log (if any) into a ranked breakdown,
+        // most-heard first — e.g. Cosmic Rewind's song picker.
+        let songBreakdown = null;
+        const songList = songs[item.id];
+        if (songList && songList.length > 0) {
+          const songCounts = {};
+          songList.forEach(s => { songCounts[s] = (songCounts[s] || 0) + 1; });
+          songBreakdown = Object.entries(songCounts)
+            .map(([song, count]) => ({ song, count }))
+            .sort((a, b) => b.count - a.count);
+        }
+
+        checkedItems.push({ name: item.name, badge: item.badge, times, songBreakdown });
         totalUniqueChecked++;
         if (!mostRiddenItem || times > mostRiddenItem.times) {
           mostRiddenItem = { name: item.name, times };
