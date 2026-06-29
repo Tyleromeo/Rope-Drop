@@ -1641,66 +1641,32 @@ let collectionsDetailId = null; // currently-open collection's id, or null for t
 
 // ── Badge wall — browsable view of every earned (and not-yet-earned) badge ──
 // ── Disney History — a keepsake profile view of your whole Disney story ────
+let historyModalView = 'profile'; // 'profile' | 'alltime' | 'byyear'
+
 function openDisneyHistoryModal() {
   const p = Storage.getDisneyHistoryProfile();
+  const stats = Storage.getAllTimeStats();
 
-  const formatDate = (ts, opts) => ts ? new Date(ts).toLocaleDateString('en-US', opts) : '—';
-  const firstYear = p.firstTripDate ? new Date(p.firstTripDate).getFullYear() : '—';
-  const lastVisit = formatDate(p.lastTripDate, { month: 'long', year: 'numeric' });
-
-  const rows = [
-    { label: 'Trips', value: p.totalTrips, icon: '✈️' },
-    { label: 'Activities logged', value: p.totalActivities.toLocaleString(), icon: '📋' },
-    {
-      label: 'Favorite attraction',
-      value: p.favoriteAttraction ? p.favoriteAttraction.item.name : 'Not yet logged',
-      sub: p.favoriteAttraction ? `${p.favoriteAttraction.times}× done` : '',
-      icon: '🎢',
-    },
-    {
-      label: 'Favorite snack',
-      value: p.favoriteSnack ? p.favoriteSnack.item.name : 'Not yet logged',
-      sub: p.favoriteSnack ? `${p.favoriteSnack.times}× had` : '',
-      icon: '🍽️',
-    },
-    {
-      label: 'Favorite park',
-      value: p.favoritePark ? p.favoritePark.park.name : 'Not yet logged',
-      icon: p.favoritePark ? p.favoritePark.park.emoji : '🏰',
-    },
-    {
-      label: 'Most visited land',
-      value: p.mostVisitedLand ? p.mostVisitedLand.land : 'Not yet logged',
-      sub: p.mostVisitedLand ? p.mostVisitedLand.park.shortName : '',
-      icon: '🗺️',
-    },
-    { label: 'First Disney trip', value: firstYear, icon: '🌟' },
-    { label: 'Last visit', value: lastVisit, icon: '📅' },
-    { label: 'Parks completed', value: `${p.parksCompleted} of ${p.totalParks}`, icon: '🏆' },
-  ];
-
-  const rowsHtml = rows.map(r => `
-    <div class="history-row">
-      <span class="history-row-icon">${r.icon}</span>
-      <span class="history-row-body">
-        <span class="history-row-label">${r.label}</span>
-        <span class="history-row-value">${r.value}</span>
-        ${r.sub ? `<span class="history-row-sub">${r.sub}</span>` : ''}
-      </span>
-    </div>
-  `).join('');
+  const CAT_LABELS = { rides: '🎢 Rides', show: '🎭 Shows', food: '🍽️ Food', character: '👋 Meets' };
+  const BADGE_EMOJI = { thrill: '🎢', family: '🎢', show: '🎭', character: '👋', food: '🍽️' };
 
   const overlay = document.createElement('div');
   overlay.className = 'modal-overlay';
   overlay.innerHTML = `
-    <div class="modal-card history-card">
+    <div class="modal-card history-card alltime-card">
       <div class="modal-header">
         <h3>📖 My Disney History</h3>
         <button class="modal-close" aria-label="Close">✕</button>
       </div>
       <p class="modal-subtitle">Every trip you've logged tells a bigger story — here's yours so far.</p>
-      <div class="history-rows">${rowsHtml}</div>
-      <button class="history-share-btn">📤 Share my Disney History</button>
+
+      <div class="alltime-tabs">
+        <button class="alltime-tab${historyModalView === 'profile' ? ' active' : ''}" data-view="profile">Profile</button>
+        <button class="alltime-tab${historyModalView === 'alltime' ? ' active' : ''}" data-view="alltime">All-Time</button>
+        <button class="alltime-tab${historyModalView === 'byyear' ? ' active' : ''}" data-view="byyear">By Year</button>
+      </div>
+
+      <div id="history-content"></div>
     </div>
   `;
 
@@ -1713,9 +1679,159 @@ function openDisneyHistoryModal() {
   };
   overlay.querySelector('.modal-close').addEventListener('click', close);
   overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
-  overlay.querySelector('.history-share-btn').addEventListener('click', () => {
-    shareDisneyHistoryImage(p);
+
+  overlay.querySelectorAll('.alltime-tab').forEach(btn => {
+    btn.addEventListener('click', () => {
+      historyModalView = btn.dataset.view;
+      overlay.querySelectorAll('.alltime-tab').forEach(b => b.classList.toggle('active', b === btn));
+      renderHistoryContent();
+    });
   });
+
+  renderHistoryContent();
+
+  function renderHistoryContent() {
+    const container = overlay.querySelector('#history-content');
+
+    if (historyModalView === 'profile') {
+      container.innerHTML = renderProfileTabHtml();
+      const shareBtn = container.querySelector('.history-share-btn');
+      if (shareBtn) shareBtn.addEventListener('click', () => shareDisneyHistoryImage(p));
+      return;
+    }
+
+    if (historyModalView === 'alltime') {
+      container.innerHTML = renderStatsBundleHtml(stats, 'total activities, all-time');
+      return;
+    }
+
+    // By Year
+    const years = Object.keys(stats.perYear).sort((a, b) => b - a);
+    if (years.length === 0) {
+      container.innerHTML = `<p class="alltime-empty">Nothing logged yet — check a few things off on a trip!</p>`;
+      return;
+    }
+    container.innerHTML = years.map(year => `
+      <div class="alltime-year-block">
+        <div class="alltime-year-heading">${year}</div>
+        ${renderStatsBundleHtml(stats.perYear[year], 'activities')}
+      </div>
+    `).join('');
+  }
+
+  function renderProfileTabHtml() {
+    const formatDate = (ts, opts) => ts ? new Date(ts).toLocaleDateString('en-US', opts) : '—';
+    const firstYear = p.firstTripDate ? new Date(p.firstTripDate).getFullYear() : '—';
+    const lastVisit = formatDate(p.lastTripDate, { month: 'long', year: 'numeric' });
+
+    const rows = [
+      { label: 'Trips', value: p.totalTrips, icon: '✈️' },
+      { label: 'Activities logged', value: p.totalActivities.toLocaleString(), icon: '📋' },
+      {
+        label: 'Favorite attraction',
+        value: p.favoriteAttraction ? p.favoriteAttraction.item.name : 'Not yet logged',
+        sub: p.favoriteAttraction ? `${p.favoriteAttraction.times}× done` : '',
+        icon: '🎢',
+      },
+      {
+        label: 'Favorite snack',
+        value: p.favoriteSnack ? p.favoriteSnack.item.name : 'Not yet logged',
+        sub: p.favoriteSnack ? `${p.favoriteSnack.times}× had` : '',
+        icon: '🍽️',
+      },
+      {
+        label: 'Favorite park',
+        value: p.favoritePark ? p.favoritePark.park.name : 'Not yet logged',
+        // Combined total across rides, food, shows, and character meets
+        // at that park — not just rides.
+        sub: p.favoritePark ? `${p.favoritePark.times} activities logged` : '',
+        icon: p.favoritePark ? p.favoritePark.park.emoji : '🏰',
+      },
+      {
+        label: 'Most visited land',
+        value: p.mostVisitedLand ? p.mostVisitedLand.land : 'Not yet logged',
+        // Same combined-total idea, scoped to this one land.
+        sub: p.mostVisitedLand ? `${p.mostVisitedLand.times} activities · ${p.mostVisitedLand.park.shortName}` : '',
+        icon: '🗺️',
+      },
+      { label: 'First Disney trip', value: firstYear, icon: '🌟' },
+      { label: 'Last visit', value: lastVisit, icon: '📅' },
+      { label: 'Parks completed', value: `${p.parksCompleted} of ${p.totalParks}`, icon: '🏆' },
+    ];
+
+    const rowsHtml = rows.map(r => `
+      <div class="history-row">
+        <span class="history-row-icon">${r.icon}</span>
+        <span class="history-row-body">
+          <span class="history-row-label">${r.label}</span>
+          <span class="history-row-value">${r.value}</span>
+          ${r.sub ? `<span class="history-row-sub">${r.sub}</span>` : ''}
+        </span>
+      </div>
+    `).join('');
+
+    return `
+      <div class="history-rows">${rowsHtml}</div>
+      <button class="history-share-btn">📤 Share my Disney History</button>
+    `;
+  }
+
+  // Renders one full stats bundle (grandTotals, mostRidden, favoriteSongs,
+  // allItemsRanked) as HTML — shared by both the All-Time tab and each
+  // year block in the By Year tab, so they show identical detail.
+  function renderStatsBundleHtml(bundle, totalLabel) {
+    const tallyChips = Object.entries(bundle.grandTotals)
+      .filter(([key, count]) => key !== 'total' && count > 0)
+      .map(([cat, count]) => `<div class="tally-chip"><span class="tally-num">${count}</span><span class="tally-label">${CAT_LABELS[cat]}</span></div>`)
+      .join('');
+
+    const songSections = Object.entries(bundle.songBreakdown || {}).map(([itemId, songList]) => {
+      const item = bundle.allItemsRanked.find(r => r.item.id === itemId)?.item;
+      if (!item) return '';
+      const totalPlays = songList.reduce((sum, s) => sum + s.count, 0);
+      const rows = songList.map((s, i) => `
+        <div class="song-breakdown-row${i === 0 ? ' song-breakdown-top' : ''}">
+          <span class="song-breakdown-rank">${i === 0 ? '🏆' : i + 1}</span>
+          <span class="song-breakdown-name">${s.song}</span>
+          <span class="song-breakdown-count">${s.count}×</span>
+        </div>
+      `).join('');
+      return `
+        <div class="song-breakdown-block">
+          <div class="song-breakdown-heading">${item.name} <span class="song-breakdown-total">(${totalPlays} ride${totalPlays !== 1 ? 's' : ''} with a song logged)</span></div>
+          ${rows}
+        </div>
+      `;
+    }).join('');
+
+    const rankedRows = bundle.allItemsRanked.map((r, i) => `
+      <div class="alltime-rank-row">
+        <span class="rank-num">${i + 1}</span>
+        <span class="rank-emoji">${BADGE_EMOJI[r.item.badge] || '•'}</span>
+        <span class="rank-name">${r.item.name}</span>
+        <span class="rank-count">${r.totalTimes}×</span>
+      </div>
+    `).join('');
+
+    return `
+      <div class="alltime-total">
+        <span class="alltime-total-num">${bundle.grandTotals.total}</span>
+        <span class="alltime-total-label">${totalLabel}</span>
+      </div>
+      <div class="tally-chips">${tallyChips}</div>
+      ${bundle.mostRidden ? `
+        <div class="alltime-highlight">⭐ Most done: <strong>${bundle.mostRidden.item.name}</strong> — ${bundle.mostRidden.totalTimes}×</div>
+      ` : ''}
+      ${songSections ? `
+        <div class="alltime-section-heading">Songs heard, all-time</div>
+        ${songSections}
+      ` : ''}
+      ${rankedRows ? `
+        <div class="alltime-section-heading">Everything, ranked</div>
+        <div class="alltime-rank-list">${rankedRows}</div>
+      ` : `<p class="alltime-empty">Nothing logged yet — check a few things off on a trip!</p>`}
+    `;
+  }
 }
 
 // Generates a shareable square keepsake image summarizing the whole
@@ -2482,7 +2598,6 @@ function openTripsModal() {
         `).join('')}
       </div>
       <button class="new-trip-btn">+ Start a new trip</button>
-      <button class="alltime-stats-btn">🏆 All-Time Stats</button>
       <button class="collections-btn">📦 Collections</button>
       <button class="badges-btn">🏆 My Badges</button>
       <button class="history-btn">📖 My Disney History</button>
@@ -2605,10 +2720,6 @@ function openTripsModal() {
     // resort picker first — this is the default in emptyTripData().
     showToast('New trip started 🎉');
     close(true);
-  });
-
-  overlay.querySelector('.alltime-stats-btn').addEventListener('click', () => {
-    openAllTimeStatsModal();
   });
 
   overlay.querySelector('.collections-btn').addEventListener('click', () => {
