@@ -13,17 +13,9 @@ const PARK_BADGE_TIERS = [
   { id: 'gold', label: 'Gold', threshold: 100, emoji: '🏆' },
 ];
 
-// A distinctive badge icon per park — separate from the park's everyday
-// emoji used elsewhere in the app, so a badge reads as its own specific
-// achievement rather than just a repeated park icon with a ribbon color.
-const PARK_BADGE_ICONS = {
-  mk: '🏰',
-  ep: '🌐',
-  hs: '🎬',
-  ak: '🌴',
-  dl: '✨',
-  dca: '🎡',
-};
+// Note: park badges use each park's own emoji (the same one shown on
+// the main page and park nav), not a separate badge-specific icon set —
+// this keeps a badge instantly recognizable as "that park" at a glance.
 
 const BADGE_DATES_KEY = 'rd_badge_dates_v1';
 
@@ -70,7 +62,7 @@ function getEarnedParkBadges() {
           parkId: park.id,
           parkName: park.shortName,
           parkEmoji: park.emoji,
-          badgeIcon: PARK_BADGE_ICONS[park.id] || park.emoji,
+          badgeIcon: park.emoji,
           tier: tier.id,
           tierLabel: tier.label,
           tierEmoji: tier.emoji,

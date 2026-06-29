@@ -1531,7 +1531,7 @@ function openBadgesModal() {
   // and shows don't count toward these badges.
   const parkBadgeRows = PARKS.map(park => {
     const stats = Storage.getParkStatsForCategory(park.id, 'rides');
-    const badgeIcon = PARK_BADGE_ICONS[park.id] || park.emoji;
+    const badgeIcon = park.emoji;
     const tierCells = PARK_BADGE_TIERS.map(tier => {
       const id = `park_${park.id}_${tier.id}`;
       const isEarned = earnedIds.has(id);
@@ -1674,6 +1674,14 @@ function showBadgeCelebration(badges, index) {
 // Draws a shareable, social-media-friendly square badge card and triggers
 // either the native share sheet (if available) or a direct download.
 async function shareBadgeImage(badge) {
+  try {
+    await drawAndDeliverBadgeImage(badge);
+  } catch (e) {
+    showToast('Something went wrong making that image — try again.', { wrap: true, duration: 3200 });
+  }
+}
+
+async function drawAndDeliverBadgeImage(badge) {
   const isCollection = badge.type === 'collection';
   const mainEmoji = isCollection ? badge.collectionEmoji : badge.badgeIcon;
   const ribbonEmoji = isCollection ? '' : badge.tierEmoji;
@@ -1703,14 +1711,6 @@ async function shareBadgeImage(badge) {
   ctx.arc(SIZE / 2, 380, 200, 0, Math.PI * 2, false);
   ctx.closePath();
   ctx.stroke();
-
-  // Make sure web fonts (and the browser's emoji font) are actually
-  // ready before we draw text — drawing too early can silently produce
-  // blank glyphs on some browsers, which is what caused badges to render
-  // as an empty circle in earlier testing.
-  if (document.fonts && document.fonts.ready) {
-    try { await document.fonts.ready; } catch (e) { /* ignore, draw anyway */ }
-  }
 
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
@@ -1763,10 +1763,19 @@ async function shareBadgeImage(badge) {
       return;
     }
 
-    const fileName = `rope-drop-badge-${isCollection ? badge.collectionId : badge.parkId + '-' + badge.tier}.png`;
+    const fileName = isCollection
+      ? `rope-drop-badge-${badge.collectionId}.png`
+      : `rope-drop-badge-${badge.parkId}-${badge.tier}.png`;
     const file = new File([blob], fileName, { type: 'image/png' });
 
-    if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+    let canUseNativeShare = false;
+    try {
+      canUseNativeShare = !!(navigator.share && navigator.canShare && navigator.canShare({ files: [file] }));
+    } catch (e) {
+      canUseNativeShare = false;
+    }
+
+    if (canUseNativeShare) {
       try {
         await navigator.share({ files: [file], title: 'My Rope Drop Badge' });
         return;
