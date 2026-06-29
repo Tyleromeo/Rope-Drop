@@ -1691,71 +1691,55 @@ async function drawAndDeliverBadgeImage(badge) {
   const accentColor = isCollection ? '#5b38b0' : (badge.tier === 'gold' ? '#c9942b' : badge.tier === 'silver' ? '#8a8f99' : '#a3653a');
 
   const SIZE = 1080; // square, Instagram/social-friendly
+
+  // The whole card — including the emoji — is built as one self-contained
+  // SVG with real text nodes, not drawn with canvas fillText(). Canvas's
+  // own font fallback cannot reliably resolve emoji glyphs in every
+  // browser/engine (confirmed: even explicit emoji font names came back
+  // blank), so instead we let the browser's normal SVG text renderer —
+  // which always has full emoji support — do the work, then rasterize
+  // the finished SVG through a base64 data URI. Using a data URI (rather
+  // than a Blob URL) avoids the canvas same-origin taint that broke
+  // toBlob()/share/download in an earlier version of this function.
+  const escapeXml = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+  const svgMarkup = `
+    <svg xmlns="http://www.w3.org/2000/svg" width="${SIZE}" height="${SIZE}" viewBox="0 0 ${SIZE} ${SIZE}">
+      <defs>
+        <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#2a2620"/>
+          <stop offset="100%" stop-color="#181511"/>
+        </linearGradient>
+      </defs>
+      <rect width="${SIZE}" height="${SIZE}" fill="url(#bg)"/>
+      <circle cx="${SIZE / 2}" cy="380" r="200" fill="none" stroke="${accentColor}" stroke-width="6" stroke-linecap="round"/>
+      <text x="${SIZE / 2}" y="390" font-size="200" text-anchor="middle" dominant-baseline="central">${mainEmoji}</text>
+      ${ribbonEmoji ? `<text x="${SIZE / 2 + 165}" y="515" font-size="80" text-anchor="middle" dominant-baseline="central">${ribbonEmoji}</text>` : ''}
+      <text x="${SIZE / 2}" y="650" font-size="58" font-weight="700" font-family="DM Sans, sans-serif" fill="#ffffff" text-anchor="middle" dominant-baseline="central">${escapeXml(title)}</text>
+      <text x="${SIZE / 2}" y="715" font-size="36" font-weight="600" font-family="DM Sans, sans-serif" fill="${accentColor}" text-anchor="middle" dominant-baseline="central">${escapeXml(subtitle)}</text>
+      ${dateLine ? `<text x="${SIZE / 2}" y="770" font-size="28" font-family="DM Sans, sans-serif" fill="#c9c5bd" text-anchor="middle" dominant-baseline="central">Earned ${escapeXml(dateLine)}</text>` : ''}
+      <text x="${SIZE / 2}" y="950" font-size="26" font-family="DM Sans, sans-serif" fill="#9e9b96" text-anchor="middle" dominant-baseline="central">🎢 Earned on Rope Drop</text>
+      <text x="${SIZE / 2}" y="990" font-size="18" font-family="DM Sans, sans-serif" fill="#9e9b96" text-anchor="middle" dominant-baseline="central">Not affiliated with The Walt Disney Company</text>
+    </svg>
+  `.trim();
+
   const canvas = document.createElement('canvas');
   canvas.width = SIZE;
   canvas.height = SIZE;
   const ctx = canvas.getContext('2d');
 
-  // Background gradient
-  const grad = ctx.createLinearGradient(0, 0, 0, SIZE);
-  grad.addColorStop(0, '#2a2620');
-  grad.addColorStop(1, '#181511');
-  ctx.fillStyle = grad;
-  ctx.fillRect(0, 0, SIZE, SIZE);
+  const dataUri = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgMarkup)));
+  const img = new Image();
+  img.width = SIZE;
+  img.height = SIZE;
 
-  // Decorative accent ring
-  ctx.strokeStyle = accentColor;
-  ctx.lineWidth = 6;
-  ctx.lineCap = 'round';
-  ctx.beginPath();
-  ctx.arc(SIZE / 2, 380, 200, 0, Math.PI * 2, false);
-  ctx.closePath();
-  ctx.stroke();
+  await new Promise((resolve, reject) => {
+    img.onload = resolve;
+    img.onerror = reject;
+    img.src = dataUri;
+  });
 
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-
-  // Big badge-specific icon — plain fillText with an explicit emoji font
-  // stack. (We previously tried rasterizing emoji through an SVG
-  // <foreignObject> + drawImage, but that taints the canvas in most
-  // browsers and silently breaks toBlob()/toDataURL() afterward — which
-  // is why sharing and downloading stopped working. Plain fillText is
-  // the safe, reliable approach here.)
-  ctx.font = '220px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji","Segoe UI Symbol",sans-serif';
-  ctx.fillText(mainEmoji, SIZE / 2, 390);
-
-  // Tier ribbon, layered in the bottom-right corner of the ring
-  if (ribbonEmoji) {
-    ctx.font = '90px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji","Segoe UI Symbol",sans-serif';
-    ctx.fillText(ribbonEmoji, SIZE / 2 + 165, 515);
-  }
-
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-
-  // Title
-  ctx.fillStyle = '#ffffff';
-  ctx.font = '700 60px "DM Sans", sans-serif';
-  ctx.fillText(title, SIZE / 2, 650);
-
-  // Subtitle
-  ctx.fillStyle = accentColor;
-  ctx.font = '600 38px "DM Sans", sans-serif';
-  ctx.fillText(subtitle, SIZE / 2, 715);
-
-  // Earned date
-  if (dateLine) {
-    ctx.fillStyle = '#c9c5bd';
-    ctx.font = '500 30px "DM Sans", sans-serif';
-    ctx.fillText(`Earned ${dateLine}`, SIZE / 2, 770);
-  }
-
-  // Branding footer
-  ctx.fillStyle = '#9e9b96';
-  ctx.font = '400 28px "DM Sans", sans-serif';
-  ctx.fillText('🎢 Earned on Rope Drop', SIZE / 2, 950);
-  ctx.font = '400 20px "DM Sans", sans-serif';
-  ctx.fillText('Not affiliated with The Walt Disney Company', SIZE / 2, 990);
+  ctx.drawImage(img, 0, 0, SIZE, SIZE);
 
   canvas.toBlob(async (blob) => {
     if (!blob) {
