@@ -143,7 +143,9 @@ function renderResortScreen() {
               <span class="resort-card-emoji">${resort.emoji}</span>
               <span class="resort-card-name">${resort.name}</span>
               <span class="resort-card-location">${resort.location}</span>
-              <span class="resort-card-parks">${parksHere.map(p => p.emoji).join(' ')} ${parksHere.length} parks</span>
+              <span class="resort-card-parks-list">
+                ${parksHere.map(p => `<span class="resort-card-park-chip">${p.emoji} ${p.shortName}</span>`).join('')}
+              </span>
               ${tally > 0 ? `<span class="resort-card-tally">${tally} activities logged</span>` : ''}
             </button>
           `;

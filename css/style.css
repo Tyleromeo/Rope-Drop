@@ -1929,10 +1929,24 @@ body {
   color: var(--text-3);
 }
 
-.resort-card-parks {
-  font-size: 13px;
+.resort-card-parks-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.resort-card-park-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 600;
   color: var(--text-2);
-  margin-top: 6px;
+  background: var(--bg-2);
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  white-space: nowrap;
 }
 
 .resort-card-tally {
