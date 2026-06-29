@@ -1704,45 +1704,30 @@ async function shareBadgeImage(badge) {
   ctx.closePath();
   ctx.stroke();
 
-  // Emoji are drawn via an inline SVG <foreignObject>, rasterized through
-  // an Image element — this routes through the browser's normal text/font
-  // engine (the same one that renders the celebration popup correctly),
-  // rather than canvas's own font fallback for fillText(), which doesn't
-  // reliably resolve emoji glyphs on every platform.
-  async function drawEmoji(emoji, x, y, fontSizePx) {
-    const svg = `
-      <svg xmlns="http://www.w3.org/2000/svg" width="${fontSizePx * 1.4}" height="${fontSizePx * 1.4}">
-        <foreignObject width="100%" height="100%">
-          <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:${fontSizePx}px;line-height:1;display:flex;align-items:center;justify-content:center;width:100%;height:100%;">${emoji}</div>
-        </foreignObject>
-      </svg>
-    `;
-    const img = new Image();
-    const svgBlob = new Blob([svg], { type: 'image/svg+xml' });
-    const url = URL.createObjectURL(svgBlob);
-    try {
-      await new Promise((resolve, reject) => {
-        img.onload = resolve;
-        img.onerror = reject;
-        img.src = url;
-      });
-      const drawSize = fontSizePx * 1.4;
-      ctx.drawImage(img, x - drawSize / 2, y - drawSize / 2, drawSize, drawSize);
-    } catch (e) {
-      // Fallback for environments where SVG foreignObject rasterization
-      // isn't supported — better a possibly-imperfect glyph than nothing.
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.font = `${fontSizePx}px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif`;
-      ctx.fillText(emoji, x, y);
-    } finally {
-      URL.revokeObjectURL(url);
-    }
+  // Make sure web fonts (and the browser's emoji font) are actually
+  // ready before we draw text — drawing too early can silently produce
+  // blank glyphs on some browsers, which is what caused badges to render
+  // as an empty circle in earlier testing.
+  if (document.fonts && document.fonts.ready) {
+    try { await document.fonts.ready; } catch (e) { /* ignore, draw anyway */ }
   }
 
-  await drawEmoji(mainEmoji, SIZE / 2, 390, 200);
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+
+  // Big badge-specific icon — plain fillText with an explicit emoji font
+  // stack. (We previously tried rasterizing emoji through an SVG
+  // <foreignObject> + drawImage, but that taints the canvas in most
+  // browsers and silently breaks toBlob()/toDataURL() afterward — which
+  // is why sharing and downloading stopped working. Plain fillText is
+  // the safe, reliable approach here.)
+  ctx.font = '220px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji","Segoe UI Symbol",sans-serif';
+  ctx.fillText(mainEmoji, SIZE / 2, 390);
+
+  // Tier ribbon, layered in the bottom-right corner of the ring
   if (ribbonEmoji) {
-    await drawEmoji(ribbonEmoji, SIZE / 2 + 165, 515, 80);
+    ctx.font = '90px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji","Segoe UI Symbol",sans-serif';
+    ctx.fillText(ribbonEmoji, SIZE / 2 + 165, 515);
   }
 
   ctx.textAlign = 'center';
@@ -1773,6 +1758,11 @@ async function shareBadgeImage(badge) {
   ctx.fillText('Not affiliated with The Walt Disney Company', SIZE / 2, 990);
 
   canvas.toBlob(async (blob) => {
+    if (!blob) {
+      showToast('Couldn\'t create the badge image — try again in a moment.', { wrap: true, duration: 3200 });
+      return;
+    }
+
     const fileName = `rope-drop-badge-${isCollection ? badge.collectionId : badge.parkId + '-' + badge.tier}.png`;
     const file = new File([blob], fileName, { type: 'image/png' });
 
@@ -1785,15 +1775,19 @@ async function shareBadgeImage(badge) {
       }
     }
 
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = fileName;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    URL.revokeObjectURL(url);
-    showToast('Badge image saved 🏆');
+    try {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = fileName;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+      showToast('Badge image saved 🏆');
+    } catch (e) {
+      showToast('Couldn\'t save the image — try again.', { wrap: true, duration: 3200 });
+    }
   }, 'image/png');
 }
 
