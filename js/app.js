@@ -1698,21 +1698,55 @@ async function shareBadgeImage(badge) {
   // Decorative accent ring
   ctx.strokeStyle = accentColor;
   ctx.lineWidth = 6;
+  ctx.lineCap = 'round';
   ctx.beginPath();
-  ctx.arc(SIZE / 2, 380, 200, 0, Math.PI * 2);
+  ctx.arc(SIZE / 2, 380, 200, 0, Math.PI * 2, false);
+  ctx.closePath();
   ctx.stroke();
 
-  // Big badge-specific icon
-  ctx.font = '220px sans-serif';
+  // Emoji are drawn via an inline SVG <foreignObject>, rasterized through
+  // an Image element — this routes through the browser's normal text/font
+  // engine (the same one that renders the celebration popup correctly),
+  // rather than canvas's own font fallback for fillText(), which doesn't
+  // reliably resolve emoji glyphs on every platform.
+  async function drawEmoji(emoji, x, y, fontSizePx) {
+    const svg = `
+      <svg xmlns="http://www.w3.org/2000/svg" width="${fontSizePx * 1.4}" height="${fontSizePx * 1.4}">
+        <foreignObject width="100%" height="100%">
+          <div xmlns="http://www.w3.org/1999/xhtml" style="font-size:${fontSizePx}px;line-height:1;display:flex;align-items:center;justify-content:center;width:100%;height:100%;">${emoji}</div>
+        </foreignObject>
+      </svg>
+    `;
+    const img = new Image();
+    const svgBlob = new Blob([svg], { type: 'image/svg+xml' });
+    const url = URL.createObjectURL(svgBlob);
+    try {
+      await new Promise((resolve, reject) => {
+        img.onload = resolve;
+        img.onerror = reject;
+        img.src = url;
+      });
+      const drawSize = fontSizePx * 1.4;
+      ctx.drawImage(img, x - drawSize / 2, y - drawSize / 2, drawSize, drawSize);
+    } catch (e) {
+      // Fallback for environments where SVG foreignObject rasterization
+      // isn't supported — better a possibly-imperfect glyph than nothing.
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.font = `${fontSizePx}px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif`;
+      ctx.fillText(emoji, x, y);
+    } finally {
+      URL.revokeObjectURL(url);
+    }
+  }
+
+  await drawEmoji(mainEmoji, SIZE / 2, 390, 200);
+  if (ribbonEmoji) {
+    await drawEmoji(ribbonEmoji, SIZE / 2 + 165, 515, 80);
+  }
+
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
-  ctx.fillText(mainEmoji, SIZE / 2, 390);
-
-  // Tier ribbon, layered in the bottom-right corner of the ring
-  if (ribbonEmoji) {
-    ctx.font = '90px sans-serif';
-    ctx.fillText(ribbonEmoji, SIZE / 2 + 165, 515);
-  }
 
   // Title
   ctx.fillStyle = '#ffffff';
