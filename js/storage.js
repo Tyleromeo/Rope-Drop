@@ -321,17 +321,19 @@ const Storage = {
     const data = this._getTripData();
     const item = this._findItemById(id);
     const parkId = item ? this._parkIdForItem(id) : null;
+    if (!data.starOrder) data.starOrder = {};
+    if (parkId && !data.starOrder[parkId]) data.starOrder[parkId] = [];
 
     if (data.stars[id]) {
       delete data.stars[id];
-      if (parkId && data.starOrder && data.starOrder[parkId]) {
+      if (parkId) {
         data.starOrder[parkId] = data.starOrder[parkId].filter(x => x !== id);
       }
     } else {
       data.stars[id] = true;
-      if (!data.starOrder) data.starOrder = {};
       if (parkId) {
-        if (!data.starOrder[parkId]) data.starOrder[parkId] = [];
+        data.starOrder[parkId] = data.starOrder[parkId]
+          .filter(x => x !== id && data.stars[x] && this._parkIdForItem(x) === parkId);
         data.starOrder[parkId].push(id);
       }
     }
@@ -345,10 +347,24 @@ const Storage = {
   getStarOrder(parkId) {
     const data = this._getTripData();
     const order = (data.starOrder && data.starOrder[parkId]) || [];
+    const cleanOrder = [];
+    order.forEach(id => {
+      if (data.stars[id] && this._parkIdForItem(id) === parkId && !cleanOrder.includes(id)) {
+        cleanOrder.push(id);
+      }
+    });
     // Include any starred items missing from order (legacy data safety net)
     const starredIds = Object.keys(data.stars).filter(id => this._parkIdForItem(id) === parkId);
-    const missing = starredIds.filter(id => !order.includes(id));
-    return [...order.filter(id => data.stars[id]), ...missing];
+    const missing = starredIds.filter(id => !cleanOrder.includes(id));
+    const cleaned = [...cleanOrder, ...missing];
+
+    if (!data.starOrder) data.starOrder = {};
+    if (JSON.stringify(data.starOrder[parkId] || []) !== JSON.stringify(cleaned)) {
+      data.starOrder[parkId] = cleaned;
+      this._saveTripData(data);
+    }
+
+    return cleaned;
   },
 
   // Moves a starred item up or down one position within its park's
@@ -358,7 +374,7 @@ const Storage = {
     if (!parkId) return;
     const data = this._getTripData();
     if (!data.starOrder) data.starOrder = {};
-    if (!data.starOrder[parkId]) data.starOrder[parkId] = this.getStarOrder(parkId);
+    data.starOrder[parkId] = this.getStarOrder(parkId);
 
     const order = data.starOrder[parkId];
     const idx = order.indexOf(itemId);
