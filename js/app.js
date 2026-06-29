@@ -1523,19 +1523,27 @@ function openBadgesModal() {
   const earnedPark = getEarnedParkBadges();
   const earnedCollection = getEarnedCollectionBadges();
   const earnedIds = new Set([...earnedPark, ...earnedCollection].map(b => b.id));
+  const earnedById = {};
+  [...earnedPark, ...earnedCollection].forEach(b => { earnedById[b.id] = b; });
 
   // Build the full park badge grid — every park × every tier, marking
-  // which ones are earned vs. still locked, so people can see exactly
-  // what's left to chase.
+  // which ones are earned vs. still locked. Scoped to rides only — food
+  // and shows don't count toward these badges.
   const parkBadgeRows = PARKS.map(park => {
-    const stats = Storage.getParkStats(park.id);
+    const stats = Storage.getParkStatsForCategory(park.id, 'rides');
+    const badgeIcon = PARK_BADGE_ICONS[park.id] || park.emoji;
     const tierCells = PARK_BADGE_TIERS.map(tier => {
       const id = `park_${park.id}_${tier.id}`;
       const isEarned = earnedIds.has(id);
+      const dateLine = isEarned ? formatBadgeDate(earnedById[id].earnedAt) : '';
       return `
-        <button class="badge-cell${isEarned ? ' badge-cell-earned' : ''}" data-badge-id="${id}" ${isEarned ? '' : 'disabled'} title="${tier.label} — ${tier.threshold}%">
-          <span class="badge-cell-emoji">${isEarned ? tier.emoji : '🔒'}</span>
+        <button class="badge-cell${isEarned ? ' badge-cell-earned' : ''}" data-badge-id="${id}" ${isEarned ? '' : 'disabled'} title="${tier.label} — ${tier.threshold}% of rides">
+          <span class="badge-cell-icon-wrap">
+            <span class="badge-cell-emoji">${isEarned ? badgeIcon : '🔒'}</span>
+            ${isEarned ? `<span class="badge-cell-ribbon">${tier.emoji}</span>` : ''}
+          </span>
           <span class="badge-cell-label">${tier.label}</span>
+          ${dateLine ? `<span class="badge-cell-date">${dateLine}</span>` : ''}
         </button>
       `;
     }).join('');
@@ -1543,7 +1551,7 @@ function openBadgesModal() {
       <div class="badge-park-row">
         <div class="badge-park-row-header">
           <span class="badge-park-name">${park.emoji} ${park.shortName}</span>
-          <span class="badge-park-pct">${stats.pct}%</span>
+          <span class="badge-park-pct">${stats.pct}% of rides</span>
         </div>
         <div class="badge-tier-row">${tierCells}</div>
       </div>
@@ -1557,10 +1565,14 @@ function openBadgesModal() {
     const id = `collection_${col.id}`;
     const isEarned = earnedIds.has(id);
     const progress = Storage.getCollectionProgress(col.itemIds);
+    const dateLine = isEarned ? formatBadgeDate(earnedById[id].earnedAt) : '';
     return `
       <button class="badge-collection-row${isEarned ? ' badge-cell-earned' : ''}" data-badge-id="${id}" ${isEarned ? '' : 'disabled'}>
         <span class="badge-cell-emoji">${isEarned ? col.emoji : '🔒'}</span>
-        <span class="badge-collection-name">${col.name}</span>
+        <span class="badge-collection-body">
+          <span class="badge-collection-name">${col.name}</span>
+          ${dateLine ? `<span class="badge-collection-date">Earned ${dateLine}</span>` : ''}
+        </span>
         <span class="badge-collection-pct">${progress.pct}%</span>
       </button>
     `;
@@ -1576,7 +1588,7 @@ function openBadgesModal() {
         <h3>🏆 My Badges</h3>
         <button class="modal-close" aria-label="Close">✕</button>
       </div>
-      <p class="modal-subtitle">${totalEarned} badge${totalEarned !== 1 ? 's' : ''} earned so far. Keep checking things off to unlock more.</p>
+      <p class="modal-subtitle">${totalEarned} badge${totalEarned !== 1 ? 's' : ''} earned so far. Park badges are based on rides only — keep riding to unlock more.</p>
       <div class="badge-section-heading">Park completion</div>
       <div class="badge-park-list">${parkBadgeRows}</div>
       ${collectionBadgeRows ? `
@@ -1617,17 +1629,23 @@ function showBadgeCelebration(badges, index) {
   overlay.className = 'badge-celebration-overlay';
 
   const isCollection = badge.type === 'collection';
-  const emoji = isCollection ? badge.collectionEmoji : badge.tierEmoji;
-  const title = isCollection ? 'Collection Complete!' : `${badge.tierLabel} Badge Earned!`;
+  const mainEmoji = isCollection ? badge.collectionEmoji : badge.badgeIcon;
+  const ribbonEmoji = isCollection ? '' : badge.tierEmoji;
+  const title = isCollection ? 'Collection Complete!' : `${badge.tierLabel} — ${badge.parkName} Rides`;
   const subtitle = isCollection
     ? badge.collectionName
-    : `${badge.parkEmoji} ${badge.parkName} — ${badge.pct}% complete`;
+    : `${badge.pct}% of rides complete`;
+  const dateLine = formatBadgeDate(badge.earnedAt);
 
   overlay.innerHTML = `
     <div class="badge-celebration-card">
-      <div class="badge-celebration-emoji">${emoji}</div>
+      <div class="badge-celebration-emoji-wrap">
+        <span class="badge-celebration-emoji">${mainEmoji}</span>
+        ${ribbonEmoji ? `<span class="badge-celebration-ribbon">${ribbonEmoji}</span>` : ''}
+      </div>
       <div class="badge-celebration-title">${title}</div>
       <div class="badge-celebration-subtitle">${subtitle}</div>
+      ${dateLine ? `<div class="badge-celebration-date">Earned ${dateLine}</div>` : ''}
       <div class="badge-celebration-btns">
         <button class="badge-celebration-share">📤 Share this badge</button>
         <button class="badge-celebration-dismiss">Keep going</button>
@@ -1657,9 +1675,11 @@ function showBadgeCelebration(badges, index) {
 // either the native share sheet (if available) or a direct download.
 async function shareBadgeImage(badge) {
   const isCollection = badge.type === 'collection';
-  const emoji = isCollection ? badge.collectionEmoji : badge.tierEmoji;
-  const title = isCollection ? 'Collection Complete!' : `${badge.tierLabel} Badge`;
-  const subtitle = isCollection ? badge.collectionName : `${badge.parkName} — ${badge.pct}% Complete`;
+  const mainEmoji = isCollection ? badge.collectionEmoji : badge.badgeIcon;
+  const ribbonEmoji = isCollection ? '' : badge.tierEmoji;
+  const title = isCollection ? 'Collection Complete!' : `${badge.tierLabel} — ${badge.parkName} Rides`;
+  const subtitle = isCollection ? badge.collectionName : `${badge.pct}% of rides complete`;
+  const dateLine = formatBadgeDate(badge.earnedAt);
   const accentColor = isCollection ? '#5b38b0' : (badge.tier === 'gold' ? '#c9942b' : badge.tier === 'silver' ? '#8a8f99' : '#a3653a');
 
   const SIZE = 1080; // square, Instagram/social-friendly
@@ -1682,21 +1702,34 @@ async function shareBadgeImage(badge) {
   ctx.arc(SIZE / 2, 380, 200, 0, Math.PI * 2);
   ctx.stroke();
 
-  // Big emoji badge
+  // Big badge-specific icon
   ctx.font = '220px sans-serif';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
-  ctx.fillText(emoji, SIZE / 2, 390);
+  ctx.fillText(mainEmoji, SIZE / 2, 390);
+
+  // Tier ribbon, layered in the bottom-right corner of the ring
+  if (ribbonEmoji) {
+    ctx.font = '90px sans-serif';
+    ctx.fillText(ribbonEmoji, SIZE / 2 + 165, 515);
+  }
 
   // Title
   ctx.fillStyle = '#ffffff';
-  ctx.font = '700 64px "DM Sans", sans-serif';
+  ctx.font = '700 60px "DM Sans", sans-serif';
   ctx.fillText(title, SIZE / 2, 650);
 
   // Subtitle
   ctx.fillStyle = accentColor;
-  ctx.font = '600 40px "DM Sans", sans-serif';
-  ctx.fillText(subtitle, SIZE / 2, 720);
+  ctx.font = '600 38px "DM Sans", sans-serif';
+  ctx.fillText(subtitle, SIZE / 2, 715);
+
+  // Earned date
+  if (dateLine) {
+    ctx.fillStyle = '#c9c5bd';
+    ctx.font = '500 30px "DM Sans", sans-serif';
+    ctx.fillText(`Earned ${dateLine}`, SIZE / 2, 770);
+  }
 
   // Branding footer
   ctx.fillStyle = '#9e9b96';
