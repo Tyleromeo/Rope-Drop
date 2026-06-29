@@ -2331,7 +2331,7 @@ function renderCollectionsListHtml() {
   return `
     <div class="modal-card">
       <div class="modal-header">
-        <h3>📦 Collections</h3>
+        <h3>📦 My Collections</h3>
         <button class="modal-close" aria-label="Close">✕</button>
       </div>
       <p class="modal-subtitle">Track themed sets of attractions across every park — and see exactly what's left.</p>
@@ -2598,7 +2598,7 @@ function openTripsModal() {
         `).join('')}
       </div>
       <button class="new-trip-btn">+ Start a new trip</button>
-      <button class="collections-btn">📦 Collections</button>
+      <button class="collections-btn">📦 My Collections</button>
       <button class="badges-btn">🏆 My Badges</button>
       <button class="history-btn">📖 My Disney History</button>
 
