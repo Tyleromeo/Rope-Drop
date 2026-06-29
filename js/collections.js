@@ -6,6 +6,25 @@
 
 const PREBUILT_COLLECTIONS = [
   {
+    id: 'nighttime-spectaculars',
+    name: 'Nighttime Spectaculars',
+    emoji: '🌙',
+    description: "Walt Disney World's three regularly-scheduled nighttime shows — Happily Ever After, Luminous, and Fantasmic! Animal Kingdom doesn't run fireworks out of consideration for the animals.",
+    itemIds: ['mk-16', 'ep-15', 'hs-10'],
+  },
+  {
+    id: 'show-lover',
+    name: 'Show Lover',
+    emoji: '🎭',
+    description: 'Every permanent live show and nighttime spectacular at Walt Disney World — parades, stage shows, and the big nighttime trio.',
+    itemIds: [
+      'mk-15', 'mk-16', 'mk-17', 'mk-18', 'mk-57', 'mk-58', 'mk-59', 'mk-60', 'mk-61',
+      'hs-09', 'hs-10', 'hs-12', 'hs-21', 'hs-22', 'hs-23',
+      'ep-15', 'ep-23', 'ep-24', 'ep-25', 'ep-26', 'ep-27', 'ep-28', 'ep-29',
+      'ak-08', 'ak-12', 'ak-17', 'ak-21',
+    ],
+  },
+  {
     id: 'mountains',
     name: 'Mountains',
     emoji: '🏔️',

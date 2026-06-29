@@ -13,6 +13,20 @@ const PARK_BADGE_TIERS = [
   { id: 'gold', label: 'Gold', threshold: 100, emoji: '🏆' },
 ];
 
+// Most collections earn a single badge at 100% completion (handled by
+// getEarnedCollectionBadges below). A small number of collections instead
+// use fixed count-based tiers — e.g. "Show Lover" rewards Bronze at 5
+// shows watched, Silver at 15, and Gold only once every permanent show
+// is checked off. Defined here by collection ID; anything not listed
+// here just uses the standard 100%-only badge.
+const TIERED_COLLECTION_CONFIG = {
+  'show-lover': [
+    { id: 'bronze', label: 'Bronze', count: 5, emoji: '🥉' },
+    { id: 'silver', label: 'Silver', count: 15, emoji: '🥈' },
+    { id: 'gold', label: 'Gold', count: null, emoji: '🏆' }, // null = "all of them"
+  ],
+};
+
 // Note: park badges use each park's own emoji (the same one shown on
 // the main page and park nav), not a separate badge-specific icon set —
 // this keeps a badge instantly recognizable as "that park" at a glance.
@@ -75,15 +89,42 @@ function getEarnedParkBadges() {
   return earned;
 }
 
-// Returns every collection badge currently earned for the active trip —
-// any pre-built or custom collection sitting at 100% completion.
+// Returns every collection badge currently earned for the active trip.
+// Most collections earn one badge at 100% completion. A few (configured
+// in TIERED_COLLECTION_CONFIG) instead earn Bronze/Silver/Gold based on
+// a fixed count of items checked off, regardless of the collection's
+// total size — e.g. Show Lover's Bronze just needs 5 shows watched,
+// not 5/27.
 function getEarnedCollectionBadges() {
   const earned = [];
   const collections = getAllCollections();
   collections.forEach(col => {
     if (!col.itemIds || col.itemIds.length === 0) return;
     const progress = Storage.getCollectionProgress(col.itemIds);
-    if (progress.pct === 100) {
+    const tiers = TIERED_COLLECTION_CONFIG[col.id];
+
+    if (tiers) {
+      tiers.forEach(tier => {
+        const target = tier.count === null ? col.itemIds.length : tier.count;
+        if (progress.doneCount >= target) {
+          const id = `collection_${col.id}_${tier.id}`;
+          recordBadgeDateIfNew(id);
+          earned.push({
+            id,
+            type: 'collection-tier',
+            collectionId: col.id,
+            collectionName: col.name,
+            collectionEmoji: col.emoji,
+            tier: tier.id,
+            tierLabel: tier.label,
+            tierEmoji: tier.emoji,
+            doneCount: progress.doneCount,
+            targetCount: target,
+            earnedAt: getBadgeDate(id),
+          });
+        }
+      });
+    } else if (progress.pct === 100) {
       const id = `collection_${col.id}`;
       recordBadgeDateIfNew(id);
       earned.push({

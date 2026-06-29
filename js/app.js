@@ -1558,13 +1558,44 @@ function openBadgesModal() {
     `;
   }).join('');
 
-  // Collection badges — only list collections that actually have items,
-  // showing earned ones distinctly from still-locked ones.
+  // Collection badges — only list collections that actually have items.
+  // Tiered collections (e.g. Show Lover) render a row of tier cells like
+  // the park badges; simple collections render a single earned/locked row.
   const collections = getAllCollections().filter(c => c.itemIds && c.itemIds.length > 0);
   const collectionBadgeRows = collections.map(col => {
+    const tiers = TIERED_COLLECTION_CONFIG[col.id];
+    const progress = Storage.getCollectionProgress(col.itemIds);
+
+    if (tiers) {
+      const tierCells = tiers.map(tier => {
+        const id = `collection_${col.id}_${tier.id}`;
+        const isEarned = earnedIds.has(id);
+        const target = tier.count === null ? col.itemIds.length : tier.count;
+        const dateLine = isEarned ? formatBadgeDate(earnedById[id].earnedAt) : '';
+        return `
+          <button class="badge-cell${isEarned ? ' badge-cell-earned' : ''}" data-badge-id="${id}" ${isEarned ? '' : 'disabled'} title="${tier.label} — ${target} shows">
+            <span class="badge-cell-icon-wrap">
+              <span class="badge-cell-emoji">${isEarned ? col.emoji : '🔒'}</span>
+              ${isEarned ? `<span class="badge-cell-ribbon">${tier.emoji}</span>` : ''}
+            </span>
+            <span class="badge-cell-label">${tier.label}</span>
+            ${dateLine ? `<span class="badge-cell-date">${dateLine}</span>` : ''}
+          </button>
+        `;
+      }).join('');
+      return `
+        <div class="badge-park-row">
+          <div class="badge-park-row-header">
+            <span class="badge-park-name">${col.emoji} ${col.name}</span>
+            <span class="badge-park-pct">${progress.doneCount} of ${col.itemIds.length} shows</span>
+          </div>
+          <div class="badge-tier-row">${tierCells}</div>
+        </div>
+      `;
+    }
+
     const id = `collection_${col.id}`;
     const isEarned = earnedIds.has(id);
-    const progress = Storage.getCollectionProgress(col.itemIds);
     const dateLine = isEarned ? formatBadgeDate(earnedById[id].earnedAt) : '';
     return `
       <button class="badge-collection-row${isEarned ? ' badge-cell-earned' : ''}" data-badge-id="${id}" ${isEarned ? '' : 'disabled'}>
@@ -1628,13 +1659,20 @@ function showBadgeCelebration(badges, index) {
   const overlay = document.createElement('div');
   overlay.className = 'badge-celebration-overlay';
 
-  const isCollection = badge.type === 'collection';
-  const mainEmoji = isCollection ? badge.collectionEmoji : badge.badgeIcon;
-  const ribbonEmoji = isCollection ? '' : badge.tierEmoji;
-  const title = isCollection ? 'Collection Complete!' : `${badge.tierLabel} — ${badge.parkName} Rides`;
-  const subtitle = isCollection
-    ? badge.collectionName
-    : `${badge.pct}% of rides complete`;
+  const isPark = badge.type === 'park';
+  const isCollectionTier = badge.type === 'collection-tier';
+  const mainEmoji = isPark ? badge.badgeIcon : badge.collectionEmoji;
+  const ribbonEmoji = (isPark || isCollectionTier) ? badge.tierEmoji : '';
+  const title = isPark
+    ? `${badge.tierLabel} — ${badge.parkName} Rides`
+    : isCollectionTier
+    ? `${badge.tierLabel} — ${badge.collectionName}`
+    : 'Collection Complete!';
+  const subtitle = isPark
+    ? `${badge.pct}% of rides complete`
+    : isCollectionTier
+    ? (badge.tier === 'gold' ? 'Every permanent show, watched!' : `${badge.doneCount} of ${badge.targetCount} shows watched`)
+    : badge.collectionName;
   const dateLine = formatBadgeDate(badge.earnedAt);
 
   overlay.innerHTML = `
@@ -1682,13 +1720,26 @@ async function shareBadgeImage(badge) {
 }
 
 async function drawAndDeliverBadgeImage(badge) {
-  const isCollection = badge.type === 'collection';
-  const mainEmoji = isCollection ? badge.collectionEmoji : badge.badgeIcon;
-  const ribbonEmoji = isCollection ? '' : badge.tierEmoji;
-  const title = isCollection ? 'Collection Complete!' : `${badge.tierLabel} — ${badge.parkName} Rides`;
-  const subtitle = isCollection ? badge.collectionName : `${badge.pct}% of rides complete`;
+  const isPark = badge.type === 'park';
+  const isCollectionTier = badge.type === 'collection-tier';
+  const mainEmoji = isPark ? badge.badgeIcon : badge.collectionEmoji;
+  const ribbonEmoji = (isPark || isCollectionTier) ? badge.tierEmoji : '';
+  const title = isPark
+    ? `${badge.tierLabel} — ${badge.parkName} Rides`
+    : isCollectionTier
+    ? `${badge.tierLabel} — ${badge.collectionName}`
+    : 'Collection Complete!';
+  const subtitle = isPark
+    ? `${badge.pct}% of rides complete`
+    : isCollectionTier
+    ? (badge.tier === 'gold' ? 'Every permanent show, watched!' : `${badge.doneCount} of ${badge.targetCount} shows watched`)
+    : badge.collectionName;
   const dateLine = formatBadgeDate(badge.earnedAt);
-  const accentColor = isCollection ? '#5b38b0' : (badge.tier === 'gold' ? '#c9942b' : badge.tier === 'silver' ? '#8a8f99' : '#a3653a');
+  const accentColor = isPark
+    ? (badge.tier === 'gold' ? '#c9942b' : badge.tier === 'silver' ? '#8a8f99' : '#a3653a')
+    : isCollectionTier
+    ? (badge.tier === 'gold' ? '#c9942b' : badge.tier === 'silver' ? '#8a8f99' : '#a3653a')
+    : '#5b38b0';
 
   const SIZE = 1080; // square, Instagram/social-friendly
 
@@ -1747,9 +1798,11 @@ async function drawAndDeliverBadgeImage(badge) {
       return;
     }
 
-    const fileName = isCollection
-      ? `rope-drop-badge-${badge.collectionId}.png`
-      : `rope-drop-badge-${badge.parkId}-${badge.tier}.png`;
+    const fileName = isPark
+      ? `rope-drop-badge-${badge.parkId}-${badge.tier}.png`
+      : isCollectionTier
+      ? `rope-drop-badge-${badge.collectionId}-${badge.tier}.png`
+      : `rope-drop-badge-${badge.collectionId}.png`;
     const file = new File([blob], fileName, { type: 'image/png' });
 
     let canUseNativeShare = false;
