@@ -131,7 +131,7 @@ function renderResortScreen() {
       ${renderTodaysLog()}
       ${renderProgressDashboard()}
       <div class="resort-screen-header">
-        <h1 class="resort-screen-title">Where to?</h1>
+        <h1 class="resort-screen-title">Pick Your Next Adventure</h1>
         <p class="resort-screen-subtitle">Pick a resort to see its parks</p>
       </div>
       <div class="resort-cards">
