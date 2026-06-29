@@ -2583,49 +2583,78 @@ function openTripsModal() {
         <button class="modal-close" aria-label="Close">✕</button>
       </div>
       <p class="modal-subtitle">Each trip keeps its own checklist, stars, and stats — perfect for comparing this year's visit to last year's.</p>
-      <div class="trip-list">
-        ${trips.map(trip => `
-          <div class="trip-item${trip.id === activeId ? ' trip-item-active' : ''}" data-id="${trip.id}">
-            <button class="trip-select" data-id="${trip.id}">
-              <span class="trip-name">${trip.name}</span>
-              <span class="trip-date">${new Date(trip.createdAt).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}</span>
-            </button>
-            <button class="trip-export" data-id="${trip.id}" aria-label="Send this trip to another device" title="Send to another device">⬆</button>
-            <button class="trip-date-btn" data-id="${trip.id}" aria-label="Edit trip date" title="Edit trip date">📅</button>
-            <button class="trip-rename" data-id="${trip.id}" aria-label="Rename trip" title="Rename">✎</button>
-            ${trips.length > 1 ? `<button class="trip-delete" data-id="${trip.id}" aria-label="Delete trip" title="Delete">🗑</button>` : ''}
+
+      <section class="trip-modal-section trip-modal-section-first" aria-labelledby="trips-section-heading">
+        <div class="trip-modal-section-header">
+          <div>
+            <div class="trip-modal-section-kicker">Trips</div>
+            <h4 id="trips-section-heading" class="trip-modal-section-title">Current trip list</h4>
           </div>
-        `).join('')}
-      </div>
-      <button class="new-trip-btn">+ Start a new trip</button>
-      <button class="collections-btn">📦 My Collections</button>
-      <button class="badges-btn">🏆 My Badges</button>
-      <button class="history-btn">📖 My Disney History</button>
-
-      <div class="recap-section">
-        <div class="recap-section-heading">Share a recap of your current trip</div>
-        <div class="recap-btn-row">
-          <button class="recap-image-btn">📸 Save as image</button>
-          <button class="recap-pdf-btn">📄 Save as PDF</button>
         </div>
-      </div>
-
-      <div class="recap-section">
-        <div class="recap-section-heading">Master list — every trip, combined</div>
-        <p class="trip-io-hint">A grand tally of how many times you've done each ride, show, and food spot across all your trips ever.</p>
-        <div class="recap-btn-row">
-          <button class="master-pdf-btn">📄 Save master list as PDF</button>
+        <div class="trip-list">
+          ${trips.map(trip => `
+            <div class="trip-item${trip.id === activeId ? ' trip-item-active' : ''}" data-id="${trip.id}">
+              <button class="trip-select" data-id="${trip.id}">
+                <span class="trip-name">${trip.name}</span>
+                <span class="trip-date">${new Date(trip.createdAt).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}</span>
+              </button>
+              <button class="trip-export" data-id="${trip.id}" aria-label="Send this trip to another device" title="Send to another device">⬆</button>
+              <button class="trip-date-btn" data-id="${trip.id}" aria-label="Edit trip date" title="Edit trip date">📅</button>
+              <button class="trip-rename" data-id="${trip.id}" aria-label="Rename trip" title="Rename">✎</button>
+              ${trips.length > 1 ? `<button class="trip-delete" data-id="${trip.id}" aria-label="Delete trip" title="Delete">🗑</button>` : ''}
+            </div>
+          `).join('')}
         </div>
-      </div>
+        <button class="new-trip-btn">+ Start a new trip</button>
+      </section>
 
-      <div class="recap-section">
-        <div class="recap-section-heading">Move trips between devices</div>
-        <p class="trip-io-hint">For example: import or export your trip from another device to have all trips stored on one device.</p>
-        <div class="trip-io-row">
-          <button class="trip-export-all-btn">Send all my trips</button>
-          <button class="trip-import-btn">Add trips from a file</button>
+      <section class="trip-modal-section" aria-labelledby="disney-life-section-heading">
+        <div class="trip-modal-section-header">
+          <div>
+            <div class="trip-modal-section-kicker">Your Disney Life</div>
+            <h4 id="disney-life-section-heading" class="trip-modal-section-title">Collections, badges, and history</h4>
+          </div>
         </div>
-      </div>
+        <div class="trip-action-stack">
+          <button class="collections-btn trip-action-btn">📦 My Collections</button>
+          <button class="badges-btn trip-action-btn">🏆 My Badges</button>
+          <button class="history-btn trip-action-btn">📖 My Disney History</button>
+        </div>
+      </section>
+
+      <section class="trip-modal-section" aria-labelledby="share-export-section-heading">
+        <div class="trip-modal-section-header">
+          <div>
+            <div class="trip-modal-section-kicker">Share / Export</div>
+            <h4 id="share-export-section-heading" class="trip-modal-section-title">Save recaps and move trip data</h4>
+          </div>
+        </div>
+
+        <div class="trip-export-group">
+          <div class="trip-export-heading">Current trip recap</div>
+          <div class="recap-btn-row">
+            <button class="recap-image-btn">📸 Save as image</button>
+            <button class="recap-pdf-btn">📄 Save as PDF</button>
+          </div>
+        </div>
+
+        <div class="trip-export-group">
+          <div class="trip-export-heading">Master list</div>
+          <p class="trip-io-hint">A grand tally of how many times you've done each ride, show, and food spot across all your trips ever.</p>
+          <div class="recap-btn-row">
+            <button class="master-pdf-btn">📄 Save master list as PDF</button>
+          </div>
+        </div>
+
+        <div class="trip-export-group">
+          <div class="trip-export-heading">Import / export trips</div>
+          <p class="trip-io-hint">For example: import or export your trip from another device to have all trips stored on one device.</p>
+          <div class="trip-io-row">
+            <button class="trip-export-all-btn">Send all my trips</button>
+            <button class="trip-import-btn">Add trips from a file</button>
+          </div>
+        </div>
+      </section>
       <input type="file" id="trip-import-input" accept="application/json,.json" style="display:none;" />
     </div>
   `;
