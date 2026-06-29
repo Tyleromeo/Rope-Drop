@@ -1305,106 +1305,6 @@ function renderWeatherWidget(park) {
 // ── Park map ─────────────────────────────────────────────────────────────────
 let activeLeafletMap = null;
 
-const MAP_LAND_ALIASES = {
-  mk: {
-    'main street usa': 'Main Street, U.S.A.',
-    'storybook circus': { name: 'Storybook Circus', lat: 28.42065, lng: -81.5792 },
-  },
-  hs: {
-    'sunset blvd': 'Sunset Boulevard',
-  },
-  ep: {
-    'world showcase france': { name: 'France pavilion', lat: 28.369067, lng: -81.552725 },
-    'world showcase norway': { name: 'Norway pavilion', lat: 28.370517, lng: -81.5471 },
-    'world showcase mexico': { name: 'Mexico pavilion', lat: 28.371414, lng: -81.547586 },
-  },
-  ak: {
-    'africa harambe station': 'Africa',
-    'conservation station': { name: 'Conservation Station', lat: 28.3652, lng: -81.5902 },
-    'park entrance': { name: 'Park entrance', lat: 28.3549, lng: -81.5905 },
-    'park wide': 'Discovery Island',
-  },
-  dl: {
-    'main street usa': 'Main Street, U.S.A.',
-    'bayou country': { name: 'Bayou Country', lat: 33.8108, lng: -117.9165 },
-    'mickeys toontown': { name: "Mickey's Toontown", lat: 33.8152, lng: -117.9186 },
-  },
-};
-
-function normalizeMapLabel(value) {
-  return (value || '')
-    .toLowerCase()
-    .replace(/&/g, 'and')
-    .replace(/\([^)]*\)/g, '')
-    .replace(/['’‘]/g, '')
-    .replace(/[^a-z0-9]+/g, ' ')
-    .replace(/\bu s a\b/g, 'usa')
-    .replace(/\s+/g, ' ')
-    .trim();
-}
-
-function firstMetaLocation(item) {
-  return (item.meta || '').split('·')[0].trim();
-}
-
-function resolveMapLocation(parkId, item) {
-  const rawLocation = firstMetaLocation(item);
-  if (!rawLocation) return null;
-
-  const normalized = normalizeMapLabel(rawLocation);
-  const lands = MAP_LANDS[parkId] || [];
-  const aliases = MAP_LAND_ALIASES[parkId] || {};
-  const alias = aliases[normalized];
-
-  if (alias && typeof alias === 'object') {
-    return alias;
-  }
-
-  const targetName = typeof alias === 'string' ? alias : rawLocation;
-  const targetNormalized = normalizeMapLabel(targetName);
-
-  return lands.find(land => normalizeMapLabel(land.name) === targetNormalized)
-    || lands.find(land => {
-      const landName = normalizeMapLabel(land.name);
-      return landName.includes(targetNormalized) || targetNormalized.includes(landName);
-    })
-    || null;
-}
-
-function getStarredMapData(park, stars) {
-  const allItems = park.sections.flatMap(s => s.items);
-  const exactMarkers = new Map((MAP_MARKERS[park.id] || []).map(marker => [marker.itemId, marker]));
-  const starredMarkers = [];
-  const starredWithoutPins = [];
-
-  Object.keys(stars).forEach(id => {
-    const item = allItems.find(i => i.id === id);
-    if (!item) return; // belongs to a different park
-
-    const exactMarker = exactMarkers.get(id);
-    if (exactMarker) {
-      starredMarkers.push(exactMarker);
-      return;
-    }
-
-    const fallbackLocation = resolveMapLocation(park.id, item);
-    if (fallbackLocation) {
-      starredMarkers.push({
-        itemId: id,
-        lat: fallbackLocation.lat,
-        lng: fallbackLocation.lng,
-        approx: true,
-        approxLabel: fallbackLocation.name || firstMetaLocation(item),
-      });
-      return;
-    }
-
-    starredWithoutPins.push(item);
-  });
-
-  return { allItems, starredMarkers, starredWithoutPins };
-}
-
 // ── Live Waits modal — sortable list of real-time ride wait times ──────────
 let liveWaitsSortMode = 'wait-desc'; // 'wait-desc' | 'wait-asc' | 'alpha'
 
@@ -1502,6 +1402,136 @@ function renderLiveWaitsList(overlay, park, entries) {
     ${downHtml}
     ${noDataHtml}
   `;
+}
+
+// ── Must-do map fallback ─────────────────────────────────────────────────────
+// Not every ride has an exact GPS pin in MAP_MARKERS. For anything
+// starred without one, we resolve at least an approximate land-level
+// location so it still shows up on the map rather than vanishing.
+// Primary signal is each item's own `land` field (set directly in
+// data.js) since that's structured and reliable; a small alias table
+// bridges the cases where that land name doesn't exactly match the
+// label used in MAP_LANDS (e.g. data.js says "World Showcase (France)"
+// but MAP_LANDS just has "France pavilion"). Meta-string parsing is
+// kept only as a last-resort fallback for any item missing a land.
+const MAP_LAND_ALIASES = {
+  mk: {
+    'main street usa': 'Main Street, U.S.A.',
+    'storybook circus': { name: 'Storybook Circus', lat: 28.42065, lng: -81.5792 },
+  },
+  hs: {
+    'sunset blvd': 'Sunset Boulevard',
+    'hollywood blvd': 'Hollywood Boulevard',
+    'hollywood hills amphitheater': 'Sunset Boulevard',
+    'the walt disney studios': 'Hollywood Boulevard',
+    'animation courtyard': 'Hollywood Boulevard',
+    'commissary lane': "Galaxy's Edge",
+    'grand avenue': 'Toy Story Land',
+  },
+  ep: {
+    'world showcase france': { name: 'France pavilion', lat: 28.369067, lng: -81.552725 },
+    'world showcase norway': { name: 'Norway pavilion', lat: 28.370517, lng: -81.5471 },
+    'world showcase mexico': { name: 'Mexico pavilion', lat: 28.371414, lng: -81.547586 },
+    'world showcase usa': 'World Showcase',
+    'world showcase china': 'World Showcase',
+    'world showcase canada': 'World Showcase',
+    'world showcase morocco': 'World Showcase',
+    'world showcase germany': 'World Showcase',
+    'world showcase italy': 'World Showcase',
+    'world showcase japan': 'World Showcase',
+    'world showcase united kingdom': 'World Showcase',
+  },
+  ak: {
+    'africa harambe station': 'Africa',
+    'conservation station': { name: 'Conservation Station', lat: 28.3652, lng: -81.5902 },
+    'park entrance': { name: 'Park entrance', lat: 28.3549, lng: -81.5905 },
+    'park wide': 'Discovery Island',
+  },
+  dl: {
+    'main street usa': 'Main Street, U.S.A.',
+    'bayou country': { name: 'Bayou Country', lat: 33.8108, lng: -117.9165 },
+    'mickeys toontown': { name: "Mickey's Toontown", lat: 33.8152, lng: -117.9186 },
+  },
+  dca: {
+    'san fransokyo square': 'Hollywood Land',
+    'golden state': 'Grizzly Peak',
+  },
+};
+
+function normalizeMapLabel(value) {
+  return (value || '')
+    .toLowerCase()
+    .replace(/&/g, 'and')
+    .replace(/\([^)]*\)/g, '')
+    .replace(/['’‘]/g, '')
+    .replace(/[^a-z0-9]+/g, ' ')
+    .replace(/\bu s a\b/g, 'usa')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function firstMetaLocation(item) {
+  return (item.meta || '').split('·')[0].trim();
+}
+
+function resolveMapLocation(parkId, item) {
+  // Prefer the item's own structured land field — set directly in
+  // data.js for every item — over parsing the free-text meta string.
+  const rawLocation = item.land || firstMetaLocation(item);
+  if (!rawLocation) return null;
+
+  const normalized = normalizeMapLabel(rawLocation);
+  const lands = MAP_LANDS[parkId] || [];
+  const aliases = MAP_LAND_ALIASES[parkId] || {};
+  const alias = aliases[normalized];
+
+  if (alias && typeof alias === 'object') {
+    return alias;
+  }
+
+  const targetName = typeof alias === 'string' ? alias : rawLocation;
+  const targetNormalized = normalizeMapLabel(targetName);
+
+  return lands.find(land => normalizeMapLabel(land.name) === targetNormalized)
+    || lands.find(land => {
+      const landName = normalizeMapLabel(land.name);
+      return landName.includes(targetNormalized) || targetNormalized.includes(landName);
+    })
+    || null;
+}
+
+function getStarredMapData(park, stars) {
+  const allItems = park.sections.flatMap(s => s.items);
+  const exactMarkers = new Map((MAP_MARKERS[park.id] || []).map(marker => [marker.itemId, marker]));
+  const starredMarkers = [];
+  const starredWithoutPins = [];
+
+  Object.keys(stars).forEach(id => {
+    const item = allItems.find(i => i.id === id);
+    if (!item) return; // belongs to a different park
+
+    const exactMarker = exactMarkers.get(id);
+    if (exactMarker) {
+      starredMarkers.push(exactMarker);
+      return;
+    }
+
+    const fallbackLocation = resolveMapLocation(park.id, item);
+    if (fallbackLocation) {
+      starredMarkers.push({
+        itemId: id,
+        lat: fallbackLocation.lat,
+        lng: fallbackLocation.lng,
+        approx: true,
+        approxLabel: fallbackLocation.name || item.land || firstMetaLocation(item),
+      });
+      return;
+    }
+
+    starredWithoutPins.push(item);
+  });
+
+  return { allItems, starredMarkers, starredWithoutPins };
 }
 
 function openParkMap(park) {
@@ -1610,6 +1640,200 @@ let allTimeView = 'alltime'; // 'alltime' | 'byyear'
 let collectionsDetailId = null; // currently-open collection's id, or null for the list
 
 // ── Badge wall — browsable view of every earned (and not-yet-earned) badge ──
+// ── Disney History — a keepsake profile view of your whole Disney story ────
+function openDisneyHistoryModal() {
+  const p = Storage.getDisneyHistoryProfile();
+
+  const formatDate = (ts, opts) => ts ? new Date(ts).toLocaleDateString('en-US', opts) : '—';
+  const firstYear = p.firstTripDate ? new Date(p.firstTripDate).getFullYear() : '—';
+  const lastVisit = formatDate(p.lastTripDate, { month: 'long', year: 'numeric' });
+
+  const rows = [
+    { label: 'Trips', value: p.totalTrips, icon: '✈️' },
+    { label: 'Activities logged', value: p.totalActivities.toLocaleString(), icon: '📋' },
+    {
+      label: 'Favorite attraction',
+      value: p.favoriteAttraction ? p.favoriteAttraction.item.name : 'Not yet logged',
+      sub: p.favoriteAttraction ? `${p.favoriteAttraction.times}× done` : '',
+      icon: '🎢',
+    },
+    {
+      label: 'Favorite snack',
+      value: p.favoriteSnack ? p.favoriteSnack.item.name : 'Not yet logged',
+      sub: p.favoriteSnack ? `${p.favoriteSnack.times}× had` : '',
+      icon: '🍽️',
+    },
+    {
+      label: 'Favorite park',
+      value: p.favoritePark ? p.favoritePark.park.name : 'Not yet logged',
+      icon: p.favoritePark ? p.favoritePark.park.emoji : '🏰',
+    },
+    {
+      label: 'Most visited land',
+      value: p.mostVisitedLand ? p.mostVisitedLand.land : 'Not yet logged',
+      sub: p.mostVisitedLand ? p.mostVisitedLand.park.shortName : '',
+      icon: '🗺️',
+    },
+    { label: 'First Disney trip', value: firstYear, icon: '🌟' },
+    { label: 'Last visit', value: lastVisit, icon: '📅' },
+    { label: 'Parks completed', value: `${p.parksCompleted} of ${p.totalParks}`, icon: '🏆' },
+  ];
+
+  const rowsHtml = rows.map(r => `
+    <div class="history-row">
+      <span class="history-row-icon">${r.icon}</span>
+      <span class="history-row-body">
+        <span class="history-row-label">${r.label}</span>
+        <span class="history-row-value">${r.value}</span>
+        ${r.sub ? `<span class="history-row-sub">${r.sub}</span>` : ''}
+      </span>
+    </div>
+  `).join('');
+
+  const overlay = document.createElement('div');
+  overlay.className = 'modal-overlay';
+  overlay.innerHTML = `
+    <div class="modal-card history-card">
+      <div class="modal-header">
+        <h3>📖 My Disney History</h3>
+        <button class="modal-close" aria-label="Close">✕</button>
+      </div>
+      <p class="modal-subtitle">Every trip you've logged tells a bigger story — here's yours so far.</p>
+      <div class="history-rows">${rowsHtml}</div>
+      <button class="history-share-btn">📤 Share my Disney History</button>
+    </div>
+  `;
+
+  document.body.appendChild(overlay);
+  document.body.style.overflow = 'hidden';
+
+  const close = () => {
+    overlay.remove();
+    document.body.style.overflow = '';
+  };
+  overlay.querySelector('.modal-close').addEventListener('click', close);
+  overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
+  overlay.querySelector('.history-share-btn').addEventListener('click', () => {
+    shareDisneyHistoryImage(p);
+  });
+}
+
+// Generates a shareable square keepsake image summarizing the whole
+// Disney History profile — built the same safe way as badge images (a
+// self-contained SVG with real text nodes, rasterized via base64 data
+// URI), since that's the approach already confirmed to render emoji
+// correctly and not taint the canvas.
+async function shareDisneyHistoryImage(p) {
+  try {
+    const formatDate = (ts, opts) => ts ? new Date(ts).toLocaleDateString('en-US', opts) : '—';
+    const firstYear = p.firstTripDate ? new Date(p.firstTripDate).getFullYear() : '—';
+    const lastVisit = formatDate(p.lastTripDate, { month: 'short', year: 'numeric' });
+    const escapeXml = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+    const lines = [
+      { label: 'TRIPS', value: String(p.totalTrips) },
+      { label: 'ACTIVITIES LOGGED', value: p.totalActivities.toLocaleString() },
+      { label: 'FAVORITE ATTRACTION', value: p.favoriteAttraction ? `${p.favoriteAttraction.item.name} (${p.favoriteAttraction.times}×)` : '—' },
+      { label: 'FAVORITE SNACK', value: p.favoriteSnack ? `${p.favoriteSnack.item.name} (${p.favoriteSnack.times}×)` : '—' },
+      { label: 'FAVORITE PARK', value: p.favoritePark ? p.favoritePark.park.name : '—' },
+      { label: 'MOST VISITED LAND', value: p.mostVisitedLand ? p.mostVisitedLand.land : '—' },
+      { label: 'FIRST DISNEY TRIP', value: String(firstYear) },
+      { label: 'LAST VISIT', value: lastVisit },
+      { label: 'PARKS COMPLETED', value: `${p.parksCompleted} of ${p.totalParks}` },
+    ];
+
+    const SIZE_W = 1080;
+    const SIZE_H = 1350; // taller than wide — more room for the full list
+    const startY = 200;
+    const rowH = 110;
+
+    const rowsSvg = lines.map((line, i) => {
+      const y = startY + i * rowH;
+      return `
+        <text x="80" y="${y}" font-size="24" font-weight="700" letter-spacing="2" font-family="DM Sans, sans-serif" fill="#9e9b96">${escapeXml(line.label)}</text>
+        <text x="80" y="${y + 42}" font-size="38" font-weight="700" font-family="DM Sans, sans-serif" fill="#ffffff">${escapeXml(line.value)}</text>
+        <line x1="80" y1="${y + 64}" x2="1000" y2="${y + 64}" stroke="#3a352d" stroke-width="1"/>
+      `;
+    }).join('');
+
+    const svgMarkup = `
+      <svg xmlns="http://www.w3.org/2000/svg" width="${SIZE_W}" height="${SIZE_H}" viewBox="0 0 ${SIZE_W} ${SIZE_H}">
+        <defs>
+          <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#2a2620"/>
+            <stop offset="100%" stop-color="#181511"/>
+          </linearGradient>
+        </defs>
+        <rect width="${SIZE_W}" height="${SIZE_H}" fill="url(#bg)"/>
+        <text x="80" y="90" font-size="30" font-weight="700" font-family="DM Sans, sans-serif" fill="#e0a04a">🎢 ROPE DROP</text>
+        <text x="80" y="150" font-size="50" font-weight="700" font-family="DM Sans, sans-serif" fill="#ffffff">My Disney History</text>
+        ${rowsSvg}
+        <text x="${SIZE_W / 2}" y="${SIZE_H - 60}" font-size="24" text-anchor="middle" font-family="DM Sans, sans-serif" fill="#9e9b96">Made with Rope Drop</text>
+        <text x="${SIZE_W / 2}" y="${SIZE_H - 30}" font-size="18" text-anchor="middle" font-family="DM Sans, sans-serif" fill="#9e9b96">Not affiliated with The Walt Disney Company</text>
+      </svg>
+    `.trim();
+
+    const canvas = document.createElement('canvas');
+    canvas.width = SIZE_W;
+    canvas.height = SIZE_H;
+    const ctx = canvas.getContext('2d');
+
+    const dataUri = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgMarkup)));
+    const img = new Image();
+    img.width = SIZE_W;
+    img.height = SIZE_H;
+
+    await new Promise((resolve, reject) => {
+      img.onload = resolve;
+      img.onerror = reject;
+      img.src = dataUri;
+    });
+
+    ctx.drawImage(img, 0, 0, SIZE_W, SIZE_H);
+
+    canvas.toBlob(async (blob) => {
+      if (!blob) {
+        showToast('Couldn\'t create that image — try again in a moment.', { wrap: true, duration: 3200 });
+        return;
+      }
+      const fileName = 'rope-drop-disney-history.png';
+      const file = new File([blob], fileName, { type: 'image/png' });
+
+      let canUseNativeShare = false;
+      try {
+        canUseNativeShare = !!(navigator.share && navigator.canShare && navigator.canShare({ files: [file] }));
+      } catch (e) {
+        canUseNativeShare = false;
+      }
+
+      if (canUseNativeShare) {
+        try {
+          await navigator.share({ files: [file], title: 'My Disney History' });
+          return;
+        } catch (e) {
+          // cancelled or failed — fall through to download
+        }
+      }
+
+      try {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = fileName;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+        showToast('Saved 📖');
+      } catch (e) {
+        showToast('Couldn\'t save the image — try again.', { wrap: true, duration: 3200 });
+      }
+    }, 'image/png');
+  } catch (e) {
+    showToast('Something went wrong making that image — try again.', { wrap: true, duration: 3200 });
+  }
+}
+
 function openBadgesModal() {
   const earnedPark = getEarnedParkBadges();
   const earnedCollection = getEarnedCollectionBadges();
@@ -2261,6 +2485,7 @@ function openTripsModal() {
       <button class="alltime-stats-btn">🏆 All-Time Stats</button>
       <button class="collections-btn">📦 Collections</button>
       <button class="badges-btn">🏆 My Badges</button>
+      <button class="history-btn">📖 My Disney History</button>
 
       <div class="recap-section">
         <div class="recap-section-heading">Share a recap of your current trip</div>
@@ -2394,6 +2619,11 @@ function openTripsModal() {
   overlay.querySelector('.badges-btn').addEventListener('click', () => {
     close(false);
     openBadgesModal();
+  });
+
+  overlay.querySelector('.history-btn').addEventListener('click', () => {
+    close(false);
+    openDisneyHistoryModal();
   });
 
   // Export a single trip

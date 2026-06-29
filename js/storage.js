@@ -342,8 +342,11 @@ const Storage = {
   },
 
   // Returns starred itemIds for a park, in the person's chosen order.
-  // Falls back to insertion order from `stars` for any starred items
-  // that predate the starOrder feature.
+  // Self-heals as it goes: drops duplicates, drops any ID that's no
+  // longer actually starred or belongs to a different park, then folds
+  // in anything starred but missing from the order (legacy data safety
+  // net). The cleaned result is persisted back so this cleanup only
+  // has to happen once per actual inconsistency, not every call.
   getStarOrder(parkId) {
     const data = this._getTripData();
     const order = (data.starOrder && data.starOrder[parkId]) || [];
@@ -353,7 +356,6 @@ const Storage = {
         cleanOrder.push(id);
       }
     });
-    // Include any starred items missing from order (legacy data safety net)
     const starredIds = Object.keys(data.stars).filter(id => this._parkIdForItem(id) === parkId);
     const missing = starredIds.filter(id => !cleanOrder.includes(id));
     const cleaned = [...cleanOrder, ...missing];
@@ -623,6 +625,128 @@ const Storage = {
     }).sort((a, b) => b.lastTs - a.lastTs);
 
     return { tripName, hasActivityToday: true, parkGroups };
+  },
+
+  // ── Disney History profile ───────────────────────────────────────────
+  // A different lens on the same data than getAllTimeStats — instead of
+  // "what's my progress," this answers "what does my Disney history look
+  // like." Favorite attraction/snack, favorite park, most-visited land,
+  // first/last trip dates, and how many parks you've fully completed.
+  getDisneyHistoryProfile() {
+    const allTripsMeta = this.getAllTrips();
+    const allTripsData = this.getAllTripsData();
+    const tripList = Object.values(allTripsMeta);
+
+    const allItemsById = {};
+    PARKS.forEach(park => park.sections.forEach(s => s.items.forEach(item => {
+      allItemsById[item.id] = item;
+    })));
+
+    // Tally everything once, across every trip — by item, by park, and
+    // by land — so each "favorite X" stat is derived from the same
+    // underlying pass rather than separate loops.
+    const perItem = {}; // itemId -> totalTimes
+    const perPark = {}; // parkId -> totalTimes
+    const perLand = {}; // "Park · Land" -> totalTimes (lands can share
+                         // names across parks, e.g. "Discovery Island"
+                         // doesn't collide here since it's WDW-only, but
+                         // keying by park+land avoids any future clash)
+    let totalActivities = 0;
+
+    Object.values(allTripsData).forEach(tripData => {
+      const checks = tripData.checks || {};
+      const counts = tripData.counts || {};
+      Object.keys(checks).forEach(itemId => {
+        if (!checks[itemId]) return;
+        const item = allItemsById[itemId];
+        if (!item) return;
+        const times = 1 + (counts[itemId] || 0);
+        totalActivities += times;
+
+        perItem[itemId] = (perItem[itemId] || 0) + times;
+
+        const parkId = this._parkIdForItem(itemId);
+        if (parkId) perPark[parkId] = (perPark[parkId] || 0) + times;
+
+        if (item.land && parkId) {
+          const landKey = `${parkId}::${item.land}`;
+          perLand[landKey] = (perLand[landKey] || 0) + times;
+        }
+      });
+    });
+
+    // Favorite attraction overall (any badge)
+    let favoriteAttraction = null;
+    Object.entries(perItem).forEach(([itemId, times]) => {
+      const item = allItemsById[itemId];
+      if (!item) return;
+      if (!favoriteAttraction || times > favoriteAttraction.times) {
+        favoriteAttraction = { item, times };
+      }
+    });
+
+    // Favorite snack/food specifically
+    let favoriteSnack = null;
+    Object.entries(perItem).forEach(([itemId, times]) => {
+      const item = allItemsById[itemId];
+      if (!item || item.badge !== 'food') return;
+      if (!favoriteSnack || times > favoriteSnack.times) {
+        favoriteSnack = { item, times };
+      }
+    });
+
+    // Favorite park — the one with the most total activity logged
+    let favoritePark = null;
+    Object.entries(perPark).forEach(([parkId, times]) => {
+      const park = PARKS.find(p => p.id === parkId);
+      if (!park) return;
+      if (!favoritePark || times > favoritePark.times) {
+        favoritePark = { park, times };
+      }
+    });
+
+    // Most-visited land — across the whole resort, not per-park, since
+    // "Galaxy's Edge" at Hollywood Studios and Disneyland are different
+    // physical lands and shouldn't be merged together.
+    let mostVisitedLand = null;
+    Object.entries(perLand).forEach(([landKey, times]) => {
+      const [parkId, landName] = landKey.split('::');
+      const park = PARKS.find(p => p.id === parkId);
+      if (!park) return;
+      if (!mostVisitedLand || times > mostVisitedLand.times) {
+        mostVisitedLand = { land: landName, park, times };
+      }
+    });
+
+    // First and last trip dates, based on each trip's createdAt (or its
+    // manually-corrected date, via setTripDate)
+    let firstTripDate = null;
+    let lastTripDate = null;
+    tripList.forEach(trip => {
+      if (!firstTripDate || trip.createdAt < firstTripDate) firstTripDate = trip.createdAt;
+      if (!lastTripDate || trip.createdAt > lastTripDate) lastTripDate = trip.createdAt;
+    });
+
+    // Total parks "completed" — defined as 100% of that park's rides,
+    // matching the same definition used by the Gold park badge.
+    let parksCompleted = 0;
+    PARKS.forEach(park => {
+      const stats = this.getParkStatsForCategory(park.id, 'rides');
+      if (stats.total > 0 && stats.pct === 100) parksCompleted++;
+    });
+
+    return {
+      totalTrips: tripList.length,
+      totalActivities,
+      favoriteAttraction,
+      favoriteSnack,
+      favoritePark,
+      mostVisitedLand,
+      firstTripDate,
+      lastTripDate,
+      parksCompleted,
+      totalParks: PARKS.length,
+    };
   },
 
   getTripSummary() {
