@@ -1932,20 +1932,16 @@ body {
 .resort-card-parks-list {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: 4px 14px;
   margin-top: 8px;
 }
 
 .resort-card-park-chip {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  font-size: 12px;
-  font-weight: 600;
+  gap: 5px;
+  font-size: 13px;
   color: var(--text-2);
-  background: var(--bg-2);
-  padding: 4px 10px;
-  border-radius: var(--radius-pill);
   white-space: nowrap;
 }
 
