@@ -3938,8 +3938,8 @@ async function exportRecapPDF() {
   doc.setFontSize(11);
   doc.setTextColor(120, 120, 120);
   doc.text('ROPE DROP RECAP', margin, y);
-  const coverW = 250;
-  const coverH = 156;
+  const coverW = 320;
+  const coverH = 200;
   if (coverDataUrl) {
     doc.addImage(coverDataUrl, 'JPEG', pageW - margin - coverW, margin - 4, coverW, coverH);
   }
@@ -3972,6 +3972,11 @@ async function exportRecapPDF() {
   const catLineHeight = 17;
   doc.text(catLines, margin, y, { lineHeightFactor: 1.25 });
   y += catLineHeight * catLines.length + 14;
+
+  const coverBottomY = coverDataUrl ? (margin - 4 + coverH) : 0;
+  if (coverBottomY && y < coverBottomY + 18) {
+    y = coverBottomY + 18;
+  }
 
   if (summary.mostRiddenItem && summary.mostRiddenItem.times > 1) {
     doc.setFillColor(251, 238, 226);
