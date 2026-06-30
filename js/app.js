@@ -2732,7 +2732,7 @@ function getCollectionGroupKey(col) {
   });
 
   if (resortIds.size === 1) return [...resortIds][0];
-  if (resortIds.size > 1) return 'coast';
+  if (resortIds.size > 1) return 'custom';
   return 'custom';
 }
 
@@ -2740,14 +2740,13 @@ function getCollectionGroupLabel(key) {
   return {
     wdw: 'Disney World Collections',
     dlr: 'Disneyland Collections',
-    coast: 'Coast-to-Coast Collections',
     custom: 'Your Custom Collections',
   }[key] || 'Collections';
 }
 
 function renderCollectionsListHtml() {
   const collections = getAllCollections();
-  const groupOrder = ['wdw', 'dlr', 'coast', 'custom'];
+  const groupOrder = ['wdw', 'dlr', 'custom'];
   const groupedHtml = groupOrder.map(groupKey => {
     const groupCollections = collections.filter(col => getCollectionGroupKey(col) === groupKey);
     if (!groupCollections.length) return '';
@@ -2779,7 +2778,7 @@ function renderCollectionsListHtml() {
         <h3>📦 My Collections</h3>
         <button class="modal-close" aria-label="Close">✕</button>
       </div>
-      <p class="modal-subtitle">Track themed sets by Disney World, Disneyland, and coast-to-coast goals — and see exactly what's left.</p>
+      <p class="modal-subtitle">Track themed sets by Disney World and Disneyland — and see exactly what's left.</p>
       ${groupedHtml}
       <button class="new-collection-btn">+ Create a custom collection</button>
     </div>
