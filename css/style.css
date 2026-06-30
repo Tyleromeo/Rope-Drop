@@ -3692,3 +3692,59 @@ body {
   outline: 2px solid #1a6fd4;
   outline-offset: 2px;
 }
+
+/* ── Trip cover photo viewer ── */
+.trip-cover-viewer-card {
+  max-width: 560px;
+}
+
+.trip-cover-large-frame {
+  width: 100%;
+  border-radius: 18px;
+  overflow: hidden;
+  background: #000;
+  border: 1px solid var(--border);
+  margin: 14px 0 16px;
+}
+
+.trip-cover-large-img {
+  display: block;
+  width: 100%;
+  max-height: 62vh;
+  object-fit: contain;
+  background: #000;
+}
+
+.trip-cover-viewer-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.trip-cover-change-btn,
+.trip-cover-remove-btn {
+  flex: 1;
+  padding: 13px;
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  font-weight: 700;
+  font-family: var(--font-body);
+  cursor: pointer;
+}
+
+.trip-cover-change-btn {
+  border: 1px solid var(--border-md);
+  background: var(--text-1);
+  color: var(--bg);
+}
+
+.trip-cover-remove-btn {
+  border: 1px solid #c0392b;
+  background: transparent;
+  color: #c0392b;
+}
+
+@media (max-width: 420px) {
+  .trip-cover-viewer-actions {
+    flex-direction: column;
+  }
+}

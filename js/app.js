@@ -213,6 +213,63 @@ async function setTripCoverPhoto(tripId = Storage.getActiveTripId(), returnTo = 
   }
 }
 
+async function removeTripCoverPhoto(tripId = Storage.getActiveTripId(), returnTo = 'trips') {
+  const cover = await PhotoStore.getTripCover(tripId);
+  if (!cover) return;
+  await PhotoStore.delete(cover.id);
+  showToast('Trip cover photo removed');
+  document.querySelector('.modal-overlay')?.remove();
+  document.body.style.overflow = '';
+  if (returnTo === 'memories') openTripMemoriesModal(tripId);
+  else openTripsModal();
+}
+
+async function openTripCoverModal(tripId = Storage.getActiveTripId(), returnTo = 'trips') {
+  const cover = await PhotoStore.getTripCover(tripId);
+  if (!cover) {
+    setTripCoverPhoto(tripId, returnTo);
+    return;
+  }
+
+  const trip = Storage.listTrips().find(t => t.id === tripId);
+  const overlay = document.createElement('div');
+  overlay.className = 'modal-overlay';
+  overlay.innerHTML = `
+    <div class="modal-card trip-cover-viewer-card">
+      <div class="modal-header">
+        <h3>Trip cover photo</h3>
+        <button class="modal-close" aria-label="Close">✕</button>
+      </div>
+      <p class="modal-subtitle">${trip ? trip.name : 'Current trip'}</p>
+      <div class="trip-cover-large-frame">
+        <img class="trip-cover-large-img" alt="Trip cover photo" src="${URL.createObjectURL(cover.imageBlob || cover.thumbBlob)}">
+      </div>
+      <div class="trip-cover-viewer-actions">
+        <button class="trip-cover-change-btn">Change photo</button>
+        <button class="trip-cover-remove-btn">Remove photo</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+  document.body.style.overflow = 'hidden';
+
+  const close = () => {
+    overlay.remove();
+    document.body.style.overflow = '';
+  };
+  overlay.querySelector('.modal-close').addEventListener('click', close);
+  overlay.addEventListener('click', e => { if (e.target === overlay) close(); });
+  overlay.querySelector('.trip-cover-change-btn').addEventListener('click', async () => {
+    close();
+    await setTripCoverPhoto(tripId, returnTo);
+  });
+  overlay.querySelector('.trip-cover-remove-btn').addEventListener('click', async () => {
+    if (!confirm('Remove this trip cover photo?')) return;
+    close();
+    await removeTripCoverPhoto(tripId, returnTo);
+  });
+}
+
 async function refreshPhotoUI(root = document) {
   const all = await PhotoStore.getAll();
   const activeTripId = Storage.getActiveTripId();
@@ -282,7 +339,7 @@ function bindPhotoButtons(root = document) {
   root.querySelectorAll('.trip-cover-btn').forEach(btn => {
     btn.addEventListener('click', (e) => {
       e.preventDefault();
-      setTripCoverPhoto(btn.dataset.tripId || Storage.getActiveTripId(), btn.dataset.returnTo || 'trips');
+      openTripCoverModal(btn.dataset.tripId || Storage.getActiveTripId(), btn.dataset.returnTo || 'trips');
     });
   });
 }
@@ -395,7 +452,7 @@ async function openTripMemoriesModal(selectedTripId = Storage.getActiveTripId())
       </select>
       <button class="trip-cover-btn trip-cover-row" data-trip-id="${tripId}" data-return-to="memories">
         <span class="trip-cover-preview" data-trip-id="${tripId}">${cover ? `<img alt="Trip cover" src="${URL.createObjectURL(cover.thumbBlob)}">` : '<span>📷</span>'}</span>
-        <span><strong>Trip cover photo</strong><small>${cover ? 'Tap to replace for this trip' : 'Add a cover for this trip'}</small></span>
+        <span><strong>Trip cover photo</strong><small>${cover ? 'Tap to view or change this trip cover' : 'Add a cover for this trip'}</small></span>
       </button>
       ${timelineHtml || '<p class="photo-empty">Nothing logged for this trip yet — choose another trip or check off a few rides, shows, or food spots first.</p>'}
     </div>
@@ -3100,7 +3157,7 @@ function openTripsModal() {
         <div class="trip-modal-section-heading">Trips</div>
         <button class="trip-cover-btn trip-cover-row">
           <span class="trip-cover-preview" data-trip-id="${activeId}"><span>📷</span></span>
-          <span><strong>Trip cover photo</strong><small>Add or replace the cover for this trip</small></span>
+          <span><strong>Trip cover photo</strong><small>View, add, or change the cover for this trip</small></span>
         </button>
         <div class="trip-list">
           ${trips.map(trip => `
