@@ -3584,6 +3584,7 @@ function getPDFTripNotes(tripId = Storage.getActiveTripId()) {
       const park = PARKS.find(p => p.id === parkId);
       return {
         tripId,
+        parkId,
         tripName: meta ? meta.name : 'My Disney Trip',
         parkName: park ? park.name : 'Park notes',
         text: cleaned,
@@ -3594,6 +3595,49 @@ function getPDFTripNotes(tripId = Storage.getActiveTripId()) {
 
 function getAllPDFTripNotes() {
   return Storage.listTrips().flatMap(trip => getPDFTripNotes(trip.id));
+}
+
+function getPDFTripNotesMap(tripId = Storage.getActiveTripId()) {
+  const notes = {};
+  getPDFTripNotes(tripId).forEach(note => {
+    if (note.parkId) notes[note.parkId] = note;
+  });
+  return notes;
+}
+
+function addInlinePDFParkNote(doc, note, y, pageW, pageH, margin) {
+  if (!note || !note.text) return y;
+
+  const contentW = pageW - margin * 2;
+  const noteLines = doc.splitTextToSize(cleanPDFText(note.text), contentW - 24);
+  const maxLinesFirstBlock = 8;
+  const visibleLines = noteLines.slice(0, maxLinesFirstBlock);
+  const hasMore = noteLines.length > visibleLines.length;
+  const finalLines = hasMore ? visibleLines.concat('…') : visibleLines;
+  const boxPad = 12;
+  const lineH = 13;
+  const boxH = 36 + finalLines.length * lineH;
+
+  if (y + boxH + 24 > pageH - margin) {
+    doc.addPage();
+    y = margin;
+  }
+
+  doc.setFillColor(251, 238, 226);
+  doc.setDrawColor(238, 216, 188);
+  doc.roundedRect(margin, y, contentW, boxH, 8, 8, 'FD');
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(10);
+  doc.setTextColor(184, 118, 31);
+  doc.text('Trip notes', margin + boxPad, y + 18);
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(9.5);
+  doc.setTextColor(60, 56, 50);
+  doc.text(finalLines, margin + boxPad, y + 36, { lineHeightFactor: 1.22 });
+
+  return y + boxH + 18;
 }
 
 function addPDFTripNotesSection(doc, notes, pageW, pageH, margin, options = {}) {
@@ -4050,6 +4094,7 @@ async function exportRecapPDF() {
   const coverImage = await getActiveTripCoverImage();
   const coverDataUrl = coverImage ? makeCoverExportDataUrl(coverImage) : null;
   const photoMemories = await buildPDFPhotoMemories(summary, Storage.getActiveTripId());
+  const tripNotesByParkId = getPDFTripNotesMap(Storage.getActiveTripId());
 
   // ── Overview page ──
   doc.setFont('helvetica', 'bold');
@@ -4125,12 +4170,6 @@ async function exportRecapPDF() {
     y += 20;
   });
 
-  // ── Optional trip notes page ──
-  addPDFTripNotesSection(doc, getPDFTripNotes(Storage.getActiveTripId()), pageW, pageH, margin, {
-    title: 'Trip Notes',
-    subtitle: 'Notes saved for this trip, grouped by park.',
-  });
-
   // ── One page per park with full checklist breakdown ──
   summary.parkSummaries.forEach(ps => {
     doc.addPage();
@@ -4156,6 +4195,8 @@ async function exportRecapPDF() {
     const breakdownLines = doc.splitTextToSize(breakdown || 'No activities logged', pageW - margin * 2);
     doc.text(breakdownLines, margin, y, { lineHeightFactor: 1.25 });
     y += 14 * breakdownLines.length + 14;
+
+    y = addInlinePDFParkNote(doc, tripNotesByParkId[ps.park.id], y, pageW, pageH, margin);
 
     doc.setDrawColor(225, 225, 225);
     doc.line(margin, y, pageW - margin, y);
