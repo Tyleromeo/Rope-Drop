@@ -1,4 +1,4 @@
-// Rope Drop — Collections
+// Park Moments — Collections
 // Themed groupings of attractions that span across one or more parks.
 // Pre-built collections live here; custom user-created ones are stored
 // separately per-trip in storage.js. Each collection lists real item IDs

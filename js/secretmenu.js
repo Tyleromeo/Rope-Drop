@@ -1,4 +1,4 @@
-// Rope Drop — Secret Menu: Coast to Coast
+// Park Moments — Secret Menu: Coast to Coast
 // A hidden bonus feature that unlocks once someone has ridden BOTH
 // versions of the same iconic ride at BOTH resorts — e.g. Space Mountain
 // at Magic Kingdom AND Space Mountain at Disneyland. Once unlocked for a
@@ -72,7 +72,7 @@ const COAST_TO_COAST_PAIRS = [
 
 // A small fixed seed per ride pair so the comparison tally doesn't look
 // empty/broken the very first time anyone opens it. This is clearly
-// labeled in the UI as Rope Drop users specifically — never implied to
+// labeled in the UI as Park Moments users specifically — never implied to
 // be a real, live, global Disney fan poll, since there's no shared
 // backend behind it; each person's vote only updates their own local
 // tally on their own device.
@@ -120,7 +120,7 @@ function castCoastToCoastVote(pairId, choice) {
 // Builds the displayed tally for a pair: the seed numbers, plus this
 // device's own vote layered on top if they've cast one. This is openly
 // a small, local approximation — not a real synced poll — and the UI
-// copy should make that clear (e.g. "Rope Drop users" rather than
+// copy should make that clear (e.g. "Park Moments users" rather than
 // "Disney fans everywhere").
 function getCoastToCoastTally(pairId) {
   const seed = COAST_TO_COAST_SEED_VOTES[pairId] || { wdw: 50, dlr: 50 };

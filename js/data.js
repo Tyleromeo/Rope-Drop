@@ -1,4 +1,4 @@
-// Rope Drop — Park Data
+// Park Moments — Park Data
 // To add/edit attractions, modify the sections arrays below.
 // badge options: 'thrill' | 'family' | 'show' | 'food' | 'character'
 // must: true  →  shows a star and sorts to top of section

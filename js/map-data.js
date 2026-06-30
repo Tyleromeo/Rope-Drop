@@ -1,4 +1,4 @@
-// Rope Drop — Map Data
+// Park Moments — Map Data
 // Real-world GPS coordinates for park map markers. WDW coordinates are
 // sourced from crowd-collected GPS data (DISboards photography forum) and
 // are accurate to the specific attraction. Disneyland/DCA coordinates are

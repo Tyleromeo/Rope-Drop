@@ -1,4 +1,4 @@
-// Rope Drop — Ride Details
+// Park Moments — Ride Details
 // Extra info shown when a person taps to expand a ride: a short description
 // of what it actually is, a practical tip, and a fun fact. Not every ride
 // has an entry yet — coverage expands over time. Content is written in

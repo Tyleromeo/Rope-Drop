@@ -1,4 +1,4 @@
-// Rope Drop — App
+// Park Moments — App
 
 const BADGE_CONFIG = {
   thrill:    { label: 'Thrill',     cls: 'badge-thrill' },
@@ -33,17 +33,25 @@ const PhotoStore = {
   open() {
     if (this.dbPromise) return this.dbPromise;
     this.dbPromise = new Promise((resolve, reject) => {
-      const req = indexedDB.open(this.dbName, 1);
-      req.onupgradeneeded = () => {
-        const db = req.result;
-        const store = db.createObjectStore(this.storeName, { keyPath: 'id' });
-        store.createIndex('tripId', 'tripId', { unique: false });
-        store.createIndex('timelineEntryId', 'timelineEntryId', { unique: false });
-        store.createIndex('itemId', 'itemId', { unique: false });
-        store.createIndex('photoType', 'photoType', { unique: false });
-      };
-      req.onsuccess = () => resolve(req.result);
-      req.onerror = () => reject(req.error);
+      if (typeof indexedDB === 'undefined' || !indexedDB) {
+        reject(new Error('IndexedDB is not available in this browser (e.g. private browsing mode).'));
+        return;
+      }
+      try {
+        const req = indexedDB.open(this.dbName, 1);
+        req.onupgradeneeded = () => {
+          const db = req.result;
+          const store = db.createObjectStore(this.storeName, { keyPath: 'id' });
+          store.createIndex('tripId', 'tripId', { unique: false });
+          store.createIndex('timelineEntryId', 'timelineEntryId', { unique: false });
+          store.createIndex('itemId', 'itemId', { unique: false });
+          store.createIndex('photoType', 'photoType', { unique: false });
+        };
+        req.onsuccess = () => resolve(req.result);
+        req.onerror = () => reject(req.error);
+      } catch (e) {
+        reject(e);
+      }
     });
     return this.dbPromise;
   },
@@ -54,12 +62,19 @@ const PhotoStore = {
   },
 
   async getAll() {
-    const store = await this.tx('readonly');
-    return new Promise((resolve, reject) => {
-      const req = store.getAll();
-      req.onsuccess = () => resolve(req.result || []);
-      req.onerror = () => reject(req.error);
-    });
+    try {
+      const store = await this.tx('readonly');
+      return await new Promise((resolve, reject) => {
+        const req = store.getAll();
+        req.onsuccess = () => resolve(req.result || []);
+        req.onerror = () => reject(req.error);
+      });
+    } catch (e) {
+      // IndexedDB unavailable or broken (e.g. private browsing) — the
+      // photo feature just quietly has nothing to show, rather than
+      // taking down anything that depends on this call.
+      return [];
+    }
   },
 
   async put(photo) {
@@ -291,43 +306,55 @@ async function openTripCoverModal(tripId = Storage.getActiveTripId(), returnTo =
 }
 
 async function refreshPhotoUI(root = document) {
-  const all = await PhotoStore.getAll();
-  const activeTripId = Storage.getActiveTripId();
-  const used = all.length;
+  // This whole function is wrapped defensively: it's called fire-and-forget
+  // (no await, no .catch()) from several render functions, including the
+  // initial page-load path. If IndexedDB is unavailable or broken (e.g.
+  // some private-browsing modes, locked-down browsers), any unhandled
+  // failure here must never be allowed to interrupt the rest of page
+  // initialization — that's what previously caused "My Trips" to stop
+  // responding on affected browsers, since the button binding ran after
+  // this call in the same synchronous render function.
+  try {
+    const all = await PhotoStore.getAll();
+    const activeTripId = Storage.getActiveTripId();
+    const used = all.length;
 
-  root.querySelectorAll('[data-photo-count]').forEach(el => {
-    el.textContent = `${used} / ${PHOTO_LIMITS.maxLocalPhotos}`;
-  });
-
-  root.querySelectorAll('.photo-log-btn').forEach(btn => {
-    const count = all.filter(p => p.timelineEntryId === btn.dataset.timelineId).length;
-    if (btn.classList.contains('memories-add-photo-btn')) {
-      btn.textContent = count ? 'Edit photos' : 'Add photo';
-    } else {
-      btn.textContent = count ? `📷 ${count}` : '📷 Add';
-    }
-    btn.classList.toggle('photo-has-count', count > 0);
-  });
-
-  root.querySelectorAll('.photo-item-btn').forEach(btn => {
-    const count = all.filter(p => p.tripId === activeTripId && p.itemId === btn.dataset.itemId && p.photoType !== 'tripCover').length;
-    btn.textContent = count ? `📷 ${count}` : '📷';
-    btn.title = count ? `${count} photo${count === 1 ? '' : 's'}` : 'Add photo';
-    btn.classList.toggle('photo-has-count', count > 0);
-  });
-
-  root.querySelectorAll('.photo-thumb-strip[data-timeline-id]').forEach(async strip => {
-    const photos = all.filter(p => p.timelineEntryId === strip.dataset.timelineId).slice(0, 4);
-    strip.innerHTML = photos.map(p => `<button class="photo-thumb-btn" data-photo-id="${p.id}" aria-label="View photo"><img alt="" src="${URL.createObjectURL(p.thumbBlob)}"></button>`).join('');
-    strip.querySelectorAll('.photo-thumb-btn').forEach(btn => {
-      btn.addEventListener('click', () => openPhotoMemoryModal({ timelineEntryId: strip.dataset.timelineId }));
+    root.querySelectorAll('[data-photo-count]').forEach(el => {
+      el.textContent = `${used} / ${PHOTO_LIMITS.maxLocalPhotos}`;
     });
-  });
 
-  const coverEls = root.querySelectorAll('.trip-cover-preview');
-  for (const el of coverEls) {
-    const cover = all.filter(p => p.tripId === (el.dataset.tripId || activeTripId) && p.photoType === 'tripCover').sort((a, b) => b.createdAt - a.createdAt)[0];
-    el.innerHTML = cover ? `<img alt="Trip cover" src="${URL.createObjectURL(cover.thumbBlob)}">` : '<span>📷</span>';
+    root.querySelectorAll('.photo-log-btn').forEach(btn => {
+      const count = all.filter(p => p.timelineEntryId === btn.dataset.timelineId).length;
+      if (btn.classList.contains('memories-add-photo-btn')) {
+        btn.textContent = count ? 'Edit photos' : 'Add photo';
+      } else {
+        btn.textContent = count ? `📷 ${count}` : '📷 Add';
+      }
+      btn.classList.toggle('photo-has-count', count > 0);
+    });
+
+    root.querySelectorAll('.photo-item-btn').forEach(btn => {
+      const count = all.filter(p => p.tripId === activeTripId && p.itemId === btn.dataset.itemId && p.photoType !== 'tripCover').length;
+      btn.textContent = count ? `📷 ${count}` : '📷';
+      btn.title = count ? `${count} photo${count === 1 ? '' : 's'}` : 'Add photo';
+      btn.classList.toggle('photo-has-count', count > 0);
+    });
+
+    root.querySelectorAll('.photo-thumb-strip[data-timeline-id]').forEach(async strip => {
+      const photos = all.filter(p => p.timelineEntryId === strip.dataset.timelineId).slice(0, 4);
+      strip.innerHTML = photos.map(p => `<button class="photo-thumb-btn" data-photo-id="${p.id}" aria-label="View photo"><img alt="" src="${URL.createObjectURL(p.thumbBlob)}"></button>`).join('');
+      strip.querySelectorAll('.photo-thumb-btn').forEach(btn => {
+        btn.addEventListener('click', () => openPhotoMemoryModal({ timelineEntryId: strip.dataset.timelineId }));
+      });
+    });
+
+    const coverEls = root.querySelectorAll('.trip-cover-preview');
+    for (const el of coverEls) {
+      const cover = all.filter(p => p.tripId === (el.dataset.tripId || activeTripId) && p.photoType === 'tripCover').sort((a, b) => b.createdAt - a.createdAt)[0];
+      el.innerHTML = cover ? `<img alt="Trip cover" src="${URL.createObjectURL(cover.thumbBlob)}">` : '<span>📷</span>';
+    }
+  } catch (e) {
+    // Photo UI just doesn't update — everything else keeps working.
   }
 }
 
@@ -2491,7 +2518,7 @@ async function shareDisneyHistoryImage(p) {
         <text x="80" y="90" font-size="30" font-weight="700" font-family="DM Sans, sans-serif" fill="#e0a04a">🎢 ROPE DROP</text>
         <text x="80" y="150" font-size="50" font-weight="700" font-family="DM Sans, sans-serif" fill="#ffffff">My Disney History</text>
         ${rowsSvg}
-        <text x="${SIZE_W / 2}" y="${SIZE_H - 60}" font-size="24" text-anchor="middle" font-family="DM Sans, sans-serif" fill="#9e9b96">Made with Rope Drop</text>
+        <text x="${SIZE_W / 2}" y="${SIZE_H - 60}" font-size="24" text-anchor="middle" font-family="DM Sans, sans-serif" fill="#9e9b96">Made with Park Moments</text>
         <text x="${SIZE_W / 2}" y="${SIZE_H - 30}" font-size="18" text-anchor="middle" font-family="DM Sans, sans-serif" fill="#9e9b96">Not affiliated with The Walt Disney Company</text>
       </svg>
     `.trim();
@@ -2619,7 +2646,7 @@ function openCoastToCoastModal() {
         ${unlockedPairs.map(p => renderPairRow(p, true)).join('')}
         ${lockedPairs.map(p => renderPairRow(p, false)).join('')}
       </div>
-      <p class="c2c-disclaimer">Results reflect votes from Rope Drop users on this device and a small starting sample — not an official or scientific poll.</p>
+      <p class="c2c-disclaimer">Results reflect votes from Park Moments users on this device and a small starting sample — not an official or scientific poll.</p>
     </div>
   `;
 
@@ -2962,7 +2989,7 @@ async function drawAndDeliverBadgeImage(badge) {
       <text x="${SIZE / 2}" y="650" font-size="58" font-weight="700" font-family="DM Sans, sans-serif" fill="#ffffff" text-anchor="middle" dominant-baseline="central">${escapeXml(title)}</text>
       <text x="${SIZE / 2}" y="715" font-size="36" font-weight="600" font-family="DM Sans, sans-serif" fill="${accentColor}" text-anchor="middle" dominant-baseline="central">${escapeXml(subtitle)}</text>
       ${dateLine ? `<text x="${SIZE / 2}" y="770" font-size="28" font-family="DM Sans, sans-serif" fill="#c9c5bd" text-anchor="middle" dominant-baseline="central">Earned ${escapeXml(dateLine)}</text>` : ''}
-      <text x="${SIZE / 2}" y="950" font-size="26" font-family="DM Sans, sans-serif" fill="#9e9b96" text-anchor="middle" dominant-baseline="central">🎢 Earned on Rope Drop</text>
+      <text x="${SIZE / 2}" y="950" font-size="26" font-family="DM Sans, sans-serif" fill="#9e9b96" text-anchor="middle" dominant-baseline="central">🎢 Earned on Park Moments</text>
       <text x="${SIZE / 2}" y="990" font-size="18" font-family="DM Sans, sans-serif" fill="#9e9b96" text-anchor="middle" dominant-baseline="central">Not affiliated with The Walt Disney Company</text>
     </svg>
   `.trim();
@@ -3007,7 +3034,7 @@ async function drawAndDeliverBadgeImage(badge) {
 
     if (canUseNativeShare) {
       try {
-        await navigator.share({ files: [file], title: 'My Rope Drop Badge' });
+        await navigator.share({ files: [file], title: 'My Park Moments Badge' });
         return;
       } catch (e) {
         // User cancelled the share sheet, or it failed — fall through to download
@@ -3649,7 +3676,7 @@ function openTripsModal() {
       try {
         payload = JSON.parse(event.target.result);
       } catch {
-        showToast('That file isn\'t valid — try a Rope Drop export.', { wrap: true, duration: 3200 });
+        showToast('That file isn\'t valid — try a Park Moments export.', { wrap: true, duration: 3200 });
         return;
       }
       const result = Storage.importTrips(payload);
@@ -3917,7 +3944,7 @@ function addPDFTripNotesSection(doc, notes, pageW, pageH, margin, options = {}) 
   if (!notes || notes.length === 0) return;
 
   const title = options.title || 'Trip Notes';
-  const subtitle = options.subtitle || 'Notes saved inside Rope Drop for this trip.';
+  const subtitle = options.subtitle || 'Notes saved inside Park Moments for this trip.';
   const includeTripName = !!options.includeTripName;
   const contentW = pageW - margin * 2;
   const lineH = 14;
@@ -4306,7 +4333,7 @@ function buildRecapCanvas(summary, coverImage = null) {
   ctx.fillRect(0, y, W, FOOTER_H);
   ctx.fillStyle = 'rgba(255,255,255,0.7)';
   ctx.font = '500 13px "DM Sans", sans-serif';
-  ctx.fillText('Made with Rope Drop 🎢  ·  Not affiliated with The Walt Disney Company', CARD_PADDING, y + 40);
+  ctx.fillText('Made with Park Moments 🎢  ·  Not affiliated with The Walt Disney Company', CARD_PADDING, y + 40);
 
   return canvas;
 }
@@ -4557,7 +4584,7 @@ async function exportRecapPDF() {
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(9);
     doc.setTextColor(170, 170, 170);
-    doc.text('Made with Rope Drop · Not affiliated with The Walt Disney Company', margin, pageH - 28);
+    doc.text('Made with Park Moments · Not affiliated with The Walt Disney Company', margin, pageH - 28);
   }
 
   doc.save(`${slugify(summary.tripName)}-recap.pdf`);
@@ -4710,7 +4737,7 @@ function exportMasterListPDF() {
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(9);
     doc.setTextColor(170, 170, 170);
-    doc.text('Made with Rope Drop · Not affiliated with The Walt Disney Company', margin, pageH - 28);
+    doc.text('Made with Park Moments · Not affiliated with The Walt Disney Company', margin, pageH - 28);
   }
 
   doc.save('rope-drop-master-list.pdf');
@@ -4730,6 +4757,14 @@ function showToast(msg, opts = {}) {
 
 // ── Init ─────────────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
+  // Bind the header "My Trips" button FIRST, before any rendering runs.
+  // This is a deliberate safety net: if something later in this function
+  // throws (e.g. a storage or rendering edge case on a particular
+  // browser), the header buttons stay functional regardless, rather than
+  // becoming unresponsive because an earlier step never reached the line
+  // that bound them.
+  bindTripButton();
+
   // Make sure a valid trip exists before anything else renders
   Storage.ensureActiveTrip();
 
@@ -4742,7 +4777,6 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   maybeShowStarHint();
-  bindTripButton();
 });
 
 function maybeShowStarHint() {

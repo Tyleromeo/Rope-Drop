@@ -1,4 +1,4 @@
-// Rope Drop — Trivia
+// Park Moments — Trivia
 // A tiered, categorized trivia system. Players pick a category, then a
 // difficulty level. Levels gate progressively — only a perfect score on
 // a level unlocks the next one for that category. Each round draws 10

@@ -1,4 +1,4 @@
-// Rope Drop — Achievements / Badges
+// Park Moments — Achievements / Badges
 // Two badge families:
 //   1. Park RIDE completion tiers (Bronze 50%, Silver 75%, Gold 100% of
 //      a park's rides only — food and shows don't count toward this)

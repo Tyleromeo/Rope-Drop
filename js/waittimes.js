@@ -1,4 +1,4 @@
-// Rope Drop — Live Wait Times
+// Park Moments — Live Wait Times
 // Pulls real-time standby wait times from the free, public ThemeParks.wiki
 // API (https://api.themeparks.wiki). No API key required. We're required
 // to credit them — see the attribution line wherever this data is shown.
@@ -76,7 +76,7 @@ async function findParkEntityId(parkId) {
 // Fetches and caches live wait times for a park, returning a lookup map
 // keyed by lowercased, trimmed attraction name -> { waitTime, status }.
 // Matching by name (rather than ID) is what lets us connect ThemeParks.wiki
-// data to Rope Drop's own ride list without maintaining a manual ID map
+// data to Park Moments' own ride list without maintaining a manual ID map
 // for every single attraction.
 async function getLiveWaitTimes(parkId) {
   const cached = waitTimesCache[parkId];
@@ -123,7 +123,7 @@ function normalizeRideName(name) {
     .trim();
 }
 
-// Looks up the live wait time for a single Rope Drop item by matching its
+// Looks up the live wait time for a single Park Moments item by matching its
 // stored name against the live data lookup map. Returns null if no match
 // or if the park's data wasn't available at all.
 function matchWaitTime(liveLookup, itemName) {

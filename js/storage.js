@@ -1,4 +1,4 @@
-// Rope Drop — Storage
+// Park Moments — Storage
 // Currently uses localStorage.
 // To swap in Supabase: keep the same method names/signatures and replace
 // the localStorage reads/writes inside each with async Supabase calls —
@@ -171,7 +171,7 @@ const Storage = {
 
 
   // Ensures every timeline entry has a stable id for attaching local photo memories.
-  // Older Rope Drop trips may have entries created before ids existed, so this quietly
+  // Older Park Moments trips may have entries created before ids existed, so this quietly
   // upgrades the active trip the next time it is viewed.
   ensureTimelineEntryIds(tripId = this.ensureActiveTrip()) {
     const allData = this.getAllTripsData();
@@ -960,7 +960,7 @@ const Storage = {
   importTrips(payload) {
     try {
       if (!payload || !payload.ropeDropExport || !payload.trips || !payload.tripsData) {
-        return { success: false, importedCount: 0, error: 'This file doesn\'t look like a Rope Drop export.' };
+        return { success: false, importedCount: 0, error: 'This file doesn\'t look like a Park Moments export.' };
       }
       const existingMeta = this.getAllTrips();
       const existingData = this.getAllTripsData();
@@ -1115,7 +1115,7 @@ const Storage = {
       });
       // Timeline entries are included as a migration safety net for any
       // older data that logged an activity but may not have checks saved
-      // in the exact shape current Rope Drop expects.
+      // in the exact shape current Park Moments expects.
       (tripData.timeline || []).forEach(entry => {
         if (entry && entry.itemId) completed.add(entry.itemId);
       });
