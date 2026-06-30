@@ -1122,7 +1122,7 @@ function renderPark() {
       <h2 class="section-heading">Your notes</h2>
       <textarea
         class="notes-input"
-        placeholder="Rope drop plan, Lightning Lane strategy, meal reservations, kids' requests…"
+        placeholder="Rope drop plan, Lightning Lane strategy, meal reservations, kids' requests, highlights of the day…"
         aria-label="Your notes for ${park.name}"
       >${noteVal}</textarea>
     </div>
