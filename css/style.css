@@ -3649,3 +3649,18 @@ body {
   .photo-thumb-strip, .memories-add-photo-btn, .memories-card .photo-thumb-strip { margin-left: 0; }
   .memories-card .photo-thumb-btn { width: 86px; height: 86px; }
 }
+
+/* ── Badge modal scope note ── */
+.badge-scope-note {
+  font-size: 13px;
+  color: var(--text-2);
+  line-height: 1.45;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  margin: 2px 0 14px;
+}
+.badge-scope-note strong {
+  color: var(--text-1);
+}

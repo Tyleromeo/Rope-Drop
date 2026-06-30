@@ -1057,4 +1057,69 @@ const Storage = {
       remainingItems: remaining,
     };
   },
+
+  // ── Lifetime progress helpers ──────────────────────────────────────
+  // These read every saved trip and build one long-term completion set.
+  // Trip progress still answers "what did I do on this trip?" Lifetime
+  // progress answers "what have I ever completed across all trips?"
+  getLifetimeCompletedItemIds() {
+    const completed = new Set();
+    const allTripsData = this.getAllTripsData();
+    Object.values(allTripsData).forEach(tripData => {
+      const checks = tripData.checks || {};
+      Object.entries(checks).forEach(([itemId, isChecked]) => {
+        if (isChecked) completed.add(itemId);
+      });
+      // Timeline entries are included as a migration safety net for any
+      // older data that logged an activity but may not have checks saved
+      // in the exact shape current Rope Drop expects.
+      (tripData.timeline || []).forEach(entry => {
+        if (entry && entry.itemId) completed.add(entry.itemId);
+      });
+    });
+    return completed;
+  },
+
+  getLifetimeSongLog(itemId) {
+    const allTripsData = this.getAllTripsData();
+    const songs = [];
+    Object.values(allTripsData).forEach(tripData => {
+      const list = tripData.songs && tripData.songs[itemId];
+      if (Array.isArray(list)) songs.push(...list);
+    });
+    return songs;
+  },
+
+  getLifetimeParkStatsForCategory(parkId, category) {
+    const park = PARKS.find(p => p.id === parkId);
+    const completed = this.getLifetimeCompletedItemIds();
+    let total = 0, done = 0;
+    park?.sections.forEach(s => s.items.forEach(i => {
+      const cat = (i.badge === 'thrill' || i.badge === 'family') ? 'rides'
+        : (i.badge === 'show' || i.badge === 'character') ? 'show'
+        : (i.badge === 'food') ? 'food' : 'rides';
+      if (cat !== category) return;
+      total++;
+      if (completed.has(i.id)) done++;
+    }));
+    return { total, done, pct: total ? Math.round((done / total) * 100) : 0 };
+  },
+
+  getLifetimeCollectionProgress(itemIds) {
+    const completed = this.getLifetimeCompletedItemIds();
+    const allItemsById = {};
+    PARKS.forEach(park => park.sections.forEach(s => s.items.forEach(item => {
+      allItemsById[item.id] = item;
+    })));
+    const items = (itemIds || []).map(id => allItemsById[id]).filter(Boolean);
+    const done = items.filter(item => completed.has(item.id));
+    const remaining = items.filter(item => !completed.has(item.id));
+    return {
+      total: items.length,
+      doneCount: done.length,
+      pct: items.length > 0 ? Math.round((done.length / items.length) * 100) : 0,
+      doneItems: done,
+      remainingItems: remaining,
+    };
+  },
 };

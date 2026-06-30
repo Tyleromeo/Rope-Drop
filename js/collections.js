@@ -144,12 +144,12 @@ const PREBUILT_COLLECTIONS = [
     itemIds: ['dl-02', 'dl-10', 'dl-23', 'dl-24', 'dl-25', 'dl-26'],
   },
   {
-    id: 'dlr-classic-originals',
+    id: 'dlr-disneyland-originals',
     resortId: 'dlr',
-    name: 'Classic Disneyland Originals',
+    name: 'Disneyland Originals',
     emoji: '⭐',
-    description: 'Beloved Disneyland classics and original park icons.',
-    itemIds: ['dl-02', 'dl-04', 'dl-05', 'dl-06', 'dl-10', 'dl-11', 'dl-35', 'dl-45'],
+    description: 'Opening-day Disneyland attractions from 1955 that are still represented in the park today.',
+    itemIds: ['dl-35', 'dl-11', 'dl-33', 'dl-27', 'dl-28', 'dl-23', 'dl-10', 'dl-24', 'dl-37', 'dl-36'],
   },
   {
     id: 'dlr-must-eat-snacks',

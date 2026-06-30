@@ -223,7 +223,11 @@ async function refreshPhotoUI(root = document) {
 
   root.querySelectorAll('.photo-log-btn').forEach(btn => {
     const count = all.filter(p => p.timelineEntryId === btn.dataset.timelineId).length;
-    btn.textContent = count ? `📷 ${count}` : '📷 Add';
+    if (btn.classList.contains('memories-add-photo-btn')) {
+      btn.textContent = count ? 'Edit photos' : 'Add photo';
+    } else {
+      btn.textContent = count ? `📷 ${count}` : '📷 Add';
+    }
     btn.classList.toggle('photo-has-count', count > 0);
   });
 
@@ -363,7 +367,7 @@ async function openTripMemoriesModal() {
               <span class="memories-time">${entry.timeLabel}</span>
               <span class="memories-name">${entry.name}${entry.isExtra ? ' <span class="todays-log-again">(again)</span>' : ''}</span>
             </div>
-            <button class="photo-log-btn" data-timeline-id="${entry.id}" data-item-id="${entry.itemId}">📷 Add</button>
+            <button class="photo-log-btn memories-add-photo-btn" data-timeline-id="${entry.id}" data-item-id="${entry.itemId}">Add photo</button>
             <div class="photo-thumb-strip" data-timeline-id="${entry.id}"></div>
           </div>
         `).join('')}
@@ -2035,6 +2039,7 @@ let collectionsDetailId = null; // currently-open collection's id, or null for t
 // ── Badge wall — browsable view of every earned (and not-yet-earned) badge ──
 // ── Disney History — a keepsake profile view of your whole Disney story ────
 let historyModalView = 'profile'; // 'profile' | 'alltime' | 'byyear'
+let badgeModalView = 'trip'; // 'trip' | 'lifetime'
 
 function openDisneyHistoryModal() {
   const p = Storage.getDisneyHistoryProfile();
@@ -2344,97 +2349,6 @@ async function shareDisneyHistoryImage(p) {
 }
 
 function openBadgesModal() {
-  const earnedPark = getEarnedParkBadges();
-  const earnedCollection = getEarnedCollectionBadges();
-  const earnedIds = new Set([...earnedPark, ...earnedCollection].map(b => b.id));
-  const earnedById = {};
-  [...earnedPark, ...earnedCollection].forEach(b => { earnedById[b.id] = b; });
-
-  // Build the full park badge grid — every park × every tier, marking
-  // which ones are earned vs. still locked. Scoped to rides only — food
-  // and shows don't count toward these badges.
-  const parkBadgeRows = PARKS.map(park => {
-    const stats = Storage.getParkStatsForCategory(park.id, 'rides');
-    const badgeIcon = park.emoji;
-    const tierCells = PARK_BADGE_TIERS.map(tier => {
-      const id = `park_${park.id}_${tier.id}`;
-      const isEarned = earnedIds.has(id);
-      const dateLine = isEarned ? formatBadgeDate(earnedById[id].earnedAt) : '';
-      return `
-        <button class="badge-cell${isEarned ? ' badge-cell-earned' : ''}" data-badge-id="${id}" ${isEarned ? '' : 'disabled'} title="${tier.label} — ${tier.threshold}% of rides">
-          <span class="badge-cell-icon-wrap">
-            <span class="badge-cell-emoji">${isEarned ? badgeIcon : '🔒'}</span>
-            ${isEarned ? `<span class="badge-cell-ribbon">${tier.emoji}</span>` : ''}
-          </span>
-          <span class="badge-cell-label">${tier.label}</span>
-          ${dateLine ? `<span class="badge-cell-date">${dateLine}</span>` : ''}
-        </button>
-      `;
-    }).join('');
-    return `
-      <div class="badge-park-row">
-        <div class="badge-park-row-header">
-          <span class="badge-park-name">${park.emoji} ${park.shortName}</span>
-          <span class="badge-park-pct">${stats.pct}% of rides</span>
-        </div>
-        <div class="badge-tier-row">${tierCells}</div>
-      </div>
-    `;
-  }).join('');
-
-  // Collection badges — only list collections that actually have items.
-  // Tiered collections (e.g. Show Lover) render a row of tier cells like
-  // the park badges; simple collections render a single earned/locked row.
-  const collections = getAllCollections().filter(c => c.itemIds && c.itemIds.length > 0);
-  const collectionBadgeRows = collections.map(col => {
-    const tiers = TIERED_COLLECTION_CONFIG[col.id];
-    const progress = getCollectionProgressForCollection(col);
-
-    if (tiers) {
-      const tierCells = tiers.map(tier => {
-        const id = `collection_${col.id}_${tier.id}`;
-        const isEarned = earnedIds.has(id);
-        const target = tier.count === null ? col.itemIds.length : tier.count;
-        const dateLine = isEarned ? formatBadgeDate(earnedById[id].earnedAt) : '';
-        return `
-          <button class="badge-cell${isEarned ? ' badge-cell-earned' : ''}" data-badge-id="${id}" ${isEarned ? '' : 'disabled'} title="${tier.label} — ${target} shows">
-            <span class="badge-cell-icon-wrap">
-              <span class="badge-cell-emoji">${isEarned ? col.emoji : '🔒'}</span>
-              ${isEarned ? `<span class="badge-cell-ribbon">${tier.emoji}</span>` : ''}
-            </span>
-            <span class="badge-cell-label">${tier.label}</span>
-            ${dateLine ? `<span class="badge-cell-date">${dateLine}</span>` : ''}
-          </button>
-        `;
-      }).join('');
-      return `
-        <div class="badge-park-row">
-          <div class="badge-park-row-header">
-            <span class="badge-park-name">${col.emoji} ${col.name}</span>
-            <span class="badge-park-pct">${progress.doneCount} of ${col.itemIds.length} shows</span>
-          </div>
-          <div class="badge-tier-row">${tierCells}</div>
-        </div>
-      `;
-    }
-
-    const id = `collection_${col.id}`;
-    const isEarned = earnedIds.has(id);
-    const dateLine = isEarned ? formatBadgeDate(earnedById[id].earnedAt) : '';
-    return `
-      <button class="badge-collection-row${isEarned ? ' badge-cell-earned' : ''}" data-badge-id="${id}" ${isEarned ? '' : 'disabled'}>
-        <span class="badge-cell-emoji">${isEarned ? col.emoji : '🔒'}</span>
-        <span class="badge-collection-body">
-          <span class="badge-collection-name">${col.name}</span>
-          ${dateLine ? `<span class="badge-collection-date">Earned ${dateLine}</span>` : ''}
-        </span>
-        <span class="badge-collection-pct">${progress.pct}%</span>
-      </button>
-    `;
-  }).join('');
-
-  const totalEarned = earnedPark.length + earnedCollection.length;
-
   const overlay = document.createElement('div');
   overlay.className = 'modal-overlay';
   overlay.innerHTML = `
@@ -2443,13 +2357,12 @@ function openBadgesModal() {
         <h3>🏆 My Badges</h3>
         <button class="modal-close" aria-label="Close">✕</button>
       </div>
-      <p class="modal-subtitle">${totalEarned} badge${totalEarned !== 1 ? 's' : ''} earned so far. Park badges are based on rides only — keep riding to unlock more.</p>
-      <div class="badge-section-heading">Park completion</div>
-      <div class="badge-park-list">${parkBadgeRows}</div>
-      ${collectionBadgeRows ? `
-        <div class="badge-section-heading">Collections</div>
-        <div class="badge-collection-list">${collectionBadgeRows}</div>
-      ` : ''}
+      <p class="modal-subtitle">Trip badges celebrate this vacation. Lifetime Badges remember progress across every trip you’ve saved.</p>
+      <div class="alltime-tabs">
+        <button class="alltime-tab${badgeModalView === 'trip' ? ' active' : ''}" data-view="trip">This Trip</button>
+        <button class="alltime-tab${badgeModalView === 'lifetime' ? ' active' : ''}" data-view="lifetime">Lifetime</button>
+      </div>
+      <div id="badge-content"></div>
     </div>
   `;
 
@@ -2463,16 +2376,133 @@ function openBadgesModal() {
   overlay.querySelector('.modal-close').addEventListener('click', close);
   overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
 
-  // Tapping an earned badge opens the share flow again — people often
-  // want to revisit and re-share an old badge later.
-  overlay.querySelectorAll('.badge-cell-earned').forEach(btn => {
+  overlay.querySelectorAll('.alltime-tab').forEach(btn => {
     btn.addEventListener('click', () => {
-      const badgeId = btn.dataset.badgeId;
-      const allEarned = [...getEarnedParkBadges(), ...getEarnedCollectionBadges()];
-      const badge = allEarned.find(b => b.id === badgeId);
-      if (badge) shareBadgeImage(badge);
+      badgeModalView = btn.dataset.view;
+      overlay.querySelectorAll('.alltime-tab').forEach(b => b.classList.toggle('active', b === btn));
+      renderBadgeContent();
     });
   });
+
+  renderBadgeContent();
+
+  function renderBadgeContent() {
+    const isLifetime = badgeModalView === 'lifetime';
+    const earnedPark = isLifetime ? getEarnedLifetimeParkBadges() : getEarnedParkBadges();
+    const earnedCollection = isLifetime ? getEarnedLifetimeCollectionBadges() : getEarnedCollectionBadges();
+    const earnedIds = new Set([...earnedPark, ...earnedCollection].map(b => b.id));
+    const earnedById = {};
+    [...earnedPark, ...earnedCollection].forEach(b => { earnedById[b.id] = b; });
+
+    const parkBadgeRows = PARKS.map(park => {
+      const stats = isLifetime
+        ? Storage.getLifetimeParkStatsForCategory(park.id, 'rides')
+        : Storage.getParkStatsForCategory(park.id, 'rides');
+      const badgeIcon = park.emoji;
+      const tierCells = PARK_BADGE_TIERS.map(tier => {
+        const id = isLifetime ? `lifetime_park_${park.id}_${tier.id}` : `park_${park.id}_${tier.id}`;
+        const isEarned = earnedIds.has(id);
+        const dateLine = isEarned ? formatBadgeDate(earnedById[id].earnedAt) : '';
+        return `
+          <button class="badge-cell${isEarned ? ' badge-cell-earned' : ''}" data-badge-id="${id}" ${isEarned ? '' : 'disabled'} title="${tier.label} — ${tier.threshold}% of rides">
+            <span class="badge-cell-icon-wrap">
+              <span class="badge-cell-emoji">${isEarned ? badgeIcon : '🔒'}</span>
+              ${isEarned ? `<span class="badge-cell-ribbon">${tier.emoji}</span>` : ''}
+            </span>
+            <span class="badge-cell-label">${tier.label}</span>
+            ${dateLine ? `<span class="badge-cell-date">${dateLine}</span>` : ''}
+          </button>
+        `;
+      }).join('');
+      return `
+        <div class="badge-park-row">
+          <div class="badge-park-row-header">
+            <span class="badge-park-name">${park.emoji} ${park.shortName}</span>
+            <span class="badge-park-pct">${stats.done} of ${stats.total} rides · ${stats.pct}%</span>
+          </div>
+          <div class="badge-tier-row">${tierCells}</div>
+        </div>
+      `;
+    }).join('');
+
+    const collections = getAllCollections().filter(c => c.itemIds && c.itemIds.length > 0);
+    const collectionBadgeRows = collections.map(col => {
+      const tiers = TIERED_COLLECTION_CONFIG[col.id];
+      const progress = isLifetime ? getLifetimeCollectionProgressForCollection(col) : getCollectionProgressForCollection(col);
+
+      if (tiers) {
+        const tierCells = tiers.map(tier => {
+          const id = isLifetime ? `lifetime_collection_${col.id}_${tier.id}` : `collection_${col.id}_${tier.id}`;
+          const isEarned = earnedIds.has(id);
+          const target = tier.count === null ? (col.type === 'song' ? (col.songs || []).length : col.itemIds.length) : tier.count;
+          const dateLine = isEarned ? formatBadgeDate(earnedById[id].earnedAt) : '';
+          return `
+            <button class="badge-cell${isEarned ? ' badge-cell-earned' : ''}" data-badge-id="${id}" ${isEarned ? '' : 'disabled'} title="${tier.label} — ${target}">
+              <span class="badge-cell-icon-wrap">
+                <span class="badge-cell-emoji">${isEarned ? col.emoji : '🔒'}</span>
+                ${isEarned ? `<span class="badge-cell-ribbon">${tier.emoji}</span>` : ''}
+              </span>
+              <span class="badge-cell-label">${tier.label}</span>
+              ${dateLine ? `<span class="badge-cell-date">${dateLine}</span>` : ''}
+            </button>
+          `;
+        }).join('');
+        return `
+          <div class="badge-park-row">
+            <div class="badge-park-row-header">
+              <span class="badge-park-name">${col.emoji} ${col.name}</span>
+              <span class="badge-park-pct">${progress.doneCount} of ${progress.total}</span>
+            </div>
+            <div class="badge-tier-row">${tierCells}</div>
+          </div>
+        `;
+      }
+
+      const id = isLifetime ? `lifetime_collection_${col.id}` : `collection_${col.id}`;
+      const isEarned = earnedIds.has(id);
+      const dateLine = isEarned ? formatBadgeDate(earnedById[id].earnedAt) : '';
+      return `
+        <button class="badge-collection-row${isEarned ? ' badge-cell-earned' : ''}" data-badge-id="${id}" ${isEarned ? '' : 'disabled'}>
+          <span class="badge-cell-emoji">${isEarned ? col.emoji : '🔒'}</span>
+          <span class="badge-collection-body">
+            <span class="badge-collection-name">${col.name}</span>
+            <span class="badge-collection-date">${progress.doneCount} of ${progress.total} complete${dateLine ? ` · Earned ${dateLine}` : ''}</span>
+          </span>
+          <span class="badge-collection-pct">${progress.pct}%</span>
+        </button>
+      `;
+    }).join('');
+
+    const totalEarned = earnedPark.length + earnedCollection.length;
+    const scopeLabel = isLifetime ? 'lifetime badge' : 'trip badge';
+    const helperText = isLifetime
+      ? 'Lifetime Badges use every saved trip, so a park can be completed over multiple visits.'
+      : 'This Trip only counts what is checked off in the active trip.';
+
+    overlay.querySelector('#badge-content').innerHTML = `
+      <p class="badge-scope-note"><strong>${totalEarned}</strong> ${scopeLabel}${totalEarned !== 1 ? 's' : ''} earned. ${helperText}</p>
+      <div class="badge-section-heading">Park completion</div>
+      <div class="badge-park-list">${parkBadgeRows}</div>
+      ${collectionBadgeRows ? `
+        <div class="badge-section-heading">Collections</div>
+        <div class="badge-collection-list">${collectionBadgeRows}</div>
+      ` : ''}
+    `;
+
+    overlay.querySelectorAll('.badge-cell-earned').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const badgeId = btn.dataset.badgeId;
+        const allEarned = [
+          ...getEarnedParkBadges(),
+          ...getEarnedCollectionBadges(),
+          ...getEarnedLifetimeParkBadges(),
+          ...getEarnedLifetimeCollectionBadges(),
+        ];
+        const badge = allEarned.find(b => b.id === badgeId);
+        if (badge) shareBadgeImage(badge);
+      });
+    });
+  }
 }
 
 // ── Badge celebration — pops when a new badge is earned ────────────────────
@@ -2483,19 +2513,20 @@ function showBadgeCelebration(badges, index) {
   const overlay = document.createElement('div');
   overlay.className = 'badge-celebration-overlay';
 
-  const isPark = badge.type === 'park';
-  const isCollectionTier = badge.type === 'collection-tier';
+  const isPark = badge.type === 'park' || badge.type === 'lifetime-park';
+  const isLifetime = badge.type && badge.type.startsWith('lifetime-');
+  const isCollectionTier = badge.type === 'collection-tier' || badge.type === 'lifetime-collection-tier';
   const mainEmoji = isPark ? badge.badgeIcon : badge.collectionEmoji;
   const ribbonEmoji = (isPark || isCollectionTier) ? badge.tierEmoji : '';
   const title = isPark
-    ? `${badge.tierLabel} — ${badge.parkName} Rides`
+    ? `${isLifetime ? 'Lifetime ' : ''}${badge.tierLabel} — ${badge.parkName} Rides`
     : isCollectionTier
-    ? `${badge.tierLabel} — ${badge.collectionName}`
-    : 'Collection Complete!';
+    ? `${isLifetime ? 'Lifetime ' : ''}${badge.tierLabel} — ${badge.collectionName}`
+    : `${isLifetime ? 'Lifetime ' : ''}Collection Complete!`;
   const subtitle = isPark
-    ? `${badge.pct}% of rides complete`
+    ? `${badge.pct}% of rides complete${isLifetime ? ' across all trips' : ''}`
     : isCollectionTier
-    ? (badge.tier === 'gold' ? 'Every permanent show, watched!' : `${badge.doneCount} of ${badge.targetCount} shows watched`)
+    ? (badge.tier === 'gold' ? `Complete${isLifetime ? ' across all trips' : ''}!` : `${badge.doneCount} of ${badge.targetCount} complete`)
     : badge.collectionName;
   const dateLine = formatBadgeDate(badge.earnedAt);
 
@@ -2544,19 +2575,20 @@ async function shareBadgeImage(badge) {
 }
 
 async function drawAndDeliverBadgeImage(badge) {
-  const isPark = badge.type === 'park';
-  const isCollectionTier = badge.type === 'collection-tier';
+  const isPark = badge.type === 'park' || badge.type === 'lifetime-park';
+  const isLifetime = badge.type && badge.type.startsWith('lifetime-');
+  const isCollectionTier = badge.type === 'collection-tier' || badge.type === 'lifetime-collection-tier';
   const mainEmoji = isPark ? badge.badgeIcon : badge.collectionEmoji;
   const ribbonEmoji = (isPark || isCollectionTier) ? badge.tierEmoji : '';
   const title = isPark
-    ? `${badge.tierLabel} — ${badge.parkName} Rides`
+    ? `${isLifetime ? 'Lifetime ' : ''}${badge.tierLabel} — ${badge.parkName} Rides`
     : isCollectionTier
-    ? `${badge.tierLabel} — ${badge.collectionName}`
-    : 'Collection Complete!';
+    ? `${isLifetime ? 'Lifetime ' : ''}${badge.tierLabel} — ${badge.collectionName}`
+    : `${isLifetime ? 'Lifetime ' : ''}Collection Complete!`;
   const subtitle = isPark
-    ? `${badge.pct}% of rides complete`
+    ? `${badge.pct}% of rides complete${isLifetime ? ' across all trips' : ''}`
     : isCollectionTier
-    ? (badge.tier === 'gold' ? 'Every permanent show, watched!' : `${badge.doneCount} of ${badge.targetCount} shows watched`)
+    ? (badge.tier === 'gold' ? `Complete${isLifetime ? ' across all trips' : ''}!` : `${badge.doneCount} of ${badge.targetCount} complete`)
     : badge.collectionName;
   const dateLine = formatBadgeDate(badge.earnedAt);
   const accentColor = isPark
@@ -2623,10 +2655,10 @@ async function drawAndDeliverBadgeImage(badge) {
     }
 
     const fileName = isPark
-      ? `rope-drop-badge-${badge.parkId}-${badge.tier}.png`
+      ? `rope-drop-badge-${isLifetime ? 'lifetime-' : ''}${badge.parkId}-${badge.tier}.png`
       : isCollectionTier
-      ? `rope-drop-badge-${badge.collectionId}-${badge.tier}.png`
-      : `rope-drop-badge-${badge.collectionId}.png`;
+      ? `rope-drop-badge-${isLifetime ? 'lifetime-' : ''}${badge.collectionId}-${badge.tier}.png`
+      : `rope-drop-badge-${isLifetime ? 'lifetime-' : ''}${badge.collectionId}.png`;
     const file = new File([blob], fileName, { type: 'image/png' });
 
     let canUseNativeShare = false;
@@ -2718,6 +2750,21 @@ function getCollectionProgressForCollection(col) {
     return { total, doneCount, pct, doneItems, remainingItems };
   }
   return Storage.getCollectionProgress(col.itemIds || []);
+}
+
+function getLifetimeCollectionProgressForCollection(col) {
+  if (col.type === 'song') {
+    const songLog = Storage.getLifetimeSongLog(col.itemId);
+    const heardSet = new Set(songLog);
+    const songs = col.songs || [];
+    const doneItems = songs.filter(song => heardSet.has(song)).map(song => ({ id: song, name: song }));
+    const remainingItems = songs.filter(song => !heardSet.has(song)).map(song => ({ id: song, name: song }));
+    const total = songs.length;
+    const doneCount = doneItems.length;
+    const pct = total ? Math.round((doneCount / total) * 100) : 0;
+    return { total, doneCount, pct, doneItems, remainingItems };
+  }
+  return Storage.getLifetimeCollectionProgress(col.itemIds || []);
 }
 
 function getCollectionGroupKey(col) {

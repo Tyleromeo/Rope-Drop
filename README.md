@@ -89,3 +89,7 @@ This build adds a local-only photo beta:
 - Photos are stored in IndexedDB on the user's device/browser only
 
 These photos do not sync between devices and are not uploaded to Vercel or Supabase.
+
+## Latest update — Lifetime Badges
+
+This build adds a **Lifetime** tab to **My Badges**. Trip badges still track the active trip only, while Lifetime Badges calculate progress across every saved trip so users can complete parks and collections over multiple visits.
