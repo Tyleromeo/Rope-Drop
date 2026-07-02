@@ -48,6 +48,25 @@ const MAP_MARKERS = {
     { itemId: 'ep-08', lat: 28.373942, lng: -81.551283 }, // Living with the Land
     { itemId: 'ep-07', lat: 28.3727,   lng: -81.551197 }, // Journey Into Imagination
     { itemId: 'ep-21', lat: 28.375542, lng: -81.549417 }, // Spaceship Earth
+    // World Showcase rides & shows — pinned to their country's pavilion
+    // along the promenade ring (NOT the lagoon center).
+    { itemId: 'ep-02', lat: 28.368900, lng: -81.553300 }, // Remy's Ratatouille Adventure (France pavilion expansion)
+    { itemId: 'ep-03', lat: 28.370660, lng: -81.546820 }, // Frozen Ever After (Norway pavilion)
+    { itemId: 'ep-09', lat: 28.371414, lng: -81.547586 }, // Gran Fiesta Tour (inside Mexico pyramid)
+    { itemId: 'ep-24', lat: 28.369944, lng: -81.546911 }, // Reflections of China (China pavilion)
+    { itemId: 'ep-25', lat: 28.371336, lng: -81.551375 }, // Canada Far and Wide (Canada pavilion)
+    { itemId: 'ep-26', lat: 28.369067, lng: -81.552725 }, // Impressions de France (France pavilion)
+    { itemId: 'ep-27', lat: 28.369067, lng: -81.552725 }, // Beauty and the Beast Sing-Along (France pavilion)
+    { itemId: 'ep-32', lat: 28.370517, lng: -81.5471 },   // Princess characters at Akershus (Norway pavilion)
+    { itemId: 'ep-33', lat: 28.369067, lng: -81.552725 }, // Meet Belle (France promenade)
+    { itemId: 'ep-34', lat: 28.369944, lng: -81.546911 }, // Meet Mulan (China pavilion)
+    { itemId: 'ep-35', lat: 28.368353, lng: -81.551653 }, // Meet Princess Jasmine (Morocco pavilion)
+    { itemId: 'ep-38', lat: 28.368800, lng: -81.547700 }, // Germany pavilion
+    { itemId: 'ep-39', lat: 28.368200, lng: -81.548500 }, // Italy pavilion
+    { itemId: 'ep-15', lat: 28.370500, lng: -81.550000 }, // Luminous — fireworks ON the lagoon (intentional)
+    { itemId: 'ep-16', lat: 28.370517, lng: -81.5471 },   // Kringla Bakeri (Norway pavilion)
+    { itemId: 'ep-18', lat: 28.371830, lng: -81.552380 }, // Refreshment Port (near Canada)
+    { itemId: 'ep-41', lat: 28.368800, lng: -81.547700 }, // Biergarten (Germany pavilion)
     { itemId: 'ep-10', lat: 28.371414, lng: -81.547586 }, // Mexico pavilion
     { itemId: 'ep-36', lat: 28.370517, lng: -81.5471 },   // Norway pavilion
     { itemId: 'ep-37', lat: 28.369944, lng: -81.546911 }, // China pavilion

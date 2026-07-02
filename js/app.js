@@ -3,10 +3,26 @@
 const BADGE_CONFIG = {
   thrill:    { label: 'Thrill',     cls: 'badge-thrill' },
   family:    { label: 'Family',     cls: 'badge-family' },
-  show:      { label: 'Show',       cls: 'badge-show'   },
-  food:      { label: 'Food',       cls: 'badge-food'   },
-  character: { label: 'Meet',       cls: 'badge-character' },
+  show:       { label: 'Show',       cls: 'badge-show'   },
+  experience: { label: 'Experience', cls: 'badge-experience' },
+  food:       { label: 'Food',       cls: 'badge-food'   },
+  character:  { label: 'Meet',       cls: 'badge-character' },
 };
+
+// Food spots get a more specific badge than just "Food" — derived from
+// which data-file section they live in, so each place is labeled as
+// Table-Service, Quick Service, or Snacks & Treats.
+const FOOD_TYPE_BADGES = {
+  'Table-Service Restaurants': { label: 'Table-Service',  cls: 'badge-food badge-food-table' },
+  'Quick-Service Restaurants': { label: 'Quick Service',  cls: 'badge-food badge-food-quick' },
+  'Snacks & Treats':           { label: 'Snacks & Treats', cls: 'badge-food badge-food-snack' },
+};
+const FOOD_TYPE_BY_ID = {};
+PARKS.forEach(p => p.sections.forEach(s => {
+  const cfg = FOOD_TYPE_BADGES[s.name];
+  if (!cfg) return;
+  s.items.forEach(i => { if (i.badge === 'food') FOOD_TYPE_BY_ID[i.id] = cfg; });
+}));
 
 // View state: 'resorts' (the resort-picker screen) or 'park' (a park's checklist)
 let currentView = 'resorts';
@@ -23,6 +39,66 @@ const PHOTO_LIMITS = {
   fullImageMaxLongEdge: 1920,
   thumbnailMaxLongEdge: 384,
   jpegQuality: 0.82,
+};
+
+const MUST_DO_TOUCH_HOLD_MS = 520;
+const MUST_DO_TOUCH_MOVE_TOLERANCE = 10;
+
+let nativePhotoRequestSeq = 0;
+const nativePhotoResolvers = new Map();
+
+function getNativePhotoHandler() {
+  return window.webkit
+    && window.webkit.messageHandlers
+    && window.webkit.messageHandlers.parkMomentsPhoto;
+}
+
+function dataUrlToBlob(dataUrl) {
+  const [header, payload] = String(dataUrl || '').split(',');
+  const mimeMatch = header && header.match(/^data:([^;]+);base64$/);
+  if (!payload || !mimeMatch) throw new Error('Invalid image data.');
+
+  const binary = atob(payload);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) {
+    bytes[i] = binary.charCodeAt(i);
+  }
+  return new Blob([bytes], { type: mimeMatch[1] });
+}
+
+function makeImageFile(blob, filename = 'park-moments-photo.jpg') {
+  try {
+    return new File([blob], filename, { type: blob.type || 'image/jpeg' });
+  } catch (e) {
+    blob.name = filename;
+    return blob;
+  }
+}
+
+window.ParkMomentsNativePhoto = {
+  receive(requestId, dataUrl, filename) {
+    const resolver = nativePhotoResolvers.get(requestId);
+    if (!resolver) return;
+    nativePhotoResolvers.delete(requestId);
+
+    try {
+      resolver(makeImageFile(dataUrlToBlob(dataUrl), filename));
+    } catch (e) {
+      resolver(null);
+    }
+  },
+  cancel(requestId) {
+    const resolver = nativePhotoResolvers.get(requestId);
+    if (!resolver) return;
+    nativePhotoResolvers.delete(requestId);
+    resolver(null);
+  },
+  fail(requestId) {
+    const resolver = nativePhotoResolvers.get(requestId);
+    if (!resolver) return;
+    nativePhotoResolvers.delete(requestId);
+    resolver(null);
+  },
 };
 
 const PhotoStore = {
@@ -171,6 +247,15 @@ function compressImage(file, maxLongEdge, quality) {
 }
 
 function pickImageFile() {
+  const nativeHandler = getNativePhotoHandler();
+  if (nativeHandler) {
+    return new Promise(resolve => {
+      const requestId = `photo_${Date.now()}_${++nativePhotoRequestSeq}`;
+      nativePhotoResolvers.set(requestId, resolve);
+      nativeHandler.postMessage({ requestId });
+    });
+  }
+
   return new Promise(resolve => {
     const input = document.createElement('input');
     input.type = 'file';
@@ -179,19 +264,11 @@ function pickImageFile() {
     document.body.appendChild(input);
 
     let settled = false;
-    let focusTimer = null;
     const cleanup = (file = null) => {
       if (settled) return;
       settled = true;
-      if (focusTimer) clearTimeout(focusTimer);
-      window.removeEventListener('focus', handleFocus);
       input.remove();
       resolve(file);
-    };
-    const handleFocus = () => {
-      focusTimer = setTimeout(() => {
-        if (!input.files || input.files.length === 0) cleanup(null);
-      }, 500);
     };
 
     input.addEventListener('change', () => {
@@ -201,7 +278,6 @@ function pickImageFile() {
     input.addEventListener('cancel', () => {
       cleanup(null);
     }, { once: true });
-    window.addEventListener('focus', handleFocus);
     input.click();
   });
 }
@@ -241,7 +317,9 @@ async function setTripCoverPhoto(tripId = Storage.getActiveTripId(), returnTo = 
     showToast('Trip cover photo saved 📷');
     document.querySelector('.modal-overlay')?.remove();
     document.body.style.overflow = '';
-    if (returnTo === 'memories') openTripMemoriesModal(tripId);
+    if (returnTo === 'memories' || returnTo === 'memories-trips') {
+      openTripMemoriesModal(tripId, { returnToTrips: returnTo === 'memories-trips' });
+    }
     else openTripsModal();
   } catch (err) {
     showToast(err.message || 'Could not save that cover photo.', { wrap: true, duration: 3400 });
@@ -255,7 +333,9 @@ async function removeTripCoverPhoto(tripId = Storage.getActiveTripId(), returnTo
   showToast('Trip cover photo removed');
   document.querySelector('.modal-overlay')?.remove();
   document.body.style.overflow = '';
-  if (returnTo === 'memories') openTripMemoriesModal(tripId);
+  if (returnTo === 'memories' || returnTo === 'memories-trips') {
+    openTripMemoriesModal(tripId, { returnToTrips: returnTo === 'memories-trips' });
+  }
   else openTripsModal();
 }
 
@@ -455,7 +535,8 @@ function findItemById(id) {
   return null;
 }
 
-async function openTripMemoriesModal(selectedTripId = Storage.getActiveTripId()) {
+async function openTripMemoriesModal(selectedTripId = Storage.getActiveTripId(), options = {}) {
+  const shouldReturnToTrips = !!options.returnToTrips;
   const trips = Storage.listTrips();
   const activeTripId = Storage.getActiveTripId();
   const viewingTripId = selectedTripId || activeTripId;
@@ -497,7 +578,7 @@ async function openTripMemoriesModal(selectedTripId = Storage.getActiveTripId())
       <select class="memories-trip-picker" id="memories-trip-picker">
         ${trips.map(trip => `<option value="${trip.id}" ${trip.id === tripId ? 'selected' : ''}>${trip.name} — ${new Date(trip.createdAt).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}</option>`).join('')}
       </select>
-      <button class="trip-cover-btn trip-cover-row" data-trip-id="${tripId}" data-return-to="memories">
+      <button class="trip-cover-btn trip-cover-row" data-trip-id="${tripId}" data-return-to="${shouldReturnToTrips ? 'memories-trips' : 'memories'}">
         <span class="trip-cover-preview" data-trip-id="${tripId}">${cover ? `<img alt="Trip cover" src="${URL.createObjectURL(cover.thumbBlob)}">` : '<span>📷</span>'}</span>
         <span><strong>Trip cover photo</strong><small>${cover ? 'Tap to view or change this trip cover' : 'Add a cover for this trip'}</small></span>
       </button>
@@ -507,13 +588,17 @@ async function openTripMemoriesModal(selectedTripId = Storage.getActiveTripId())
   document.body.appendChild(overlay);
   document.body.style.overflow = 'hidden';
 
-  const close = () => { overlay.remove(); document.body.style.overflow = ''; };
+  const close = (returnToTrips = true) => {
+    overlay.remove();
+    document.body.style.overflow = '';
+    if (returnToTrips && shouldReturnToTrips) openTripsModal();
+  };
   overlay.querySelector('.modal-close').addEventListener('click', close);
   overlay.addEventListener('click', e => { if (e.target === overlay) close(); });
   overlay.querySelector('#memories-trip-picker')?.addEventListener('change', e => {
     const nextTripId = e.target.value;
-    close();
-    openTripMemoriesModal(nextTripId);
+    close(false);
+    openTripMemoriesModal(nextTripId, options);
   });
   bindPhotoButtons(overlay);
   refreshPhotoUI(overlay);
@@ -574,15 +659,19 @@ function renderProgressDashboard() {
 
   const resortBlocks = RESORTS.map(resort => {
     const parksHere = PARKS.filter(p => p.resortId === resort.id);
-    const parkStats = parksHere.map(park => ({ park, stats: Storage.getParkStats(park.id) }));
+    // Completion percentages count RIDES ONLY — shows and food are logged
+    // and tallied, but don't factor into how "done" a park is.
+    const parkStats = parksHere.map(park => ({ park, stats: Storage.getParkStatsForCategory(park.id, 'rides') }));
 
     const totalDone = parkStats.reduce((sum, p) => sum + p.stats.done, 0);
     const totalItems = parkStats.reduce((sum, p) => sum + p.stats.total, 0);
     const overallPct = totalItems > 0 ? Math.round((totalDone / totalItems) * 100) : 0;
 
-    // Skip resorts with zero progress entirely so this never feels like
-    // a wall of empty bars before someone's even started a trip.
-    if (totalDone === 0) return '';
+    // Skip resorts with zero activity entirely so this never feels like
+    // a wall of empty bars before someone's even started a trip. (Any
+    // logged activity — rides, shows, or food — keeps the resort visible.)
+    const anyActivity = parksHere.some(park => Storage.getParkStats(park.id).done > 0);
+    if (!anyActivity) return '';
 
     const parkRows = parkStats.map(({ park, stats }) => `
       <button class="progress-dash-park-row" data-park="${park.id}">
@@ -598,7 +687,7 @@ function renderProgressDashboard() {
       <div class="progress-dash-resort">
         <div class="progress-dash-resort-header">
           <span class="progress-dash-resort-title">${resort.emoji} ${resort.shortName}</span>
-          <span class="progress-dash-overall">Overall <strong>${overallPct}%</strong></span>
+          <span class="progress-dash-overall">Rides completed <strong>${overallPct}%</strong></span>
         </div>
         ${parkRows}
       </div>
@@ -632,10 +721,19 @@ function renderResortScreen() {
   const resortsBtn = document.getElementById('resorts-btn');
   if (resortsBtn) resortsBtn.style.display = 'none';
 
+  const todaysLogHtml = renderTodaysLog();
+  const progressDashHtml = renderProgressDashboard();
+  // Before anything's been checked off anywhere, explain what will live
+  // in this space once the trip gets going.
+  const emptyNoteHtml = (!todaysLogHtml && !progressDashHtml) ? `
+    <p class="empty-progress-note">The complete list of your park activities will be shown here in order once you begin crossing them off the park list.</p>
+  ` : '';
+
   const html = `
     <div class="resort-screen">
-      ${renderTodaysLog()}
-      ${renderProgressDashboard()}
+      ${todaysLogHtml}
+      ${progressDashHtml}
+      ${emptyNoteHtml}
       <div class="resort-screen-header">
         <h1 class="resort-screen-title">Pick Your Next Adventure</h1>
         <p class="resort-screen-subtitle">Pick a resort to see its parks</p>
@@ -771,7 +869,8 @@ function renderNav() {
 // ── Render a single item row (used by both Must-Dos and regular sections) ──
 function renderItemRow(item, checks, opts = {}) {
   const isDone = !!checks[item.id];
-  const badge = BADGE_CONFIG[item.badge] || BADGE_CONFIG.family;
+  const badge = (item.badge === 'food' && FOOD_TYPE_BY_ID[item.id])
+    || BADGE_CONFIG[item.badge] || BADGE_CONFIG.family;
   const statusTag = item.status === 'new'
     ? '<span class="status-tag status-new">New</span>'
     : item.status === 'closed'
@@ -798,10 +897,6 @@ function renderItemRow(item, checks, opts = {}) {
   const starOrRemoveBtn = inMustDos
     ? `<button class="remove-must-btn" data-id="${item.id}" aria-label="Remove from must-dos" title="Remove from must-dos">✕</button>`
     : `<button class="star-btn${isStarred ? ' starred' : ''}" data-id="${item.id}" aria-pressed="${isStarred}" aria-label="${isStarred ? 'Remove from your must-dos' : 'Add to your must-dos'}" title="${isStarred ? 'Your must-do' : 'Mark as your must-do'}">${isStarred ? '★' : '☆'}</button>`;
-
-  const reorderHandle = inMustDos ? `
-    <button class="must-drag-handle" data-id="${item.id}" aria-label="Drag to reorder ${item.name}" title="Drag to reorder">☰</button>
-  ` : '';
 
   const checkIcon = isDone
     ? '<svg width="12" height="12" viewBox="0 0 12 12" fill="none"><polyline points="2,6 5,9 10,3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>'
@@ -878,7 +973,7 @@ function renderItemRow(item, checks, opts = {}) {
         ${starOrRemoveBtn}
         <button class="item" data-id="${item.id}" aria-pressed="${isDone}" aria-label="${item.name}${isDone ? ' — completed' : ''}">
           <span class="item-check" aria-hidden="true">${checkIcon}</span>
-          <span class="item-body">
+          <span class="item-body${inMustDos ? ' must-drag-zone' : ''}" ${inMustDos ? `data-id="${item.id}" title="Hold and drag to reorder ${item.name}"` : ''}>
             <span class="item-name">${item.name}${statusTag}${singlePassTag}</span>
             <span class="item-meta">${item.meta}${songLog.length ? ` · <span class="song-tag-inline">${songLog[songLog.length - 1]}</span>` : ''}</span>
             ${waitBadgeHtml}
@@ -886,7 +981,6 @@ function renderItemRow(item, checks, opts = {}) {
           <span class="badge ${badge.cls}">${badge.label}</span>
         </button>
         <div class="item-extras">
-          ${reorderHandle}
           ${infoBtn}
           ${stepperHtml}
           ${songBtnHtml}
@@ -901,7 +995,7 @@ function renderItemRow(item, checks, opts = {}) {
 // Maps an item's specific badge to one of the three top-level tabs
 function categoryForBadge(badge) {
   if (badge === 'thrill' || badge === 'family') return 'rides';
-  if (badge === 'show' || badge === 'character') return 'show';
+  if (badge === 'show' || badge === 'experience' || badge === 'character') return 'show';
   if (badge === 'food') return 'food';
   return 'rides';
 }
@@ -918,6 +1012,7 @@ function renderPark() {
   const TALLY_LABELS = {
     rides: { label: 'Rides', emoji: '🎢' },
     show: { label: 'Shows', emoji: '🎭' },
+    experience: { label: 'Experiences', emoji: '✨' },
     food: { label: 'Food & drink', emoji: '🍽️' },
     character: { label: 'Character meets', emoji: '👋' },
   };
@@ -958,7 +1053,7 @@ function renderPark() {
             <button class="map-btn" id="open-map-btn" style="color: ${park.accentColor}; border-color: ${park.accentColor};">🗺️ My Must-Do Map</button>
           </div>
         </div>
-        <h1 class="park-name">${park.emoji} ${park.name}</h1>
+        <h1 class="park-name">${park.emoji} ${park.name}<span class="park-today-chip" style="background: ${park.accentLight}; color: ${park.accentColor};">✅ ${Storage.getTodaysCountForPark(park.id)} today</span></h1>
         <div class="park-progress-wrap">
           <div class="park-progress-bar">
             <div class="park-progress-fill" style="width: ${pct}%; background: ${park.accentColor};"></div>
@@ -1100,6 +1195,25 @@ function renderPark() {
       familyItems.forEach(item => { html += renderItemRow(item, checks); });
       html += `</div>`;
     }
+  } else if (activeCategory === 'show') {
+    // The Shows tab splits by badge into Shows / Experiences / Character
+    // Meets (ignoring the data file's original section groupings), the
+    // same way the Rides tab splits into Thrill and Family.
+    const allShowItems = park.sections.flatMap(s => s.items)
+      .filter(item => !Storage.isStarred(item.id) && categoryForBadge(item.badge) === 'show');
+
+    const showGroups = [
+      { heading: 'Shows', items: allShowItems.filter(i => i.badge === 'show') },
+      { heading: 'Experiences', items: allShowItems.filter(i => i.badge === 'experience') },
+      { heading: 'Character Meets', items: allShowItems.filter(i => i.badge === 'character') },
+    ];
+
+    showGroups.forEach(group => {
+      if (group.items.length === 0) return;
+      html += `<div class="section"><h2 class="section-heading">${group.heading}</h2>`;
+      group.items.forEach(item => { html += renderItemRow(item, checks); });
+      html += `</div>`;
+    });
   } else {
     park.sections.forEach(section => {
       const remainingItems = section.items.filter(item =>
@@ -1288,8 +1402,8 @@ function bindMustDoDrag(root, park) {
   };
 
   const finishDrag = (pointerId = null) => {
-    if (!drag) return;
-    if (drag.pointerId !== null && pointerId !== drag.pointerId) return;
+    if (!drag) return false;
+    if (drag.pointerId !== null && pointerId !== drag.pointerId) return false;
     const { handle, row, moved } = drag;
 
     row.classList.remove('must-dragging');
@@ -1302,36 +1416,103 @@ function bindMustDoDrag(root, park) {
       const orderedIds = getRows().map(el => el.dataset.mustDoId);
       Storage.setStarOrder(park.id, orderedIds);
       showToast('Must-dos reordered');
-      renderPark();
     }
 
     drag = null;
+
+    if (moved) {
+      renderPark();
+    }
+
+    return moved;
   };
 
-  list.querySelectorAll('.must-drag-handle').forEach(handle => {
-    handle.addEventListener('pointerdown', (e) => {
-      if (e.button !== undefined && e.button !== 0) return;
-      const row = handle.closest('.must-do-wrap[data-must-do-id]');
-      if (!row) return;
+  list.querySelectorAll('.must-drag-zone').forEach(handle => {
+    let suppressNextClick = false;
 
+    handle.addEventListener('click', (e) => {
+      if (!suppressNextClick) return;
       e.preventDefault();
       e.stopPropagation();
-      if (handle.setPointerCapture) handle.setPointerCapture(e.pointerId);
-      startDrag(handle, row, e.clientY, e.pointerId);
-    });
+      suppressNextClick = false;
+    }, true);
 
-    handle.addEventListener('pointermove', (e) => {
-      if (!drag || drag.pointerId !== e.pointerId) return;
-      moveDrag(e.clientY);
-    });
+    if (window.PointerEvent) {
+      handle.addEventListener('pointerdown', (e) => {
+        if (e.pointerType === 'touch') return;
+        if (e.button !== undefined && e.button !== 0) return;
+        const row = handle.closest('.must-do-wrap[data-must-do-id]');
+        if (!row) return;
 
-    handle.addEventListener('pointerup', e => finishDrag(e.pointerId));
-    handle.addEventListener('pointercancel', e => finishDrag(e.pointerId));
+        const pointerId = e.pointerId;
+        const startX = e.clientX;
+        const startY = e.clientY;
+        const isTouchLike = e.pointerType === 'touch' || e.pointerType === 'pen';
+        let started = false;
+        let holdTimer = null;
+
+        const cleanup = () => {
+          if (holdTimer) clearTimeout(holdTimer);
+          document.removeEventListener('pointermove', onMove);
+          document.removeEventListener('pointerup', onUp);
+          document.removeEventListener('pointercancel', onCancel);
+        };
+
+        const beginDrag = () => {
+          if (started) return;
+          started = true;
+          if (handle.setPointerCapture) {
+            try { handle.setPointerCapture(pointerId); } catch {}
+          }
+          startDrag(handle, row, startY, pointerId);
+        };
+
+        const onMove = (moveEvent) => {
+          if (moveEvent.pointerId !== pointerId) return;
+
+          if (!started) {
+            const distance = Math.hypot(moveEvent.clientX - startX, moveEvent.clientY - startY);
+            if (distance > 8) cleanup();
+            return;
+          }
+
+          moveEvent.preventDefault();
+          moveDrag(moveEvent.clientY);
+        };
+
+        const onUp = (upEvent) => {
+          if (upEvent.pointerId !== pointerId) return;
+          cleanup();
+          if (!started) return;
+          upEvent.preventDefault();
+          suppressNextClick = finishDrag(pointerId);
+        };
+
+        const onCancel = (cancelEvent) => {
+          if (cancelEvent.pointerId !== pointerId) return;
+          cleanup();
+          if (started) finishDrag(pointerId);
+        };
+
+        document.addEventListener('pointermove', onMove, { passive: false });
+        document.addEventListener('pointerup', onUp);
+        document.addEventListener('pointercancel', onCancel);
+
+        if (isTouchLike) {
+          holdTimer = setTimeout(beginDrag, 160);
+        } else {
+          e.preventDefault();
+          e.stopPropagation();
+          beginDrag();
+        }
+      });
+    }
 
     handle.addEventListener('mousedown', (e) => {
-      if (e.button !== 0) return;
+      if (e.button !== undefined && e.button !== 0) return;
       const row = handle.closest('.must-do-wrap[data-must-do-id]');
       if (!row || !startDrag(handle, row, e.clientY)) return;
+
       e.preventDefault();
       e.stopPropagation();
 
@@ -1342,28 +1523,76 @@ function bindMustDoDrag(root, park) {
       const onUp = () => {
         document.removeEventListener('mousemove', onMove);
         document.removeEventListener('mouseup', onUp);
-        finishDrag();
+        suppressNextClick = finishDrag();
       };
       document.addEventListener('mousemove', onMove);
       document.addEventListener('mouseup', onUp);
     });
 
+    let touchDrag = null;
+
     handle.addEventListener('touchstart', (e) => {
       if (e.touches.length !== 1) return;
       const row = handle.closest('.must-do-wrap[data-must-do-id]');
-      if (!row || !startDrag(handle, row, e.touches[0].clientY)) return;
-      e.preventDefault();
-      e.stopPropagation();
+      if (!row) return;
+
+      const touch = e.touches[0];
+      touchDrag = {
+        row,
+        startX: touch.clientX,
+        startY: touch.clientY,
+        latestY: touch.clientY,
+        holdTimer: null,
+        active: false,
+      };
+
+      touchDrag.holdTimer = setTimeout(() => {
+        if (!touchDrag || touchDrag.active) return;
+        if (!startDrag(handle, touchDrag.row, touchDrag.startY)) {
+          touchDrag = null;
+          return;
+        }
+        touchDrag.active = true;
+        moveDrag(touchDrag.latestY);
+      }, MUST_DO_TOUCH_HOLD_MS);
     }, { passive: false });
 
     handle.addEventListener('touchmove', (e) => {
-      if (!drag || e.touches.length !== 1) return;
+      if (!touchDrag || e.touches.length !== 1) return;
+      const touch = e.touches[0];
+      touchDrag.latestY = touch.clientY;
+
+      if (!touchDrag.active) {
+        const distance = Math.hypot(touch.clientX - touchDrag.startX, touch.clientY - touchDrag.startY);
+        if (distance > MUST_DO_TOUCH_MOVE_TOLERANCE) {
+          clearTimeout(touchDrag.holdTimer);
+          touchDrag = null;
+        }
+        return;
+      }
+
       e.preventDefault();
-      moveDrag(e.touches[0].clientY);
+      e.stopPropagation();
+      moveDrag(touch.clientY);
     }, { passive: false });
 
-    handle.addEventListener('touchend', () => finishDrag());
-    handle.addEventListener('touchcancel', () => finishDrag());
+    handle.addEventListener('touchend', (e) => {
+      if (!touchDrag) return;
+      clearTimeout(touchDrag.holdTimer);
+      if (touchDrag.active) {
+        e.preventDefault();
+        e.stopPropagation();
+        finishDrag();
+        suppressNextClick = true;
+      }
+      touchDrag = null;
+    }, { passive: false });
+
+    handle.addEventListener('touchcancel', () => {
+      if (touchDrag?.holdTimer) clearTimeout(touchDrag.holdTimer);
+      if (touchDrag?.active) finishDrag();
+      touchDrag = null;
+    });
   });
 }
 
@@ -1687,6 +1916,10 @@ function quitTriviaRound(park) {
 }
 
 function startTriviaRound(park) {
+  if (document.activeElement && typeof document.activeElement.blur === 'function') {
+    document.activeElement.blur();
+  }
+
   let pool;
   if (triviaActiveCategory === 'general') {
     pool = TRIVIA_GENERAL;
@@ -1743,10 +1976,17 @@ function renderTriviaQuestion(park) {
   });
 
   area.querySelectorAll('.trivia-option').forEach(btn => {
+    btn.blur();
     btn.addEventListener('click', () => {
       const chosenIndex = parseInt(btn.dataset.index, 10);
       revealTriviaAnswer(park, q, chosenIndex);
     });
+  });
+
+  requestAnimationFrame(() => {
+    if (document.activeElement?.classList?.contains('trivia-option')) {
+      document.activeElement.blur();
+    }
   });
 }
 
@@ -1938,6 +2178,78 @@ function renderWeatherWidget(park) {
 // ── Park map ─────────────────────────────────────────────────────────────────
 let activeLeafletMap = null;
 
+function createLocationWatcher({ onLocation, onError }) {
+  let stopped = false;
+  let webWatchId = null;
+  let nativeHandler = null;
+  let nativeErrorHandler = null;
+
+  const handleLocation = detail => {
+    if (stopped || !detail) return;
+    const lat = Number(detail.lat);
+    const lng = Number(detail.lng);
+    if (!Number.isFinite(lat) || !Number.isFinite(lng)) return;
+    onLocation({
+      lat,
+      lng,
+      accuracy: Number(detail.accuracy) || null,
+      timestamp: detail.timestamp || Date.now(),
+    });
+  };
+
+  const handleError = message => {
+    if (stopped) return;
+    onError(message || 'Location is unavailable right now.');
+  };
+
+  const nativeLocation = window.webkit?.messageHandlers?.parkMomentsLocation;
+  if (nativeLocation) {
+    nativeHandler = event => handleLocation(event.detail);
+    nativeErrorHandler = event => handleError(event.detail?.message);
+    window.addEventListener('parkmoments:location', nativeHandler);
+    window.addEventListener('parkmoments:location-error', nativeErrorHandler);
+    nativeLocation.postMessage({ type: 'start' });
+  } else if (navigator.geolocation) {
+    webWatchId = navigator.geolocation.watchPosition(
+      position => handleLocation({
+        lat: position.coords.latitude,
+        lng: position.coords.longitude,
+        accuracy: position.coords.accuracy,
+        timestamp: position.timestamp,
+      }),
+      error => {
+        const messages = {
+          1: 'Location permission was denied. Turn it on in your phone settings to show your spot on the map.',
+          2: 'Your phone could not find your location right now.',
+          3: 'Finding your location took too long. Try again in a clearer area.',
+        };
+        handleError(messages[error.code] || error.message);
+      },
+      {
+        enableHighAccuracy: true,
+        maximumAge: 10000,
+        timeout: 12000,
+      }
+    );
+  }
+
+  if (!navigator.geolocation && !nativeLocation) {
+    setTimeout(() => handleError('Location is not supported in this browser.'), 0);
+  }
+
+  return () => {
+    stopped = true;
+    if (webWatchId !== null && navigator.geolocation) {
+      navigator.geolocation.clearWatch(webWatchId);
+    }
+    if (nativeLocation) {
+      nativeLocation.postMessage({ type: 'stop' });
+    }
+    if (nativeHandler) window.removeEventListener('parkmoments:location', nativeHandler);
+    if (nativeErrorHandler) window.removeEventListener('parkmoments:location-error', nativeErrorHandler);
+  };
+}
+
 // ── Live Waits modal — sortable list of real-time ride wait times ──────────
 let liveWaitsSortMode = 'wait-desc'; // 'wait-desc' | 'wait-asc' | 'alpha'
 
@@ -2065,14 +2377,17 @@ const MAP_LAND_ALIASES = {
     'world showcase france': { name: 'France pavilion', lat: 28.369067, lng: -81.552725 },
     'world showcase norway': { name: 'Norway pavilion', lat: 28.370517, lng: -81.5471 },
     'world showcase mexico': { name: 'Mexico pavilion', lat: 28.371414, lng: -81.547586 },
-    'world showcase usa': 'World Showcase',
-    'world showcase china': 'World Showcase',
-    'world showcase canada': 'World Showcase',
-    'world showcase morocco': 'World Showcase',
-    'world showcase germany': 'World Showcase',
-    'world showcase italy': 'World Showcase',
-    'world showcase japan': 'World Showcase',
-    'world showcase united kingdom': 'World Showcase',
+    // Every country resolves to its pavilion on the promenade ring —
+    // never to the 'World Showcase' land label, which sits in the middle
+    // of the lagoon (fine for orientation text, wrong for item pins).
+    'world showcase usa': { name: 'American Adventure pavilion', lat: 28.367928, lng: -81.549347 },
+    'world showcase china': { name: 'China pavilion', lat: 28.369944, lng: -81.546911 },
+    'world showcase canada': { name: 'Canada pavilion', lat: 28.371336, lng: -81.551375 },
+    'world showcase morocco': { name: 'Morocco pavilion', lat: 28.368353, lng: -81.551653 },
+    'world showcase germany': { name: 'Germany pavilion', lat: 28.368800, lng: -81.547700 },
+    'world showcase italy': { name: 'Italy pavilion', lat: 28.368200, lng: -81.548500 },
+    'world showcase japan': { name: 'Japan pavilion', lat: 28.368044, lng: -81.550511 },
+    'world showcase united kingdom': { name: 'United Kingdom pavilion', lat: 28.370228, lng: -81.551969 },
   },
   ak: {
     'africa harambe station': 'Africa',
@@ -2084,6 +2399,7 @@ const MAP_LAND_ALIASES = {
     'main street usa': 'Main Street, U.S.A.',
     'bayou country': { name: 'Bayou Country', lat: 33.8108, lng: -117.9165 },
     'mickeys toontown': { name: "Mickey's Toontown", lat: 33.8152, lng: -117.9186 },
+    'fantasy faire': { name: 'Fantasy Faire', lat: 33.8125, lng: -117.9203 },
   },
   dca: {
     'san fransokyo square': 'Hollywood Land',
@@ -2092,10 +2408,14 @@ const MAP_LAND_ALIASES = {
 };
 
 function normalizeMapLabel(value) {
+  // NOTE: parenthesized text is KEPT (parens become spaces) — it often
+  // carries the World Showcase country, e.g. "World Showcase (France)"
+  // must normalize to "world showcase france" so pavilion aliases match
+  // instead of falling back to the lagoon-centered "World Showcase" label.
   return (value || '')
     .toLowerCase()
     .replace(/&/g, 'and')
-    .replace(/\([^)]*\)/g, '')
+    .replace(/[()]/g, ' ')
     .replace(/['’‘]/g, '')
     .replace(/[^a-z0-9]+/g, ' ')
     .replace(/\bu s a\b/g, 'usa')
@@ -2189,7 +2509,10 @@ function openParkMap(park) {
       <div class="map-legend">
         <span class="map-legend-item"><span class="map-dot map-dot-ride"></span> Your must-dos</span>
         <span class="map-legend-item"><span class="map-dot map-dot-land"></span> Lands &amp; areas</span>
+        <span class="map-legend-spacer"></span>
+        <button class="map-location-btn" type="button">📍 My location</button>
       </div>
+      <div class="map-location-status" role="status" aria-live="polite"></div>
       ${starredMarkers.length === 0 ? `
         <div class="map-empty-note">⭐ Star a ride as a must-do to see it pinned here.</div>
       ` : ''}
@@ -2205,7 +2528,18 @@ function openParkMap(park) {
   document.body.appendChild(overlay);
   document.body.style.overflow = 'hidden';
 
+  const locationBtn = overlay.querySelector('.map-location-btn');
+  const locationStatus = overlay.querySelector('.map-location-status');
+  let stopLocationWatch = null;
+  let userLocationMarker = null;
+  let userAccuracyCircle = null;
+  let hasCenteredOnUser = false;
+
   const close = () => {
+    if (stopLocationWatch) {
+      stopLocationWatch();
+      stopLocationWatch = null;
+    }
     if (activeLeafletMap) {
       activeLeafletMap.remove();
       activeLeafletMap = null;
@@ -2262,6 +2596,88 @@ function openParkMap(park) {
       `);
     });
 
+    const setLocationStatus = (message, kind = '') => {
+      if (!locationStatus) return;
+      locationStatus.textContent = message || '';
+      locationStatus.dataset.kind = kind;
+    };
+
+    const updateUserLocation = position => {
+      const latlng = [position.lat, position.lng];
+      const accuracy = Math.max(0, Number(position.accuracy) || 0);
+
+      if (!userLocationMarker) {
+        userLocationMarker = L.circleMarker(latlng, {
+          radius: 8,
+          color: '#fff',
+          weight: 3,
+          fillColor: '#1677ff',
+          fillOpacity: 1,
+          className: 'user-location-marker',
+        }).addTo(map).bindPopup('<strong>You are here</strong>');
+      } else {
+        userLocationMarker.setLatLng(latlng);
+      }
+
+      if (accuracy) {
+        if (!userAccuracyCircle) {
+          userAccuracyCircle = L.circle(latlng, {
+            radius: accuracy,
+            color: '#1677ff',
+            weight: 1,
+            fillColor: '#1677ff',
+            fillOpacity: 0.12,
+            interactive: false,
+          }).addTo(map);
+        } else {
+          userAccuracyCircle.setLatLng(latlng);
+          userAccuracyCircle.setRadius(accuracy);
+        }
+      }
+
+      if (!hasCenteredOnUser) {
+        hasCenteredOnUser = true;
+        map.flyTo(latlng, Math.max(map.getZoom(), 17), { duration: 0.6 });
+      }
+
+      const accuracyText = accuracy ? ` Accurate to about ${Math.round(accuracy)} m.` : '';
+      setLocationStatus(`Showing your phone's current location.${accuracyText}`, 'ok');
+      locationBtn.classList.add('is-active');
+      locationBtn.textContent = '📍 Location on';
+    };
+
+    const startLocation = () => {
+      if (stopLocationWatch) {
+        if (userLocationMarker) userLocationMarker.openPopup();
+        return;
+      }
+
+      locationBtn.disabled = true;
+      locationBtn.textContent = 'Finding you...';
+      setLocationStatus('Asking your phone for location permission...', 'loading');
+
+      stopLocationWatch = createLocationWatcher({
+        onLocation(position) {
+          locationBtn.disabled = false;
+          updateUserLocation(position);
+        },
+        onError(message) {
+          if (stopLocationWatch) {
+            const stop = stopLocationWatch;
+            stopLocationWatch = null;
+            stop();
+          }
+          locationBtn.disabled = false;
+          locationBtn.classList.remove('is-active');
+          locationBtn.textContent = '📍 My location';
+          setLocationStatus(message, 'error');
+          showToast(message, { wrap: true, duration: 3500 });
+        },
+      });
+    };
+
+    locationBtn.addEventListener('click', startLocation);
+
     setTimeout(() => map.invalidateSize(), 100);
   });
 }
@@ -2271,17 +2687,19 @@ let allTimeView = 'alltime'; // 'alltime' | 'byyear'
 
 // ── Collections — list view + detail view ("What am I missing?") ──────────
 let collectionsDetailId = null; // currently-open collection's id, or null for the list
+let collectionsReturnToTrips = false;
 
 // ── Badge wall — browsable view of every earned (and not-yet-earned) badge ──
 // ── Disney History — a keepsake profile view of your whole Disney story ────
 let historyModalView = 'profile'; // 'profile' | 'alltime' | 'byyear'
 let badgeModalView = 'trip'; // 'trip' | 'lifetime'
 
-function openDisneyHistoryModal() {
+function openDisneyHistoryModal(options = {}) {
+  const shouldReturnToTrips = !!options.returnToTrips;
   const p = Storage.getDisneyHistoryProfile();
   const stats = Storage.getAllTimeStats();
 
-  const CAT_LABELS = { rides: '🎢 Rides', show: '🎭 Shows', food: '🍽️ Food', character: '👋 Meets' };
+  const CAT_LABELS = { rides: '🎢 Rides', show: '🎭 Shows', experience: '✨ Experiences', food: '🍽️ Food', character: '👋 Meets' };
   const BADGE_EMOJI = { thrill: '🎢', family: '🎢', show: '🎭', character: '👋', food: '🍽️' };
 
   const overlay = document.createElement('div');
@@ -2310,6 +2728,7 @@ function openDisneyHistoryModal() {
   const close = () => {
     overlay.remove();
     document.body.style.overflow = '';
+    if (shouldReturnToTrips) openTripsModal();
   };
   overlay.querySelector('.modal-close').addEventListener('click', close);
   overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
@@ -2547,37 +2966,7 @@ async function shareDisneyHistoryImage(p) {
         return;
       }
       const fileName = 'rope-drop-disney-history.png';
-      const file = new File([blob], fileName, { type: 'image/png' });
-
-      let canUseNativeShare = false;
-      try {
-        canUseNativeShare = !!(navigator.share && navigator.canShare && navigator.canShare({ files: [file] }));
-      } catch (e) {
-        canUseNativeShare = false;
-      }
-
-      if (canUseNativeShare) {
-        try {
-          await navigator.share({ files: [file], title: 'My Disney History' });
-          return;
-        } catch (e) {
-          // cancelled or failed — fall through to download
-        }
-      }
-
-      try {
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = fileName;
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-        URL.revokeObjectURL(url);
-        showToast('Saved 📖');
-      } catch (e) {
-        showToast('Couldn\'t save the image — try again.', { wrap: true, duration: 3200 });
-      }
+      await saveOrShareBlob(blob, fileName, 'image/png', 'Disney History image ready 📖');
     }, 'image/png');
   } catch (e) {
     showToast('Something went wrong making that image — try again.', { wrap: true, duration: 3200 });
@@ -2585,7 +2974,8 @@ async function shareDisneyHistoryImage(p) {
 }
 
 // ── Secret menu: Coast to Coast — vote on duplicate rides ───────────────────
-function openCoastToCoastModal() {
+function openCoastToCoastModal(options = {}) {
+  const shouldReturnToTrips = !!options.returnToTrips;
   const unlockedPairs = getUnlockedCoastToCoastPairs();
   const lockedPairs = COAST_TO_COAST_PAIRS.filter(p => !unlockedPairs.includes(p));
 
@@ -2653,11 +3043,12 @@ function openCoastToCoastModal() {
   document.body.appendChild(overlay);
   document.body.style.overflow = 'hidden';
 
-  const close = () => {
+  const close = (returnToTrips = true) => {
     overlay.remove();
     document.body.style.overflow = '';
+    if (returnToTrips && shouldReturnToTrips) openTripsModal();
   };
-  overlay.querySelector('.modal-close').addEventListener('click', close);
+  overlay.querySelector('.modal-close').addEventListener('click', () => close());
   overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
 
   overlay.querySelectorAll('.c2c-vote-btn').forEach(btn => {
@@ -2667,14 +3058,15 @@ function openCoastToCoastModal() {
       const success = castCoastToCoastVote(pairId, choice);
       if (success) {
         showToast('Vote cast! 🗳️');
-        close();
-        openCoastToCoastModal(); // re-render with the new tally
+        close(false);
+        openCoastToCoastModal(options); // re-render with the new tally
       }
     });
   });
 }
 
-function openBadgesModal() {
+function openBadgesModal(options = {}) {
+  const shouldReturnToTrips = !!options.returnToTrips;
   const overlay = document.createElement('div');
   overlay.className = 'modal-overlay';
   overlay.innerHTML = `
@@ -2698,6 +3090,7 @@ function openBadgesModal() {
   const close = () => {
     overlay.remove();
     document.body.style.overflow = '';
+    if (shouldReturnToTrips) openTripsModal();
   };
   overlay.querySelector('.modal-close').addEventListener('click', close);
   overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
@@ -3023,42 +3416,13 @@ async function drawAndDeliverBadgeImage(badge) {
       : isCollectionTier
       ? `rope-drop-badge-${isLifetime ? 'lifetime-' : ''}${badge.collectionId}-${badge.tier}.png`
       : `rope-drop-badge-${isLifetime ? 'lifetime-' : ''}${badge.collectionId}.png`;
-    const file = new File([blob], fileName, { type: 'image/png' });
-
-    let canUseNativeShare = false;
-    try {
-      canUseNativeShare = !!(navigator.share && navigator.canShare && navigator.canShare({ files: [file] }));
-    } catch (e) {
-      canUseNativeShare = false;
-    }
-
-    if (canUseNativeShare) {
-      try {
-        await navigator.share({ files: [file], title: 'My Park Moments Badge' });
-        return;
-      } catch (e) {
-        // User cancelled the share sheet, or it failed — fall through to download
-      }
-    }
-
-    try {
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = fileName;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      URL.revokeObjectURL(url);
-      showToast('Badge image saved 🏆');
-    } catch (e) {
-      showToast('Couldn\'t save the image — try again.', { wrap: true, duration: 3200 });
-    }
+    await saveOrShareBlob(blob, fileName, 'image/png', 'Badge image ready 🏆');
   }, 'image/png');
 }
 
-function openCollectionsModal() {
+function openCollectionsModal(options = {}) {
   collectionsDetailId = null;
+  collectionsReturnToTrips = !!options.returnToTrips;
   renderCollectionsOverlay();
 }
 
@@ -3083,6 +3447,9 @@ function renderCollectionsOverlay() {
   const close = () => {
     overlay.remove();
     document.body.style.overflow = '';
+    const shouldReturn = collectionsReturnToTrips;
+    collectionsReturnToTrips = false;
+    if (shouldReturn) openTripsModal();
   };
 
   overlay.querySelector('.modal-close').addEventListener('click', close);
@@ -3309,7 +3676,7 @@ function bindCollectionDetail(overlay, close) {
 function openAllTimeStatsModal() {
   const stats = Storage.getAllTimeStats();
 
-  const CAT_LABELS = { rides: '🎢 Rides', show: '🎭 Shows', food: '🍽️ Food', character: '👋 Meets' };
+  const CAT_LABELS = { rides: '🎢 Rides', show: '🎭 Shows', experience: '✨ Experiences', food: '🍽️ Food', character: '👋 Meets' };
   const BADGE_EMOJI = { thrill: '🎢', family: '🎢', show: '🎭', character: '👋', food: '🍽️' };
 
   const overlay = document.createElement('div');
@@ -3600,30 +3967,30 @@ function openTripsModal() {
 
   overlay.querySelector('.collections-btn').addEventListener('click', () => {
     close(false);
-    openCollectionsModal();
+    openCollectionsModal({ returnToTrips: true });
   });
 
   overlay.querySelector('.badges-btn').addEventListener('click', () => {
     close(false);
-    openBadgesModal();
+    openBadgesModal({ returnToTrips: true });
   });
 
   overlay.querySelector('.history-btn').addEventListener('click', () => {
     close(false);
-    openDisneyHistoryModal();
+    openDisneyHistoryModal({ returnToTrips: true });
   });
 
   const secretMenuBtn = overlay.querySelector('.secret-menu-btn');
   if (secretMenuBtn) {
     secretMenuBtn.addEventListener('click', () => {
       close(false);
-      openCoastToCoastModal();
+      openCoastToCoastModal({ returnToTrips: true });
     });
   }
 
   overlay.querySelector('.memories-btn').addEventListener('click', () => {
     close(false);
-    openTripMemoriesModal();
+    openTripMemoriesModal(Storage.getActiveTripId(), { returnToTrips: true });
   });
 
   bindPhotoButtons(overlay);
@@ -3631,14 +3998,13 @@ function openTripsModal() {
 
   // Export a single trip
   overlay.querySelectorAll('.trip-export').forEach(btn => {
-    btn.addEventListener('click', (e) => {
+    btn.addEventListener('click', async (e) => {
       e.stopPropagation();
       const trips = Storage.listTrips();
       const trip = trips.find(t => t.id === btn.dataset.id);
       const data = Storage.exportTrip(btn.dataset.id);
       if (!data) return;
-      downloadJSON(data, slugify(trip ? trip.name : 'rope-drop-trip'));
-      showToast('Trip exported — check your downloads');
+      await downloadJSON(data, slugify(trip ? trip.name : 'rope-drop-trip'));
     });
   });
 
@@ -3655,10 +4021,9 @@ function openTripsModal() {
   });
 
   // Export every trip at once
-  overlay.querySelector('.trip-export-all-btn').addEventListener('click', () => {
+  overlay.querySelector('.trip-export-all-btn').addEventListener('click', async () => {
     const data = Storage.exportAllTrips();
-    downloadJSON(data, 'rope-drop-all-trips');
-    showToast('All trips exported — check your downloads');
+    await downloadJSON(data, 'rope-drop-all-trips');
   });
 
   // Import — opens the hidden file picker
@@ -3692,17 +4057,70 @@ function openTripsModal() {
   });
 }
 
-// Triggers a browser download of a JSON object as a .json file
-function downloadJSON(obj, filenameBase) {
-  const blob = new Blob([JSON.stringify(obj, null, 2)], { type: 'application/json' });
+function getNativeShareHandler() {
+  return window.webkit
+    && window.webkit.messageHandlers
+    && window.webkit.messageHandlers.parkMomentsShare;
+}
+
+function browserDownloadBlob(blob, filename) {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `${filenameBase}.json`;
+  a.download = filename;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
+}
+
+async function saveOrShareBlob(blob, filename, mimeType, successMessage = 'Export ready') {
+  if (!blob) {
+    showToast('Could not prepare that export — try again.', { wrap: true, duration: 3200 });
+    return;
+  }
+
+  const nativeHandler = getNativeShareHandler();
+  if (nativeHandler) {
+    try {
+      const dataUrl = await blobToDataUrl(blob);
+      const base64 = String(dataUrl).split(',')[1] || '';
+      nativeHandler.postMessage({
+        filename,
+        mimeType: mimeType || blob.type || 'application/octet-stream',
+        base64,
+      });
+      showToast(successMessage, { wrap: true, duration: 2600 });
+      return;
+    } catch (e) {
+      console.warn('Native export failed, falling back to browser download', e);
+    }
+  }
+
+  if (typeof File !== 'undefined' && navigator.share && navigator.canShare) {
+    try {
+      const file = new File([blob], filename, { type: mimeType || blob.type || 'application/octet-stream' });
+      if (navigator.canShare({ files: [file] })) {
+        await navigator.share({ files: [file], title: filename });
+        return;
+      }
+    } catch (e) {
+      // Canceled or unavailable — fall back to a direct browser download.
+    }
+  }
+
+  try {
+    browserDownloadBlob(blob, filename);
+    showToast(successMessage, { wrap: true, duration: 2600 });
+  } catch (e) {
+    showToast('Could not save that file — try again.', { wrap: true, duration: 3200 });
+  }
+}
+
+// Saves or shares a JSON object as a .json file.
+async function downloadJSON(obj, filenameBase) {
+  const blob = new Blob([JSON.stringify(obj, null, 2)], { type: 'application/json' });
+  await saveOrShareBlob(blob, `${filenameBase}.json`, 'application/json', 'Export ready');
 }
 
 function slugify(str) {
@@ -4219,7 +4637,7 @@ function buildRecapCanvas(summary, coverImage = null) {
   ctx.fillText('total activities logged', CARD_PADDING + ctx.measureText(String(summary.grandTotal)).width + 90, 158);
 
   // Category chips in header
-  const CAT_LABELS = { rides: '🎢 Rides', show: '🎭 Shows', food: '🍽️ Food', character: '👋 Meets' };
+  const CAT_LABELS = { rides: '🎢 Rides', show: '🎭 Shows', experience: '✨ Experiences', food: '🍽️ Food', character: '👋 Meets' };
   let chipX = CARD_PADDING;
   const chipY = 195;
   Object.entries(summary.grandByCategory).forEach(([cat, count]) => {
@@ -4357,16 +4775,8 @@ async function exportRecapImage() {
   }
   const coverImage = await getActiveTripCoverImage();
   const canvas = buildRecapCanvas(summary, coverImage);
-  canvas.toBlob((blob) => {
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${slugify(summary.tripName)}-recap.jpg`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    showToast('Recap image saved 📸');
+  canvas.toBlob(async (blob) => {
+    await saveOrShareBlob(blob, `${slugify(summary.tripName)}-recap.jpg`, 'image/jpeg', 'Recap image ready 📸');
   }, 'image/jpeg', 0.92);
 }
 
@@ -4587,12 +4997,16 @@ async function exportRecapPDF() {
     doc.text('Made with Park Moments · Not affiliated with The Walt Disney Company', margin, pageH - 28);
   }
 
-  doc.save(`${slugify(summary.tripName)}-recap.pdf`);
-  showToast('Recap PDF saved 📄');
+  await saveOrShareBlob(
+    doc.output('blob'),
+    `${slugify(summary.tripName)}-recap.pdf`,
+    'application/pdf',
+    'Recap PDF ready 📄'
+  );
 }
 
 // ── Master list PDF — grand tally across every trip ever logged ────────────
-function exportMasterListPDF() {
+async function exportMasterListPDF() {
   const stats = Storage.getAllTimeStats();
   if (stats.grandTotals.total === 0) {
     showToast('Nothing logged yet across any trip — check a few things off first!', { wrap: true, duration: 3400 });
@@ -4740,8 +5154,12 @@ function exportMasterListPDF() {
     doc.text('Made with Park Moments · Not affiliated with The Walt Disney Company', margin, pageH - 28);
   }
 
-  doc.save('rope-drop-master-list.pdf');
-  showToast('Master list saved 📄');
+  await saveOrShareBlob(
+    doc.output('blob'),
+    'rope-drop-master-list.pdf',
+    'application/pdf',
+    'Master list ready 📄'
+  );
 }
 
 // ── Toast ────────────────────────────────────────────────────────────────────

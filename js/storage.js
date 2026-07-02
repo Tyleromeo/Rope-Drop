@@ -591,7 +591,7 @@ const Storage = {
     let total = 0, done = 0;
     park?.sections.forEach(s => s.items.forEach(i => {
       const cat = (i.badge === 'thrill' || i.badge === 'family') ? 'rides'
-        : (i.badge === 'show' || i.badge === 'character') ? 'show'
+        : (i.badge === 'show' || i.badge === 'experience' || i.badge === 'character') ? 'show'
         : (i.badge === 'food') ? 'food' : 'rides';
       if (cat !== category) return;
       total++;
@@ -607,7 +607,7 @@ const Storage = {
     const park = PARKS.find(p => p.id === parkId);
     const checks = this.getChecked();
     const counts = this.getCounts();
-    const byCategory = { rides: 0, show: 0, food: 0, character: 0 };
+    const byCategory = { rides: 0, show: 0, experience: 0, food: 0, character: 0 };
     let total = 0;
 
     park?.sections.forEach(s => s.items.forEach(item => {
@@ -619,6 +619,19 @@ const Storage = {
     }));
 
     return { total, byCategory };
+  },
+
+  // How many activities have been logged today (since local midnight) at
+  // one park — powers the "today" count next to the park name.
+  getTodaysCountForPark(parkId) {
+    const park = PARKS.find(p => p.id === parkId);
+    if (!park) return 0;
+    const timeline = this.ensureTimelineEntryIds();
+    const now = new Date();
+    const midnight = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+    const idsInPark = new Set();
+    park.sections.forEach(s => s.items.forEach(i => idsInPark.add(i.id)));
+    return timeline.filter(e => e.ts >= midnight && idsInPark.has(e.itemId)).length;
   },
 
   // Tally across an entire resort (sums every park belonging to it) —
@@ -822,7 +835,7 @@ const Storage = {
 
     const parkSummaries = [];
     let grandTotal = 0;
-    const grandByCategory = { rides: 0, show: 0, food: 0, character: 0 };
+    const grandByCategory = { rides: 0, show: 0, experience: 0, food: 0, character: 0 };
     let mostRiddenItem = null; // { name, times }
     let totalUniqueChecked = 0;
 
@@ -840,7 +853,7 @@ const Storage = {
     })));
 
     PARKS.forEach(park => {
-      const tally = { total: 0, byCategory: { rides: 0, show: 0, food: 0, character: 0 } };
+      const tally = { total: 0, byCategory: { rides: 0, show: 0, experience: 0, food: 0, character: 0 } };
       park.sections.forEach(section => section.items.forEach(item => {
         if (!checks[item.id]) return;
         const times = 1 + (counts[item.id] || 0);
@@ -1139,7 +1152,7 @@ const Storage = {
     let total = 0, done = 0;
     park?.sections.forEach(s => s.items.forEach(i => {
       const cat = (i.badge === 'thrill' || i.badge === 'family') ? 'rides'
-        : (i.badge === 'show' || i.badge === 'character') ? 'show'
+        : (i.badge === 'show' || i.badge === 'experience' || i.badge === 'character') ? 'show'
         : (i.badge === 'food') ? 'food' : 'rides';
       if (cat !== category) return;
       total++;

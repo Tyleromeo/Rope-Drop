@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'rope-drop-v2026-06-30-1';
+const CACHE_VERSION = 'rope-drop-v2026-07-02-3';
 const APP_SHELL_CACHE = `${CACHE_VERSION}-app-shell`;
 const RUNTIME_CACHE = `${CACHE_VERSION}-runtime`;
 

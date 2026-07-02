@@ -128,6 +128,21 @@ const RIDE_DETAILS = {
     tip: 'Arrive 45–60 minutes early for a good hub view on busy nights, or watch from Main Street for a more relaxed (if slightly more distant) vantage point.',
     funFact: 'The castle itself becomes a projection screen during the show, with imagery mapped precisely onto its turrets and towers in sync with the soundtrack.'
   },
+  'mk-71': {
+    description: 'A spinning ride where guests sit in giant pastel teacups and can spin themselves faster by turning the center wheel, all beneath a canopy of party lanterns.',
+    tip: 'Ride at night when the lanterns are lit — and take it easy on the wheel if anyone in your party is prone to motion sickness.',
+    funFact: 'It\'s based on the "Unbirthday Party" scene from Alice in Wonderland, and the Magic Kingdom version gained its lantern canopy in a 2010s refurbishment.'
+  },
+  'ak-37': {
+    description: 'A live stage musical retelling Finding Nemo through a blend of larger-than-life puppetry, live singers, and theatrical effects at Theater in the Wild.',
+    tip: 'The theater is air-conditioned and seats over 1,000 — a perfect mid-day escape from the Florida heat. Arrive about 20 minutes early for good seats.',
+    funFact: 'The original production\'s songs were co-written by Robert Lopez and Kristen Anderson-Lopez, who later wrote the music for Frozen.'
+  },
+  'hs-43': {
+    description: 'A Broadway-style condensed stage production of Beauty and the Beast, performed live at the open-air Theater of the Stars on Sunset Boulevard.',
+    tip: 'The theater is covered but not enclosed — earlier showtimes are cooler in summer, and the back rows still have great sightlines.',
+    funFact: 'The show debuted in 1991, the very day the animated film premiered, and has run largely unchanged longer than almost any other stage show at Walt Disney World.'
+  },
   'mk-17': {
     description: 'A 4D theater show where Donald Duck accidentally steals Mickey\'s sorcerer hat and gets pulled through scenes from classic Disney movies, complete with in-theater wind, mist, and scent effects.',
     tip: 'The theater seats nearly 500 people and cycles every 12 minutes, so waits rarely top one show — a reliable way to cool off and rest your feet midday.',
@@ -862,11 +877,6 @@ const RIDE_DETAILS = {
     description: 'A series of rotating meet-and-greets with Avengers characters including Spider-Man, Black Panther, and others throughout Avengers Campus.',
     tip: 'Spider-Man\'s acrobatic stunt performances draw the biggest crowds — check showtimes if you want a guaranteed viewing spot.',
     funFact: 'Several of the Avengers performers are trained in actual parkour and stunt choreography, not just costumed meet-and-greet acting.'
-  },
-  'dca-13': {
-    description: 'A themed shopping experience inside Avengers Campus selling Spider-Man and Avengers merchandise, gadgets, and props.',
-    tip: 'A fun browse even if you\'re not buying — the in-universe theming throughout the shop is detailed enough to be worth a walk-through.',
-    funFact: 'The shop\'s design ties directly into the fictional in-universe story of Avengers Campus training new recruits, rather than feeling like a generic gift shop.'
   },
   'dca-30': {
     description: 'A live character experience where Doctor Strange performs feats of "magic" at the Sanctum within Avengers Campus.',

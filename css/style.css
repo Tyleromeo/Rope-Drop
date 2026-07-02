@@ -6,6 +6,7 @@
 :root {
   --font-display: 'DM Serif Display', Georgia, serif;
   --font-body: 'DM Sans', system-ui, -apple-system, sans-serif;
+  --font-brand: 'DM Sans', ui-rounded, system-ui, -apple-system, sans-serif;
 
   --bg: #ffffff;
   --bg-2: #f7f6f3;
@@ -19,14 +20,17 @@
   --radius-sm: 8px;
   --radius-pill: 999px;
   --shadow-sm: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
-  --header-h: 56px;
+  --header-content-h: 56px;
+  --header-h: calc(var(--header-content-h) + env(safe-area-inset-top));
   --nav-h: 52px;
-  --bottom-h: 60px;
+  --bottom-content-h: 60px;
+  --bottom-h: calc(var(--bottom-content-h) + env(safe-area-inset-bottom));
 
   /* Badge colors */
   --thrill-bg: #fef0ee; --thrill-text: #9a3020;
   --family-bg: #e8f4fd; --family-text: #1558a0;
   --show-bg:   #f0ebfc; --show-text:   #5b38b0;
+  --exp-bg:    #fdeee0; --exp-text:    #c05a10;
   --food-bg:   #fef6e4; --food-text:   #8a5c10;
   --char-bg:   #eef8f0; --char-text:   #276636;
 }
@@ -44,6 +48,7 @@
     --thrill-bg: #2e1210; --thrill-text: #f4a090;
     --family-bg: #0e1e2e; --family-text: #7ab8f0;
     --show-bg:   #1a1030; --show-text:   #b89ef0;
+    --exp-bg:    #2e1c08; --exp-text:    #f0a860;
     --food-bg:   #261c08; --food-text:   #e0b060;
     --char-bg:   #0e2416; --char-text:   #7ad498;
   }
@@ -82,6 +87,7 @@ body {
   background: var(--bg);
   border-bottom: 1px solid var(--border);
   height: var(--header-h);
+  padding-top: env(safe-area-inset-top);
 }
 
 .header-inner {
@@ -89,31 +95,39 @@ body {
   align-items: center;
   justify-content: space-between;
   padding: 0 18px;
-  height: 100%;
+  height: var(--header-content-h);
 }
 
 .brand {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
+  min-width: 0;
+  flex: 1 1 auto;
 }
 
 .brand-icon {
-  font-size: 22px;
+  font-size: 26px;
   line-height: 1;
+  flex: 0 0 auto;
 }
 
 .brand-name {
-  font-family: var(--font-display);
-  font-size: 22px;
+  font-family: var(--font-brand);
+  font-size: 26px;
+  font-weight: 800;
+  line-height: 0.92;
   color: var(--text-1);
-  letter-spacing: -0.01em;
+  letter-spacing: 0;
+  text-wrap: balance;
+  min-width: 0;
 }
 
 .header-btn-group {
   display: flex;
   align-items: center;
   gap: 8px;
+  flex: 0 0 auto;
 }
 
 .header-btn {
@@ -150,7 +164,8 @@ body {
 @media (max-width: 380px) {
   .header-btn { padding: 0 10px; gap: 4px; }
   .header-btn-label { font-size: 12px; }
-  .brand-name { font-size: 17px; }
+  .brand-name { font-size: 23px; }
+  .brand-icon { font-size: 24px; }
 }
 
 .header-btn:hover { background: var(--bg-2); }
@@ -692,9 +707,17 @@ body {
   transition: background 0.12s, border-color 0.12s;
 }
 
-.trivia-option:hover:not(:disabled) {
-  background: var(--bg-3);
-  border-color: var(--text-2);
+@media (hover: hover) and (pointer: fine) {
+  .trivia-option:hover:not(:disabled) {
+    background: var(--bg-3);
+    border-color: var(--text-2);
+  }
+}
+
+.trivia-option:focus:not(:focus-visible):not(.trivia-correct):not(.trivia-wrong) {
+  background: var(--bg);
+  border-color: var(--border-md);
+  outline: none;
 }
 
 .trivia-option:disabled {
@@ -872,7 +895,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 14px 16px;
+  padding: calc(14px + env(safe-area-inset-top)) 16px 14px;
   border-bottom: 1px solid var(--border);
   flex-shrink: 0;
 }
@@ -884,8 +907,8 @@ body {
 }
 
 .map-modal-close {
-  width: 32px;
-  height: 32px;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
   border: none;
   background: var(--bg-2);
@@ -902,6 +925,7 @@ body {
 
 .map-legend {
   display: flex;
+  align-items: center;
   gap: 16px;
   padding: 10px 16px;
   border-top: 1px solid var(--border);
@@ -909,6 +933,10 @@ body {
   color: var(--text-2);
   flex-shrink: 0;
   flex-wrap: wrap;
+}
+
+.map-legend-spacer {
+  flex: 1 1 auto;
 }
 
 .map-legend-item {
@@ -933,11 +961,61 @@ body {
   border: 1.5px solid #1a6fd4;
 }
 
+.map-location-btn {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  background: var(--bg-2);
+  color: var(--text-1);
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1;
+  padding: 8px 11px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.map-location-btn:disabled {
+  opacity: 0.65;
+  cursor: wait;
+}
+
+.map-location-btn.is-active {
+  background: #1677ff;
+  border-color: #1677ff;
+  color: #fff;
+}
+
+.map-location-status {
+  min-height: 16px;
+  padding: 0 16px 8px;
+  font-size: 11px;
+  color: var(--text-2);
+  flex-shrink: 0;
+}
+
+.map-location-status:empty {
+  display: none;
+}
+
+.map-location-status[data-kind="ok"] {
+  color: #1677ff;
+}
+
+.map-location-status[data-kind="error"] {
+  color: #b42318;
+}
+
 .map-approx-note {
   font-size: 11px;
   color: #b8761f;
   padding: 0 16px 10px;
   flex-shrink: 0;
+}
+
+.map-modal > .map-approx-note:last-child,
+.map-modal > .map-empty-note:last-child {
+  padding-bottom: calc(10px + env(safe-area-inset-bottom));
 }
 
 .map-empty-note {
@@ -951,6 +1029,11 @@ body {
 
 @media (prefers-color-scheme: dark) {
   .map-approx-note { color: #e0a04a; }
+  .map-location-btn.is-active {
+    background: #5aa2ff;
+    border-color: #5aa2ff;
+    color: #08111f;
+  }
 }
 
 .park-name {
@@ -961,6 +1044,31 @@ body {
   letter-spacing: -0.02em;
   line-height: 1.15;
   margin-bottom: 16px;
+}
+
+.park-today-chip {
+  display: inline-block;
+  vertical-align: middle;
+  margin-left: 10px;
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  font-family: var(--font-body, inherit);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0;
+  white-space: nowrap;
+}
+
+.empty-progress-note {
+  margin: 0 auto 20px;
+  max-width: 420px;
+  padding: 14px 18px;
+  text-align: center;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--text-2, #666);
+  background: var(--bg-2, rgba(0,0,0,0.04));
+  border-radius: 12px;
 }
 
 .park-progress-wrap {
@@ -1186,6 +1294,18 @@ body {
   transform: scale(1.04);
 }
 
+.must-drag-zone {
+  cursor: grab;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+
+.must-drag-zone:active,
+.must-dragging .must-drag-zone {
+  cursor: grabbing;
+}
+
 .must-drag-active {
   user-select: none;
 }
@@ -1310,9 +1430,19 @@ body {
 
 .badge-thrill    { background: var(--thrill-bg); color: var(--thrill-text); }
 .badge-family    { background: var(--family-bg); color: var(--family-text); }
-.badge-show      { background: var(--show-bg);   color: var(--show-text);   }
+.badge-show       { background: var(--show-bg);   color: var(--show-text);   }
+.badge-experience { background: var(--exp-bg);    color: var(--exp-text);    }
 .badge-food      { background: var(--food-bg);   color: var(--food-text);   }
 .badge-character { background: var(--char-bg);   color: var(--char-text);   }
+
+/* Food-type variants — same warm palette family, subtly distinct so
+   Table-Service, Quick Service, and Snacks & Treats read at a glance */
+.badge-food-table { background: var(--thrill-bg); color: var(--thrill-text); }
+.badge-food-quick { background: var(--food-bg);   color: var(--food-text);   }
+.badge-food-snack { background: #fdeef5; color: #a83a6e; }
+@media (prefers-color-scheme: dark) {
+  .badge-food-snack { background: #2a121e; color: #f0a0c8; }
+}
 
 /* ── Notes ── */
 .notes-section { padding-bottom: 0; }
@@ -3214,8 +3344,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 18px;
-  padding-bottom: env(safe-area-inset-bottom);
+  padding: 0 18px env(safe-area-inset-bottom);
   z-index: 80;
 }
 
@@ -3285,7 +3414,12 @@ body {
 /* ── Responsive ── */
 @media (max-width: 480px) {
   .park-name { font-size: 24px; }
-  .brand-name { font-size: 20px; }
+  .brand-name { font-size: 26px; }
+}
+
+@media (max-width: 380px) {
+  .brand-name { font-size: 23px; }
+  .brand-icon { font-size: 24px; }
 }
 
 /* ── Focus styles (accessibility) ── */
