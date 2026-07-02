@@ -354,6 +354,11 @@ const RIDE_DETAILS = {
     tip: 'Morocco tends to be one of the quieter World Showcase pavilions, so this meet often has shorter waits than character spots elsewhere.',
     funFact: 'Morocco is the only World Showcase pavilion funded directly by its home country\'s government, which is part of why its tilework and architecture feel so authentic.'
   },
+  'ep-78': {
+    description: 'The host pavilion at the center of World Showcase, home to The American Adventure animatronic show, the Voices of Liberty a cappella group, and Regal Eagle Smokehouse.',
+    tip: 'Catch Voices of Liberty performing in the rotunda before the show — the acoustics under the dome are remarkable.',
+    funFact: 'The pavilion\'s colonial-style building uses forced perspective in reverse — it\'s actually five stories tall but designed to look like a modest three-story hall.'
+  },
   'ep-10': {
     description: 'A pavilion built around a Mesoamerican pyramid, housing the Gran Fiesta Tour ride, an indoor marketplace, and the Mexico Folk Art Gallery.',
     tip: 'La Cava del Tequila inside the pyramid is one of the most popular lounges in World Showcase — expect a wait for a table in the evening.',
@@ -748,9 +753,14 @@ const RIDE_DETAILS = {
     funFact: 'The show uses the Rivers of America itself as a stage, with performers, sets, and effects appearing directly on and around the water.'
   },
   'dl-15': {
-    description: 'A nostalgic nighttime parade featuring glowing, light-covered floats and classic Disney characters, dating back to the park\'s early decades.',
+    description: 'A high-energy nighttime parade with vibrant LED-covered floats, dancers, and classic Disney characters rolling down Main Street after dark.',
     tip: 'Only runs seasonally — check the app to see if it\'s currently scheduled before planning your evening around it.',
-    funFact: 'The parade first debuted in 1972 and has returned for limited seasonal runs multiple times since, each revival drawing crowds of longtime fans.'
+    funFact: 'Its floats use more than a million individually controllable LED lights — a modern successor to the classic Main Street Electrical Parade tradition.'
+  },
+  'dl-88': {
+    description: 'A nighttime spectacular on the Rivers of America blending fire effects, fountains, projections, and music into an after-dark story told across the water.',
+    tip: 'Staked-out spots along the Frontierland waterfront fill up early — arrive well before showtime or check the app for any viewing-area entry requirements.',
+    funFact: 'The Rivers of America has hosted Disneyland\'s water-based nighttime shows for decades, with each new production layering in more advanced effects than the last.'
   },
   'dl-16': {
     description: 'A fireworks show over Sleeping Beauty Castle combining pyrotechnics, music, and projection effects across the castle façade.',

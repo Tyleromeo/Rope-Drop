@@ -2272,10 +2272,13 @@ const TYPICAL_SHOWTIMES = {
   'ak-17': ['Continuous throughout the day — just walk up'],
   'ak-12': ['After dark — short looping projections until close, seasonal Nov–March'],
   'ak-21': ['10:30 AM', '12:30 PM', '2:30 PM', '4:30 PM'],
+  'ak-37': ['Multiple showtimes daily, check app'],
+  'hs-43': ['Multiple showtimes daily, check app'],
   'dl-13': ['Varies — typically nightly, check app'],
   'dl-44': ['Multiple showtimes daily, check app'],
   'dl-15': ['Seasonal — check app for current run dates and time'],
   'dl-16': ['Varies — usually one nightly show, check app'],
+  'dl-88': ['Evenings — check app for current schedule'],
   'dca-05': ['Varies — typically nightly, check app'],
   'dca-14': ['Continuous cavalcades throughout the day'],
   'dca-31': ['Multiple showtimes daily, check app'],
@@ -2354,14 +2357,14 @@ const PARKS = [
         name: 'Thrills',
         items: [
           { id: 'mk-13', land: 'Tomorrowland', name: 'TRON Lightcycle / Run', meta: 'Tomorrowland · 48" min height', badge: 'thrill' },
-          { id: 'mk-14', land: 'Frontierland', name: 'Splash Mountain → Tiana\'s Bayou Adventure', meta: 'Frontierland · 40" min height', badge: 'thrill' },
+          { id: 'mk-14', land: 'Frontierland', name: 'Tiana\'s Bayou Adventure', meta: 'Frontierland · 40" min height', badge: 'thrill' },
         ]
       },
       {
         name: 'Shows & experiences',
         items: [
           { id: 'mk-15', land: 'Main Street USA', name: 'Festival of Fantasy Parade', meta: 'Check My Disney Experience for times', badge: 'show' },
-          { id: 'mk-16', land: 'Main Street USA', name: 'Happily Ever After Fireworks', meta: 'Evenings — check schedule', badge: 'show' },
+          { id: 'mk-16', land: 'Main Street USA', name: 'Wondrous Journeys with Fireworks', meta: 'Evenings — check schedule', badge: 'show' },
           { id: 'mk-18', land: 'Main Street USA', name: 'Move It! Shake It! MousekeDance It! Street Party', meta: 'Main Street USA · check times', badge: 'experience' },
         ]
       },
@@ -2572,6 +2575,7 @@ const PARKS = [
           { id: 'ep-37', land: 'World Showcase (China)', name: 'China pavilion', meta: 'Reflections of China film & House of Good Fortune shop', badge: 'food' },
           { id: 'ep-38', land: 'World Showcase (Germany)', name: 'Germany pavilion', meta: 'Biergarten, model train display & toy shops', badge: 'food' },
           { id: 'ep-39', land: 'World Showcase (Italy)', name: 'Italy pavilion', meta: 'Tutto Italia, Tutto Gusto Wine Cellar & street performers', badge: 'food' },
+          { id: 'ep-78', land: 'World Showcase (United States)', name: 'United States pavilion', meta: 'The American Adventure show, Regal Eagle Smokehouse & Voices of Liberty', badge: 'food' },
           { id: 'ep-11', land: 'World Showcase (Japan)', name: 'Japan pavilion', meta: 'Mitsukoshi department store, koi ponds & sake bar', badge: 'food' },
           { id: 'ep-40', land: 'World Showcase (Morocco)', name: 'Morocco pavilion', meta: 'Intricate tilework, Spice Road Table & Jasmine meet', badge: 'food' },
           { id: 'ep-12', land: 'World Showcase (France)', name: 'France pavilion', meta: 'Remy\'s Ratatouille Adventure, Les Halles & Eiffel Tower view', badge: 'food' },
@@ -2773,7 +2777,8 @@ const PARKS = [
         name: 'Shows & experiences',
         items: [
           { id: 'dl-13', land: 'Frontierland', name: 'Fantasmic!', meta: 'Rivers of America · evenings, check schedule', badge: 'show' },
-          { id: 'dl-15', land: 'Main Street USA', name: 'Main Street Electrical Parade', meta: 'Check schedule — seasonal', badge: 'show' },
+          { id: 'dl-15', land: 'Main Street USA', name: 'Paint the Night Parade', meta: 'Check schedule — seasonal', badge: 'show' },
+          { id: 'dl-88', land: 'Frontierland', name: 'Fire of the Rising Moons', meta: 'Rivers of America · evening spectacular, check schedule', badge: 'show', status: 'new' },
           { id: 'dl-16', land: 'Main Street USA', name: 'Disneyland Forever Fireworks', meta: 'Check schedule', badge: 'show' },
           { id: 'dl-44', land: 'Fantasyland', name: "Bluey's Best Day Ever!", meta: 'Fantasyland Theatre · opened March 22, 2026', badge: 'show', status: 'new' },
           { id: 'dl-45', land: 'Main Street USA', name: 'Great Moments with Mr. Lincoln', meta: 'Main Street USA (Disneyland Story) · animatronic theater presentation', badge: 'show' },

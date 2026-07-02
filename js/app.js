@@ -641,10 +641,13 @@ function renderTodaysLog() {
     </div>
   `).join('');
 
+  // Total number of activities in today's list, shown right of the trip name
+  const totalToday = log.parkGroups.reduce((sum, g) => sum + g.entries.length, 0);
+
   return `
     <div class="todays-log">
       <div class="todays-log-header">
-        <span class="todays-log-title">📋 ${log.tripName}</span>
+        <span class="todays-log-title">📋 ${log.tripName}<span class="todays-log-count">${totalToday}</span></span>
         <span class="todays-log-date">${todayLabel}</span>
       </div>
       ${parkBlocks}
@@ -1626,13 +1629,19 @@ function toggleItem(id) {
     // Check for any badges newly crossed by this check-in — park tier
     // thresholds or a freshly-completed collection. Only fires on check
     // (not uncheck), so undoing a mistake never triggers a celebration.
-    const newBadges = getNewlyEarnedBadges();
-    if (newBadges.length > 0) {
-      markBadgesSeen(newBadges.map(b => b.id));
-      // Stack multiple celebrations if more than one badge was crossed
-      // in a single check (e.g. hitting both Silver and Gold at once
-      // because the park only had a couple of items left).
-      showBadgeCelebration(newBadges, 0);
+    // Wrapped in try/catch so a badge-computation hiccup can never break
+    // the core act of checking an item off.
+    try {
+      const newBadges = getNewlyEarnedBadges();
+      if (newBadges.length > 0) {
+        markBadgesSeen(newBadges);
+        // Stack multiple celebrations if more than one badge was crossed
+        // in a single check (e.g. hitting both Silver and Gold at once
+        // because the park only had a couple of items left).
+        showBadgeCelebration(newBadges, 0);
+      }
+    } catch (e) {
+      console.error('Badge check failed:', e);
     }
 
     // Check for any Coast to Coast ride pairs newly unlocked by this
@@ -1661,6 +1670,21 @@ function bumpCount(id, direction) {
   }
   renderNav();
   renderPark();
+
+  // The ride counter is the main road to the secret Legacy badges
+  // (10/25/50 lifetime times on one attraction), so newly crossed
+  // thresholds need to celebrate here too — not just on check-off.
+  if (direction > 0) {
+    try {
+      const newBadges = getNewlyEarnedBadges();
+      if (newBadges.length > 0) {
+        markBadgesSeen(newBadges);
+        showBadgeCelebration(newBadges, 0);
+      }
+    } catch (e) {
+      console.error('Badge check failed:', e);
+    }
+  }
 }
 
 function findItemById(id) {
@@ -3109,6 +3133,7 @@ function openBadgesModal(options = {}) {
     const isLifetime = badgeModalView === 'lifetime';
     const earnedPark = isLifetime ? getEarnedLifetimeParkBadges() : getEarnedParkBadges();
     const earnedCollection = isLifetime ? getEarnedLifetimeCollectionBadges() : getEarnedCollectionBadges();
+    const earnedLegacy = isLifetime ? getEarnedLegacyBadges() : [];
     const earnedIds = new Set([...earnedPark, ...earnedCollection].map(b => b.id));
     const earnedById = {};
     [...earnedPark, ...earnedCollection].forEach(b => { earnedById[b.id] = b; });
@@ -3192,7 +3217,36 @@ function openBadgesModal(options = {}) {
       `;
     }).join('');
 
-    const totalEarned = earnedPark.length + earnedCollection.length;
+    // Legacy badges — secret until unlocked. Only EARNED tiers render;
+    // locked ones are never listed, so the badge screen gives nothing
+    // away beyond a teaser line.
+    const legacyByItem = {};
+    earnedLegacy.forEach(b => { (legacyByItem[b.itemId] = legacyByItem[b.itemId] || []).push(b); });
+    const legacyRows = Object.values(legacyByItem).map(list => {
+      list.sort((a, b) => a.targetCount - b.targetCount);
+      const top = list[list.length - 1];
+      const tierCells = list.map(b => `
+        <button class="badge-cell badge-cell-earned" data-badge-id="${b.id}" title="${b.tierLabel} — ${b.targetCount}+ times">
+          <span class="badge-cell-icon-wrap">
+            <span class="badge-cell-emoji">🎖️</span>
+            <span class="badge-cell-ribbon">${b.tierEmoji}</span>
+          </span>
+          <span class="badge-cell-label">${b.tierLabel}</span>
+          ${b.earnedAt ? `<span class="badge-cell-date">${formatBadgeDate(b.earnedAt)}</span>` : ''}
+        </button>
+      `).join('');
+      return `
+        <div class="badge-park-row">
+          <div class="badge-park-row-header">
+            <span class="badge-park-name">${top.parkEmoji} ${top.itemName}</span>
+            <span class="badge-park-pct">done ${top.count}× lifetime</span>
+          </div>
+          <div class="badge-tier-row">${tierCells}</div>
+        </div>
+      `;
+    }).join('');
+
+    const totalEarned = earnedPark.length + earnedCollection.length + earnedLegacy.length;
     const scopeLabel = isLifetime ? 'lifetime badge' : 'trip badge';
     const helperText = isLifetime
       ? 'Lifetime Badges use every saved trip, so a park can be completed over multiple visits.'
@@ -3206,6 +3260,11 @@ function openBadgesModal(options = {}) {
         <div class="badge-section-heading">Collections</div>
         <div class="badge-collection-list">${collectionBadgeRows}</div>
       ` : ''}
+      ${isLifetime ? `
+        <div class="badge-section-heading">Legacy badges</div>
+        ${legacyRows ? `<div class="badge-park-list">${legacyRows}</div>` : ''}
+        <p class="badge-legacy-teaser">🤫 Secret badges earned through long-term dedication to a single ride or attraction. Keep going back to your favorites…</p>
+      ` : ''}
     `;
 
     overlay.querySelectorAll('.badge-cell-earned').forEach(btn => {
@@ -3216,6 +3275,7 @@ function openBadgesModal(options = {}) {
           ...getEarnedCollectionBadges(),
           ...getEarnedLifetimeParkBadges(),
           ...getEarnedLifetimeCollectionBadges(),
+          ...getEarnedLegacyBadges(),
         ];
         const badge = allEarned.find(b => b.id === badgeId);
         if (badge) shareBadgeImage(badge);
@@ -3271,17 +3331,22 @@ function showBadgeCelebration(badges, index) {
   overlay.className = 'badge-celebration-overlay';
 
   const isPark = badge.type === 'park' || badge.type === 'lifetime-park';
+  const isLegacy = badge.type === 'legacy';
   const isLifetime = badge.type && badge.type.startsWith('lifetime-');
   const isCollectionTier = badge.type === 'collection-tier' || badge.type === 'lifetime-collection-tier';
-  const mainEmoji = isPark ? badge.badgeIcon : badge.collectionEmoji;
-  const ribbonEmoji = (isPark || isCollectionTier) ? badge.tierEmoji : '';
+  const mainEmoji = isPark ? badge.badgeIcon : isLegacy ? '🎖️' : badge.collectionEmoji;
+  const ribbonEmoji = (isPark || isCollectionTier || isLegacy) ? badge.tierEmoji : '';
   const title = isPark
     ? `${isLifetime ? 'Lifetime ' : ''}${badge.tierLabel} — ${badge.parkName} Rides`
+    : isLegacy
+    ? `${badge.tierLabel} — ${badge.itemName}`
     : isCollectionTier
     ? `${isLifetime ? 'Lifetime ' : ''}${badge.tierLabel} — ${badge.collectionName}`
     : `${isLifetime ? 'Lifetime ' : ''}Collection Complete!`;
   const subtitle = isPark
     ? `${badge.pct}% of rides complete${isLifetime ? ' across all trips' : ''}`
+    : isLegacy
+    ? `Secret badge unlocked — done ${badge.targetCount}+ times across all your trips!`
     : isCollectionTier
     ? (badge.tier === 'gold' ? `Complete${isLifetime ? ' across all trips' : ''}!` : `${badge.doneCount} of ${badge.targetCount} complete`)
     : badge.collectionName;
@@ -3333,25 +3398,30 @@ async function shareBadgeImage(badge) {
 
 async function drawAndDeliverBadgeImage(badge) {
   const isPark = badge.type === 'park' || badge.type === 'lifetime-park';
+  const isLegacy = badge.type === 'legacy';
   const isLifetime = badge.type && badge.type.startsWith('lifetime-');
   const isCollectionTier = badge.type === 'collection-tier' || badge.type === 'lifetime-collection-tier';
-  const mainEmoji = isPark ? badge.badgeIcon : badge.collectionEmoji;
-  const ribbonEmoji = (isPark || isCollectionTier) ? badge.tierEmoji : '';
+  const mainEmoji = isPark ? badge.badgeIcon : isLegacy ? '🎖️' : badge.collectionEmoji;
+  const ribbonEmoji = (isPark || isCollectionTier || isLegacy) ? badge.tierEmoji : '';
   const title = isPark
     ? `${isLifetime ? 'Lifetime ' : ''}${badge.tierLabel} — ${badge.parkName} Rides`
+    : isLegacy
+    ? `${badge.tierLabel} — ${badge.itemName}`
     : isCollectionTier
     ? `${isLifetime ? 'Lifetime ' : ''}${badge.tierLabel} — ${badge.collectionName}`
     : `${isLifetime ? 'Lifetime ' : ''}Collection Complete!`;
   const subtitle = isPark
     ? `${badge.pct}% of rides complete${isLifetime ? ' across all trips' : ''}`
+    : isLegacy
+    ? `Done ${badge.targetCount}+ times across all trips`
     : isCollectionTier
     ? (badge.tier === 'gold' ? `Complete${isLifetime ? ' across all trips' : ''}!` : `${badge.doneCount} of ${badge.targetCount} complete`)
     : badge.collectionName;
   const dateLine = formatBadgeDate(badge.earnedAt);
-  const accentColor = isPark
+  const accentColor = (isPark || isCollectionTier)
     ? (badge.tier === 'gold' ? '#c9942b' : badge.tier === 'silver' ? '#8a8f99' : '#a3653a')
-    : isCollectionTier
-    ? (badge.tier === 'gold' ? '#c9942b' : badge.tier === 'silver' ? '#8a8f99' : '#a3653a')
+    : isLegacy
+    ? (badge.tier === 'legacy3' ? '#c9942b' : badge.tier === 'legacy2' ? '#8a8f99' : '#a3653a')
     : '#5b38b0';
 
   const SIZE = 1080; // square, Instagram/social-friendly

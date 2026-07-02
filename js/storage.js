@@ -1136,6 +1136,23 @@ const Storage = {
     return completed;
   },
 
+  // Total times each item has ever been done across ALL saved trips —
+  // one for being checked off, plus every extra logged on the ride
+  // counter. Powers the secret Legacy badges (10/25/50 lifetime times).
+  getLifetimeItemTimes() {
+    const times = {};
+    const allTripsData = this.getAllTripsData();
+    Object.values(allTripsData).forEach(tripData => {
+      const checks = tripData.checks || {};
+      const counts = tripData.counts || {};
+      Object.entries(checks).forEach(([itemId, isChecked]) => {
+        if (!isChecked) return;
+        times[itemId] = (times[itemId] || 0) + 1 + (counts[itemId] || 0);
+      });
+    });
+    return times;
+  },
+
   getLifetimeSongLog(itemId) {
     const allTripsData = this.getAllTripsData();
     const songs = [];

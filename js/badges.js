@@ -14,18 +14,60 @@ const PARK_BADGE_TIERS = [
 ];
 
 // Most collections earn a single badge at 100% completion (handled by
-// getEarnedCollectionBadges below). A small number of collections instead
-// use fixed count-based tiers — e.g. "Show Lover" rewards Bronze at 5
-// shows watched, Silver at 15, and Gold only once every permanent show
-// is checked off. Defined here by collection ID; anything not listed
-// here just uses the standard 100%-only badge.
-const TIERED_COLLECTION_CONFIG = {
-  'show-lover': [
-    { id: 'bronze', label: 'Bronze', count: 5, emoji: '🥉' },
-    { id: 'silver', label: 'Silver', count: 15, emoji: '🥈' },
-    { id: 'gold', label: 'Gold', count: null, emoji: '🏆' }, // null = "all of them"
-  ],
-};
+// getEarnedCollectionBadges below). Collections listed here instead use
+// fixed count-based tiers (Bronze/Silver/Gold at set item counts).
+// Currently empty — anything not listed uses the standard 100%-only badge.
+const TIERED_COLLECTION_CONFIG = {};
+
+// ── Legacy badges (secret) ──────────────────────────────────────────
+// Hidden until unlocked. Awarded per attraction for long-term dedication:
+// do the SAME ride, show, or attraction 10 / 25 / 50 times across every
+// saved trip (check-off + every extra on the ride counter). They never
+// appear in the badge list until earned — a genuine surprise unlock.
+const LEGACY_BADGE_TIERS = [
+  { id: 'legacy1', label: 'Legacy I',   count: 10, emoji: '🥉' },
+  { id: 'legacy2', label: 'Legacy II',  count: 25, emoji: '🥈' },
+  { id: 'legacy3', label: 'Legacy III', count: 50, emoji: '🥇' },
+];
+
+// Every Legacy badge earned across all trips. Legacy badges are lifetime
+// by nature (their whole point is long-term dedication), so their IDs are
+// prefixed 'lifetime_' — the seen-badges self-heal treats them as
+// permanent once celebrated.
+function getEarnedLegacyBadges() {
+  const earned = [];
+  const times = Storage.getLifetimeItemTimes();
+  const itemById = {};
+  PARKS.forEach(park => park.sections.forEach(s => s.items.forEach(i => {
+    itemById[i.id] = { item: i, park };
+  })));
+
+  Object.entries(times).forEach(([itemId, count]) => {
+    const entry = itemById[itemId];
+    if (!entry) return;
+    LEGACY_BADGE_TIERS.forEach(tier => {
+      if (count >= tier.count) {
+        const id = `lifetime_legacy_${itemId}_${tier.id}`;
+        recordBadgeDateIfNew(id);
+        earned.push({
+          id,
+          type: 'legacy',
+          scope: 'lifetime',
+          itemId,
+          itemName: entry.item.name,
+          parkEmoji: entry.park.emoji,
+          tier: tier.id,
+          tierLabel: tier.label,
+          tierEmoji: tier.emoji,
+          count,
+          targetCount: tier.count,
+          earnedAt: getBadgeDate(id),
+        });
+      }
+    });
+  });
+  return earned;
+}
 
 // Note: park badges use each park's own emoji (the same one shown on
 // the main page and park nav), not a separate badge-specific icon set —
@@ -233,6 +275,7 @@ function getAllEarnedBadges() {
     ...getEarnedCollectionBadges(),
     ...getEarnedLifetimeParkBadges(),
     ...getEarnedLifetimeCollectionBadges(),
+    ...getEarnedLegacyBadges(),
   ];
 }
 
@@ -241,7 +284,7 @@ function getAllEarnedBadges() {
 // intentionally not part of trip data since it's a "have I seen this"
 // flag, not trip progress itself). Returns any badges that are newly
 // earned since the last check, so the caller can pop a celebration.
-const SEEN_BADGES_KEY = 'rd_seen_badges_v1';
+const SEEN_BADGES_KEY = 'rd_seen_badges_v2';
 
 function getSeenBadgeIds() {
   try {
@@ -251,16 +294,47 @@ function getSeenBadgeIds() {
   }
 }
 
-function markBadgesSeen(badgeIds) {
+// Trip badges are scoped to the trip that earned them ("tripId|badgeId"),
+// so earning the same badge on a different trip celebrates again. Lifetime
+// badges are global by nature and keep their plain ID.
+function scopedSeenKey(badge) {
+  const isLifetime = badge.scope === 'lifetime' || (badge.type || '').startsWith('lifetime');
+  return isLifetime ? badge.id : `${Storage.getActiveTripId()}|${badge.id}`;
+}
+
+function markBadgesSeen(badges) {
   const seen = getSeenBadgeIds();
-  badgeIds.forEach(id => seen.add(id));
+  badges.forEach(b => seen.add(typeof b === 'string' ? b : scopedSeenKey(b)));
   localStorage.setItem(SEEN_BADGES_KEY, JSON.stringify([...seen]));
 }
 
 function getNewlyEarnedBadges() {
-  const seen = getSeenBadgeIds();
   const current = getAllEarnedBadges();
-  return current.filter(b => !seen.has(b.id));
+  const currentKeys = new Set(current.map(b => scopedSeenKey(b)));
+  const seen = getSeenBadgeIds();
+
+  // Self-heal the seen list so celebrations can never be permanently
+  // suppressed by stale state:
+  //  - lifetime badge keys are permanent once seen
+  //  - this trip's scoped keys are kept only while the badge is still
+  //    earned (a park reset or a data update that un-earns a badge lets
+  //    it celebrate again when re-earned)
+  //  - other trips' scoped keys are left untouched
+  //  - anything else (legacy unscoped trip IDs from the old v1 format)
+  //    is dropped, so already-earned badges celebrate once after updating
+  const tripPrefix = `${Storage.getActiveTripId()}|`;
+  const cleaned = [...seen].filter(key => {
+    if (key.startsWith('lifetime_')) return true;
+    if (key.startsWith(tripPrefix)) return currentKeys.has(key);
+    if (key.includes('|')) return true;
+    return false;
+  });
+  if (cleaned.length !== seen.size) {
+    localStorage.setItem(SEEN_BADGES_KEY, JSON.stringify(cleaned));
+  }
+
+  const cleanedSet = new Set(cleaned);
+  return current.filter(b => !cleanedSet.has(scopedSeenKey(b)));
 }
 
 // Formats a badge's earnedAt timestamp for display, e.g. "Jun 29, 2026".

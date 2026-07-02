@@ -11,21 +11,8 @@ const PREBUILT_COLLECTIONS = [
     resortId: 'wdw',
     name: 'Nighttime Spectaculars',
     emoji: '🌙',
-    description: "Walt Disney World's three regularly-scheduled nighttime shows — Happily Ever After, Luminous, and Fantasmic! Animal Kingdom doesn't run fireworks out of consideration for the animals.",
+    description: "Walt Disney World's three regularly-scheduled nighttime shows — Wondrous Journeys with Fireworks, Luminous, and Fantasmic! Animal Kingdom doesn't run fireworks out of consideration for the animals.",
     itemIds: ['mk-16', 'ep-15', 'hs-10'],
-  },
-  {
-    id: 'wdw-show-lover',
-    resortId: 'wdw',
-    name: 'Show Lover',
-    emoji: '🎭',
-    description: 'Every permanent live show and nighttime spectacular at Walt Disney World — parades, stage shows, and the big nighttime trio.',
-    itemIds: [
-      'mk-15', 'mk-16', 'mk-17', 'mk-18', 'mk-57', 'mk-58', 'mk-59', 'mk-60', 'mk-61',
-      'hs-09', 'hs-10', 'hs-12', 'hs-21', 'hs-22', 'hs-23',
-      'ep-15', 'ep-23', 'ep-24', 'ep-25', 'ep-26', 'ep-27', 'ep-28', 'ep-29',
-      'ak-08', 'ak-12', 'ak-17', 'ak-21',
-    ],
   },
   {
     id: 'wdw-mountains',
@@ -52,14 +39,6 @@ const PREBUILT_COLLECTIONS = [
     itemIds: ['mk-01', 'mk-04', 'mk-05', 'mk-13', 'mk-50', 'hs-03', 'hs-05', 'ep-01', 'ak-03'],
   },
   {
-    id: 'wdw-classic-fantasyland-dark-rides',
-    resortId: 'wdw',
-    name: 'Disney World Fantasyland Dark Rides',
-    emoji: '🏰',
-    description: 'The classic storybook-style Fantasyland dark rides at Magic Kingdom.',
-    itemIds: ['mk-06', 'mk-09', 'mk-12', 'mk-46'],
-  },
-  {
     id: 'cosmic-rewind-mixtape',
     name: 'Cosmic Rewind Mixtape',
     emoji: '🎵',
@@ -82,24 +61,8 @@ const PREBUILT_COLLECTIONS = [
     resortId: 'wdw',
     name: 'Every Country in EPCOT',
     emoji: '🌍',
-    description: 'Visit all 11 World Showcase pavilions in one trip.',
-    itemIds: ['ep-10', 'ep-36', 'ep-37', 'ep-38', 'ep-39', 'ep-11', 'ep-40', 'ep-12', 'ep-13', 'ep-14'],
-  },
-  {
-    id: 'wdw-character-meets',
-    resortId: 'wdw',
-    name: 'Disney World Character Meet & Greets',
-    emoji: '👋',
-    description: 'Every dedicated character meet-and-greet currently tracked at Walt Disney World.',
-    itemIds: ['mk-19', 'mk-20', 'mk-21', 'ep-30', 'ep-31', 'ep-32', 'ep-33', 'ep-34', 'ep-35', 'ak-22'],
-  },
-  {
-    id: 'wdw-must-eat-snacks',
-    resortId: 'wdw',
-    name: 'Disney World Must-Eat Snacks',
-    emoji: '🍦',
-    description: 'The iconic Walt Disney World park snacks people plan entire days around.',
-    itemIds: ['mk-22', 'ep-16', 'hs-16', 'ak-13'],
+    description: 'Visit all 11 World Showcase pavilions in one trip — starting in Mexico and heading clockwise around the lagoon.',
+    itemIds: ['ep-10', 'ep-36', 'ep-37', 'ep-38', 'ep-39', 'ep-78', 'ep-11', 'ep-40', 'ep-12', 'ep-13', 'ep-14'],
   },
 
   // ── Disneyland Resort collections ─────────────────────────────────────
@@ -108,8 +71,8 @@ const PREBUILT_COLLECTIONS = [
     resortId: 'dlr',
     name: 'Disneyland Nighttime Spectaculars',
     emoji: '🌙',
-    description: 'The big evening entertainment across Disneyland Resort.',
-    itemIds: ['dl-13', 'dl-15', 'dl-16', 'dca-05'],
+    description: 'The five big evening spectaculars across Disneyland Resort — Fantasmic!, Paint the Night, Disneyland Forever, Fire of the Rising Moons, and World of Color.',
+    itemIds: ['dl-13', 'dl-15', 'dl-16', 'dl-88', 'dca-05'],
   },
   {
     id: 'dlr-mountains',
@@ -125,7 +88,7 @@ const PREBUILT_COLLECTIONS = [
     name: 'Disneyland Thrill Rides',
     emoji: '⚡',
     description: 'The biggest thrills across Disneyland Park and Disney California Adventure.',
-    itemIds: ['dl-01', 'dl-03', 'dl-06', 'dl-08', 'dl-09', 'dl-12', 'dca-01', 'dca-02', 'dca-04', 'dca-07', 'dca-08', 'dca-24'],
+    itemIds: ['dl-01', 'dl-03', 'dl-06', 'dl-08', 'dl-09', 'dl-12', 'dl-43', 'dca-01', 'dca-02', 'dca-04', 'dca-07', 'dca-08'],
   },
   {
     id: 'dlr-coasters',
@@ -150,14 +113,6 @@ const PREBUILT_COLLECTIONS = [
     emoji: '⭐',
     description: 'Opening-day Disneyland attractions from 1955 that are still represented in the park today.',
     itemIds: ['dl-35', 'dl-11', 'dl-33', 'dl-27', 'dl-28', 'dl-23', 'dl-10', 'dl-24', 'dl-37', 'dl-36'],
-  },
-  {
-    id: 'dlr-must-eat-snacks',
-    resortId: 'dlr',
-    name: 'Disneyland Must-Eat Snacks',
-    emoji: '🍦',
-    description: 'The iconic Disneyland Resort snacks people plan entire days around.',
-    itemIds: ['dl-18', 'dl-19', 'dl-20', 'dl-21', 'dca-16'],
   },
 ];
 
